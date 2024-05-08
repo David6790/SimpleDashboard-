@@ -1,9 +1,7 @@
+import Routeur from "./Routing/Routeur";
+
 function App() {
-  return (
-    <div className="App">
-      <h1 className=" text-3xl text-red-500 font-sans">Hello world</h1>
-    </div>
-  );
+  return <Routeur />;
 }
 
 export default App;
