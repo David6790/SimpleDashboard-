@@ -1,28 +1,17 @@
 import { useState } from "react";
 import { useGetReservationsQuery } from "../services/reservations";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
+import Pagination from "./Pagination";
 
 export default function PreviewTableDashboard() {
   const { data: reservations, error, isLoading } = useGetReservationsQuery();
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
 
   // Calcul pour la pagination
+  const itemsPerPage = 10;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = reservations.slice(indexOfFirstItem, indexOfLastItem);
-
-  // Changer de page
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
   const totalItems = reservations.length;
-  const pageNumbers = [];
-
-  const totalPage = Math.ceil(totalItems / itemsPerPage);
-
-  for (let i = 1; i <= Math.ceil(totalItems / itemsPerPage); i++) {
-    pageNumbers.push(i);
-  }
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 mt-10">
@@ -133,47 +122,12 @@ export default function PreviewTableDashboard() {
             ))}
           </tbody>
         </table>
-        <div className="px-4 sm:px-6 lg:px-8 mt-10 flex justify-center">
-          <div className=" flex items-center justify-center  bg-white px-4 py-3 sm:px-6">
-            <button
-              onClick={() =>
-                setCurrentPage((currentPage) => Math.max(1, currentPage - 1))
-              }
-              disabled={currentPage === 1}
-              className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
-            </button>
-            {pageNumbers.map((number) => (
-              <button
-                key={number}
-                onClick={() => setCurrentPage(number)}
-                className={`mx-1 px-4 py-2 text-sm font-medium ${
-                  currentPage === number
-                    ? "bg-indigo-600 text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                {number}
-              </button>
-            ))}
-            <button
-              onClick={() =>
-                setCurrentPage((currentPage) =>
-                  Math.min(totalPage, currentPage + 1)
-                )
-              }
-              disabled={currentPage === totalPage}
-              className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-        <div className="text-sm text-gray-700 m-auto   text-center">
-          Affichage de {indexOfFirstItem + 1} à{" "}
-          {Math.min(indexOfLastItem, totalItems)} sur {totalItems} résultats
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+        />
       </div>
     </div>
   );
