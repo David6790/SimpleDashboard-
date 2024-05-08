@@ -10,8 +10,10 @@ export default function PreviewTableDashboard() {
   const itemsPerPage = 10;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = reservations.slice(indexOfFirstItem, indexOfLastItem);
-  const totalItems = reservations.length;
+  const currentItems = reservations
+    ? reservations.slice(indexOfFirstItem, indexOfLastItem)
+    : null;
+  const totalItems = reservations ? reservations.length : 0;
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 mt-10">
@@ -79,47 +81,52 @@ export default function PreviewTableDashboard() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">
-            {currentItems.map((reservation) => (
-              <tr key={crypto.randomUUID()}>
-                <td className="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-0">
-                  {reservation.client.name + " " + reservation.client.prenom}
-                  <dl className="font-normal lg:hidden">
-                    {" "}
-                    {/* Assurez-vous que ces détails ne sont visibles que sur les petits écrans */}
-                    <dt className="sr-only">Date</dt>
-                    <dd className="mt-1 truncate text-gray-700">
-                      {new Date(reservation.dateResa).toLocaleDateString()}
-                    </dd>
-                    <dt className="sr-only">Heure</dt>
-                    <dd className="mt-1 truncate text-gray-500">
-                      {reservation.timeResa.slice(0, -3)}
-                    </dd>
-                  </dl>
-                </td>
-                <td className="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                  {new Date(reservation.dateResa).toLocaleDateString()}
-                </td>
-                <td className="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                  {reservation.timeResa}
-                </td>
-                <td className="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">
-                  {reservation.numberOfGuest}
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-500">
-                  {reservation.client.telephone}
-                </td>
-                <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
-                  <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                    Active
-                  </span>
-                </td>
-                <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                  <a href="#" className="text-indigo-600 hover:text-indigo-900">
-                    Edit<span className="sr-only">, {reservation.name}</span>
-                  </a>
-                </td>
-              </tr>
-            ))}
+            {currentItems &&
+              currentItems.map((reservation) => (
+                <tr key={crypto.randomUUID()}>
+                  <td className="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-0">
+                    {reservation.client.name + " " + reservation.client.prenom}
+                    <dl className="font-normal lg:hidden">
+                      {" "}
+                      {/* Assurez-vous que ces détails ne sont visibles que sur les petits écrans */}
+                      <dt className="sr-only">Date</dt>
+                      <dd className="mt-1 truncate text-gray-700">
+                        {new Date(reservation.dateResa).toLocaleDateString()}
+                      </dd>
+                      <dt className="sr-only">Heure</dt>
+                      <dd className="mt-1 truncate text-gray-500">
+                        {reservation.timeResa.slice(0, -3)}
+                      </dd>
+                    </dl>
+                  </td>
+                  <td className="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">
+                    {new Date(reservation.dateResa).toLocaleDateString()}
+                  </td>
+                  <td className="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">
+                    {reservation.timeResa}
+                  </td>
+                  <td className="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">
+                    {reservation.numberOfGuest}
+                  </td>
+                  <td className="px-3 py-4 text-sm text-gray-500">
+                    {reservation.client.telephone}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
+                    <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                      Active
+                    </span>
+                  </td>
+                  <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                    <a
+                      href="google.com"
+                      className="text-indigo-600 hover:text-indigo-900"
+                    >
+                      Edit
+                      <span className="sr-only">, {reservation.name}</span>
+                    </a>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
         <Pagination
