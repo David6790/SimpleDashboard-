@@ -3,7 +3,7 @@ import { useGetReservationsQuery } from "../services/reservations";
 import Pagination from "./Pagination";
 
 export default function PreviewTableDashboard() {
-  const { data: reservations, error, isLoading } = useGetReservationsQuery();
+  const { data: reservations } = useGetReservationsQuery();
   const [currentPage, setCurrentPage] = useState(1);
 
   // Calcul pour la pagination
