@@ -12,10 +12,16 @@ export const reservationsApi = createApi({
     getMenuDuJour: builder.query({
       query: () => "MenuDuJour", // Correspond à l'URI de votre nouvelle route API
     }),
+    getReservationsByDate: builder.query({
+      query: (date) => `Reservations/byDate/${date}`,
+    }),
   }),
 });
 
 // Export des hooks pour utilisation dans vos composants
-export const { useGetReservationsQuery, useGetMenuDuJourQuery } =
-  reservationsApi;
+export const {
+  useGetReservationsQuery,
+  useGetMenuDuJourQuery,
+  useGetReservationsByDateQuery,
+} = reservationsApi;
 export default reservationsApi;
