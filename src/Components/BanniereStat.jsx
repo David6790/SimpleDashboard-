@@ -1,16 +1,36 @@
-export default function BanniereStat() {
-  const today = new Date();
+import React from "react";
 
-  const formattedDate = today.toLocaleDateString("fr-FR", {
+export default function BanniereStat({ reservations, selectedDate }) {
+  const formattedDate = selectedDate.toLocaleDateString("fr-FR", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
   });
 
+  // Calcul des statistiques
+  const totalGuests = reservations
+    ? reservations.reduce(
+        (acc, reservation) => acc + reservation.numberOfGuest,
+        0
+      )
+    : 0;
+
+  const totalGuestsMidi = reservations
+    ? reservations
+        .filter((reservation) => reservation.timeResa <= "14:00")
+        .reduce((acc, reservation) => acc + reservation.numberOfGuest, 0)
+    : 0;
+
+  const totalGuestsSoir = reservations
+    ? reservations
+        .filter((reservation) => reservation.timeResa >= "19:00")
+        .reduce((acc, reservation) => acc + reservation.numberOfGuest, 0)
+    : 0;
+
   return (
     <div className="mt-5 mx-8 mb-20">
-      <h3 className=" text-lg font-semibold leading-6 text-gray-900 mb-10 ">
+      <h3 className="text-lg font-semibold leading-6 text-gray-900 mb-10">
         {formattedDate.toUpperCase()}
       </h3>
       <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
@@ -19,7 +39,7 @@ export default function BanniereStat() {
             Nombre de couverts à midi
           </dt>
           <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
-            37
+            {totalGuestsMidi}
           </dd>
         </div>
         <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
@@ -27,7 +47,7 @@ export default function BanniereStat() {
             Nombre de couverts le soir
           </dt>
           <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
-            70
+            {totalGuestsSoir}
           </dd>
         </div>
         <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
@@ -35,7 +55,7 @@ export default function BanniereStat() {
             Nombre de couverts la journée
           </dt>
           <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
-            107
+            {totalGuests}
           </dd>
         </div>
       </dl>

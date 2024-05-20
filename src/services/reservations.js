@@ -14,6 +14,7 @@ export const reservationsApi = createApi({
     }),
     getReservationsByDate: builder.query({
       query: (date) => `Reservations/byDate/${date}`,
+      keepUnusedDataFor: 1440,
     }),
   }),
 });
