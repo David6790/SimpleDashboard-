@@ -30,7 +30,7 @@ export default function MenuDuJour() {
         </h3>
         <p className="mt-1 text-sm text-gray-500">
           {`Du ${menu && formatDateNoWeek(menu[0].date)} au ${
-            menu && formatDateNoWeek(menu[4].date)
+            menu && formatDateNoWeek(menu[0].date)
           }`}
         </p>
       </div>
