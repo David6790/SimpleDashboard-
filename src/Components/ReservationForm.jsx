@@ -4,24 +4,30 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import "react-phone-number-input/style.css"; // Importer seulement le style de base
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import axios from "axios";
 import TimeSlotSelector from "./TimeSlotSelector";
+import OccStatusDisplay from "./OccStatusDisplay";
+import ValidationMessage from "./ValidationMessage"; // Importer le composant de validation
 
 import {
   validateEmail,
   validateNumberOfPeople,
   validateDate,
 } from "./ValidationSaisie";
-import OccStatusDisplay from "./OccStatusDisplay";
+import { NavLink } from "react-router-dom";
 
 export default function ReservationForm() {
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [prenom, setPrenom] = useState("");
   const [numberOfGuests, setNumberOfGuests] = useState("");
   const [comment, setComment] = useState("");
   const [errors, setErrors] = useState({});
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [occStatus, setOccStatus] = useState("");
+  const [submitMessage, setSubmitMessage] = useState(""); // État pour les messages de soumission
 
   const handleDateChange = (date) => {
     const formattedDate = format(date, "yyyy-MM-dd");
@@ -39,9 +45,8 @@ export default function ReservationForm() {
   const handleEmailChange = (event) => {
     const { value } = event.target; // Récupération de la valeur depuis l'événement
     setEmail(value);
-    const error = validateEmail(value)
-      ? ""
-      : "L'adresse email n'est pas valide.";
+    const error =
+      value && !validateEmail(value) ? "L'adresse email n'est pas valide." : "";
     setErrors((prev) => ({ ...prev, email: error }));
   };
 
@@ -56,14 +61,13 @@ export default function ReservationForm() {
 
   const handleChange = (value) => {
     setPhone(value);
-    if (value && !isValidPhoneNumber(value)) {
-      setErrors((errors) => ({
-        ...errors,
-        phone: "Le numéro de téléphone n'est pas valide.",
-      }));
-    } else {
-      setErrors((errors) => ({ ...errors, phone: null }));
-    }
+    const error =
+      value && !isValidPhoneNumber(value)
+        ? "Le numéro de téléphone n'est pas valide."
+        : value === ""
+        ? "Le numéro de téléphone ne peut pas être vide."
+        : "";
+    setErrors((prev) => ({ ...prev, phone: error }));
   };
 
   const handleCommentChange = (event) => {
@@ -78,8 +82,120 @@ export default function ReservationForm() {
     }
   };
 
+  const handleNameChange = (event) => {
+    const { value } = event.target;
+    setName(value);
+    const error = value.trim() === "" ? "Le nom ne peut pas être vide." : "";
+    setErrors((prev) => ({ ...prev, name: error }));
+  };
+
+  const handlePrenomChange = (event) => {
+    const { value } = event.target;
+    setPrenom(value);
+    const error = value.trim() === "" ? "Le prénom ne peut pas être vide." : "";
+    setErrors((prev) => ({ ...prev, prenom: error }));
+  };
+
   const handleTimeSlotChange = (event) => {
     setSelectedTimeSlot(event.target.value);
+    const error =
+      event.target.value === ""
+        ? "Le créneau horaire ne peut pas être vide."
+        : "";
+    setErrors((prev) => ({ ...prev, timeSlot: error }));
+  };
+
+  console.log(selectedTimeSlot);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    // Validate all fields
+    const formErrors = {
+      email:
+        email && !validateEmail(email)
+          ? "L'adresse email n'est pas valide."
+          : "",
+      numberOfGuests: validateNumberOfPeople(numberOfGuests)
+        ? ""
+        : "Le nombre de personnes doit être un entier positif et non nul.",
+      phone: phone
+        ? phone.trim() === ""
+          ? "Le numéro de téléphone ne peut pas être vide."
+          : ""
+        : "Le numéro de téléphone ne peut pas être vide.",
+      date: validateDate(startDate)
+        ? ""
+        : "La date doit être aujourd'hui ou dans le futur.",
+      name: name.trim() === "" ? "Le nom ne peut pas être vide." : "",
+      prenom: prenom.trim() === "" ? "Le prénom ne peut pas être vide." : "",
+      timeSlot:
+        selectedTimeSlot === ""
+          ? "Le créneau horaire ne peut pas être vide."
+          : "",
+    };
+
+    if (Object.values(formErrors).some((error) => error)) {
+      setErrors(formErrors);
+      return;
+    }
+
+    try {
+      const reservation = {
+        dateResa: startDate,
+        timeResa: selectedTimeSlot,
+        numberOfGuest: numberOfGuests.toString(),
+        comment: comment,
+        clientName: name,
+        clientPrenom: prenom,
+        clientTelephone: phone,
+        clientEmail: email,
+      };
+
+      console.log(reservation);
+
+      const response = await axios.post(
+        "https://localhost:7268/api/Reservations",
+        reservation,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const reservationDetails = `
+        <div>
+          <p class="font-bold text-lg">Réservation réussie ! Voici les détails de la réservation :</p>
+          <ul class="list-none list-inside space-y-2">
+            <li><span class="font-bold">Date :</span> ${response.data.dateResa}</li>
+            <li><span class="font-bold">Heure :</span> ${response.data.timeResa}</li>
+            <li><span class="font-bold">Nombre de personnes :</span> ${response.data.numberOfGuest}</li>
+            <li><span class="font-bold">Nom :</span> ${response.data.client.name}</li>
+            <li><span class="font-bold">Prénom :</span> ${response.data.client.prenom}</li>
+            <li><span class="font-bold">Téléphone :</span> ${response.data.client.telephone}</li>
+            <li><span class="font-bold">Email :</span> ${response.data.client.email}</li>
+            <li><span class="font-bold">Commentaire :</span> ${response.data.comment}</li>
+          </ul>
+          <p>Pensez à placer la réservation sur le plan de salle !</p>
+        </div>
+      `;
+
+      setSubmitMessage(reservationDetails);
+
+      // Réinitialiser le formulaire après la soumission réussie
+      setStartDate(format(new Date(), "yyyy-MM-dd"));
+      setPhone("");
+      setEmail("");
+      setName("");
+      setPrenom("");
+      setNumberOfGuests("");
+      setComment("");
+      setSelectedTimeSlot("");
+      setErrors({});
+      setOccStatus("");
+    } catch (error) {
+      setSubmitMessage("Erreur lors de la réservation. Veuillez réessayer.");
+    }
   };
 
   return (
@@ -91,9 +207,13 @@ export default function ReservationForm() {
           </h2>
 
           <OccStatusDisplay status={occStatus} />
+          {submitMessage && <ValidationMessage message={submitMessage} />}
         </div>
 
-        <form className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2">
+        <form
+          className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2"
+          onSubmit={handleSubmit}
+        >
           <div className="px-4 py-6 sm:p-8">
             <div className="col-span-full mb-5">
               <h1 className="block text-sm font-medium leading-6 text-gray-900 mb-2">
@@ -107,6 +227,7 @@ export default function ReservationForm() {
                 showYearDropdown // Montrer le menu déroulant des années (optionnel)
                 scrollableMonthYearDropdown
                 className="block w-full px-3 py-2 mt-1 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                required
               />
               {errors.date && <div style={{ color: "red" }}>{errors.date}</div>}
             </div>
@@ -124,8 +245,14 @@ export default function ReservationForm() {
                     name="first-name"
                     id="first-name"
                     autoComplete="given-name"
+                    value={name}
+                    onChange={handleNameChange}
+                    required
                     className="block w-full px-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
+                  {errors.name && (
+                    <div style={{ color: "red" }}>{errors.name}</div>
+                  )}
                 </div>
               </div>
 
@@ -139,11 +266,17 @@ export default function ReservationForm() {
                 <div className="mt-2">
                   <input
                     type="text"
+                    required
                     name="last-name"
                     id="last-name"
+                    value={prenom}
+                    onChange={handlePrenomChange}
                     autoComplete="family-name"
                     className="block w-full px-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
+                  {errors.prenom && (
+                    <div style={{ color: "red" }}>{errors.prenom}</div>
+                  )}
                 </div>
               </div>
 
@@ -152,7 +285,13 @@ export default function ReservationForm() {
                 selectedTimeSlot={selectedTimeSlot}
                 onTimeSlotChange={handleTimeSlotChange}
                 setOccStatus={setOccStatus} // Passer la fonction de mise à jour
+                required
               />
+              {errors.timeSlot && (
+                <div className="sm:col-span-6" style={{ color: "red" }}>
+                  {errors.timeSlot}
+                </div>
+              )}
 
               <div className="sm:col-span-4">
                 <label
@@ -207,6 +346,7 @@ export default function ReservationForm() {
                     name="numberOfGuest"
                     type="text"
                     value={numberOfGuests}
+                    required
                     onChange={handleNumberOfGuestsChange}
                     className="px-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
@@ -241,12 +381,14 @@ export default function ReservationForm() {
             </div>
           </div>
           <div className="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
-            <button
-              type="button"
-              className="text-sm font-semibold leading-6 text-gray-900"
-            >
-              Annuler
-            </button>
+            <NavLink to={"/"}>
+              <button
+                type="button"
+                className="text-sm font-semibold leading-6 text-gray-900"
+              >
+                Annuler
+              </button>
+            </NavLink>
             <button
               type="submit"
               className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
