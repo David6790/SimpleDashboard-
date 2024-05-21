@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "../Layouts/Layout";
 import SectionHeading from "../Components/SectionHeading";
 import PreviewTableDashboard from "../Components/PreviewTableDashboard";
@@ -8,9 +8,11 @@ import { useGetReservationsByDateQuery } from "../services/reservations";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const formattedDate = format(selectedDate, "yyyy-MM-dd");
 
@@ -19,6 +21,16 @@ const Dashboard = () => {
     isError,
     error,
   } = useGetReservationsByDateQuery(formattedDate);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const redirect = params.get("redirect");
+    const date = params.get("date");
+    if (redirect === "true" && date) {
+      setSelectedDate(new Date(date));
+      navigate("/", { replace: true });
+    }
+  }, [location, navigate]);
 
   return (
     <Layout>
@@ -33,7 +45,6 @@ const Dashboard = () => {
               selected={selectedDate}
               onChange={(date) => setSelectedDate(date)}
               dateFormat="dd/MM/yyyy"
-              minDate={new Date()}
               className="mt-2 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
             <p className="mt-2 text-sm text-gray-700">

@@ -1,16 +1,12 @@
 import { useState } from "react";
-import DatePicker from "react-datepicker";
+
 import "react-datepicker/dist/react-datepicker.css";
 import Pagination from "./Pagination";
-import { format } from "date-fns";
-import { NavLink } from "react-router-dom";
 
 export default function PreviewTableDashboard({
   reservations,
   isError,
   error,
-  selectedDate,
-  setSelectedDate,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -84,7 +80,7 @@ export default function PreviewTableDashboard({
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
               {currentItems.map((reservation) => (
-                <tr key={crypto.randomUUID()}>
+                <tr key={reservation.id}>
                   <td className="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-0">
                     {reservation.client.name + " " + reservation.client.prenom}
                     <dl className="font-normal lg:hidden">

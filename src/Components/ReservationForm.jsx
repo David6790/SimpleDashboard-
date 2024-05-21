@@ -2,21 +2,23 @@ import { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
-import "react-phone-number-input/style.css"; // Importer seulement le style de base
+import "react-phone-number-input/style.css";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
-import axios from "axios";
 import TimeSlotSelector from "./TimeSlotSelector";
 import OccStatusDisplay from "./OccStatusDisplay";
-import ValidationMessage from "./ValidationMessage"; // Importer le composant de validation
-
+import ValidationMessage from "./ValidationMessage";
+import { useCreateReservationMutation } from "../services/reservations";
 import {
   validateEmail,
   validateNumberOfPeople,
   validateDate,
 } from "./ValidationSaisie";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 export default function ReservationForm() {
+  const navigate = useNavigate();
+  const [createReservation, { isLoading }] = useCreateReservationMutation();
+
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -27,7 +29,8 @@ export default function ReservationForm() {
   const [errors, setErrors] = useState({});
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [occStatus, setOccStatus] = useState("");
-  const [submitMessage, setSubmitMessage] = useState(""); // État pour les messages de soumission
+  const [submitMessage, setSubmitMessage] = useState("");
+  const [reservationDetails, setReservationDetails] = useState(null); // État pour les détails de la réservation
 
   const handleDateChange = (date) => {
     const formattedDate = format(date, "yyyy-MM-dd");
@@ -43,7 +46,7 @@ export default function ReservationForm() {
   };
 
   const handleEmailChange = (event) => {
-    const { value } = event.target; // Récupération de la valeur depuis l'événement
+    const { value } = event.target;
     setEmail(value);
     const error =
       value && !validateEmail(value) ? "L'adresse email n'est pas valide." : "";
@@ -51,7 +54,7 @@ export default function ReservationForm() {
   };
 
   const handleNumberOfGuestsChange = (event) => {
-    const number = event.target.value; // Récupération de la valeur depuis l'événement
+    const number = event.target.value;
     setNumberOfGuests(number);
     const error = validateNumberOfPeople(number)
       ? ""
@@ -105,11 +108,8 @@ export default function ReservationForm() {
     setErrors((prev) => ({ ...prev, timeSlot: error }));
   };
 
-  console.log(selectedTimeSlot);
-
   const handleSubmit = async (event) => {
     event.preventDefault();
-    // Validate all fields
     const formErrors = {
       email:
         email && !validateEmail(email)
@@ -151,36 +151,9 @@ export default function ReservationForm() {
         clientEmail: email,
       };
 
-      console.log(reservation);
+      await createReservation(reservation).unwrap();
 
-      const response = await axios.post(
-        "https://localhost:7268/api/Reservations",
-        reservation,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const reservationDetails = `
-        <div>
-          <p class="font-bold text-lg">Réservation réussie ! Voici les détails de la réservation :</p>
-          <ul class="list-none list-inside space-y-2">
-            <li><span class="font-bold">Date :</span> ${response.data.dateResa}</li>
-            <li><span class="font-bold">Heure :</span> ${response.data.timeResa}</li>
-            <li><span class="font-bold">Nombre de personnes :</span> ${response.data.numberOfGuest}</li>
-            <li><span class="font-bold">Nom :</span> ${response.data.client.name}</li>
-            <li><span class="font-bold">Prénom :</span> ${response.data.client.prenom}</li>
-            <li><span class="font-bold">Téléphone :</span> ${response.data.client.telephone}</li>
-            <li><span class="font-bold">Email :</span> ${response.data.client.email}</li>
-            <li><span class="font-bold">Commentaire :</span> ${response.data.comment}</li>
-          </ul>
-          <p>Pensez à placer la réservation sur le plan de salle !</p>
-        </div>
-      `;
-
-      setSubmitMessage(reservationDetails);
+      setReservationDetails(reservation);
 
       // Réinitialiser le formulaire après la soumission réussie
       setStartDate(format(new Date(), "yyyy-MM-dd"));
@@ -198,6 +171,10 @@ export default function ReservationForm() {
     }
   };
 
+  const handlePlaceTable = () => {
+    navigate(`/?redirect=true&date=${reservationDetails.dateResa}`);
+  };
+
   return (
     <div className="space-y-10 divide-y divide-gray-900/10">
       <div className="grid grid-cols-1 gap-x-8 gap-y-8 pt-10 md:grid-cols-3">
@@ -208,6 +185,55 @@ export default function ReservationForm() {
 
           <OccStatusDisplay status={occStatus} />
           {submitMessage && <ValidationMessage message={submitMessage} />}
+          {reservationDetails && (
+            <div>
+              <div className="mt-4 p-4 bg-green-100 text-green-700 rounded-md">
+                <p className="font-bold text-lg">
+                  Réservation réussie ! Voici les détails de la réservation :
+                </p>
+                <ul className="list-none list-inside space-y-2 mt-4">
+                  <li>
+                    <span className="font-bold">Date :</span>{" "}
+                    {reservationDetails.dateResa}
+                  </li>
+                  <li>
+                    <span className="font-bold">Heure :</span>{" "}
+                    {reservationDetails.timeResa}
+                  </li>
+                  <li>
+                    <span className="font-bold">Nombre de personnes :</span>{" "}
+                    {reservationDetails.numberOfGuest}
+                  </li>
+                  <li>
+                    <span className="font-bold">Nom :</span>{" "}
+                    {reservationDetails.clientName}
+                  </li>
+                  <li>
+                    <span className="font-bold">Prénom :</span>{" "}
+                    {reservationDetails.clientPrenom}
+                  </li>
+                  <li>
+                    <span className="font-bold">Téléphone :</span>{" "}
+                    {reservationDetails.clientTelephone}
+                  </li>
+                  <li>
+                    <span className="font-bold">Email :</span>{" "}
+                    {reservationDetails.clientEmail}
+                  </li>
+                  <li>
+                    <span className="font-bold">Commentaire :</span>{" "}
+                    {reservationDetails.comment}
+                  </li>
+                </ul>
+                <button
+                  onClick={handlePlaceTable}
+                  className="mt-6 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                >
+                  Placer la table
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <form
@@ -223,8 +249,8 @@ export default function ReservationForm() {
                 selected={new Date(startDate)}
                 onChange={handleDateChange}
                 dateFormat="dd/MM/yyyy"
-                minDate={new Date()} // Définir une date minimum (optionnel)
-                showYearDropdown // Montrer le menu déroulant des années (optionnel)
+                minDate={new Date()}
+                showYearDropdown
                 scrollableMonthYearDropdown
                 className="block w-full px-3 py-2 mt-1 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 required
@@ -284,7 +310,7 @@ export default function ReservationForm() {
                 date={startDate}
                 selectedTimeSlot={selectedTimeSlot}
                 onTimeSlotChange={handleTimeSlotChange}
-                setOccStatus={setOccStatus} // Passer la fonction de mise à jour
+                setOccStatus={setOccStatus}
                 required
               />
               {errors.timeSlot && (
