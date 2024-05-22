@@ -1,7 +1,7 @@
 import { useState } from "react";
-
 import "react-datepicker/dist/react-datepicker.css";
 import Pagination from "./Pagination";
+import ReservationSlideOver from "./ReservationSlideOver";
 
 export default function PreviewTableDashboard({
   reservations,
@@ -9,6 +9,8 @@ export default function PreviewTableDashboard({
   error,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState(null);
 
   // Calcul pour la pagination
   const itemsPerPage = 10;
@@ -18,6 +20,16 @@ export default function PreviewTableDashboard({
     ? reservations.slice(indexOfFirstItem, indexOfLastItem)
     : null;
   const totalItems = reservations ? reservations.length : 0;
+
+  const openSlideOver = (reservation) => {
+    setSelectedReservation(reservation);
+    setIsSlideOverOpen(true);
+  };
+
+  const closeSlideOver = () => {
+    setIsSlideOverOpen(false);
+    setSelectedReservation(null);
+  };
 
   return (
     <div className="-mx-4 mt-8 sm:-mx-0">
@@ -73,6 +85,12 @@ export default function PreviewTableDashboard({
                 >
                   Status
                 </th>
+                <th
+                  scope="col"
+                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                >
+                  Placée
+                </th>
                 <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
                   <span className="sr-only">Edit</span>
                 </th>
@@ -80,7 +98,11 @@ export default function PreviewTableDashboard({
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
               {currentItems.map((reservation) => (
-                <tr key={reservation.id}>
+                <tr
+                  key={reservation.id}
+                  className="cursor-pointer transition-colors duration-200 hover:bg-gray-100"
+                  onClick={() => openSlideOver(reservation)}
+                >
                   <td className="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-0">
                     {reservation.client.name + " " + reservation.client.prenom}
                     <dl className="font-normal lg:hidden">
@@ -107,9 +129,26 @@ export default function PreviewTableDashboard({
                     {reservation.client.telephone}
                   </td>
                   <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
-                    <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                      Active
-                    </span>
+                    {reservation.status === "P" ? (
+                      <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                        Pending
+                      </span>
+                    ) : reservation.status === "V" ? (
+                      <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                        Validée
+                      </span>
+                    ) : null}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
+                    {reservation.placed === "N" ? (
+                      <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                        NON
+                      </span>
+                    ) : reservation.placed === "O" ? (
+                      <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                        OUI
+                      </span>
+                    ) : null}
                   </td>
                   <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                     <a
@@ -132,6 +171,12 @@ export default function PreviewTableDashboard({
           />
         </>
       )}
+
+      <ReservationSlideOver
+        isOpen={isSlideOverOpen}
+        onClose={closeSlideOver}
+        reservation={selectedReservation}
+      />
     </div>
   );
 }
