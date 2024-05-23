@@ -25,6 +25,14 @@ export const reservationsApi = createApi({
       }),
       invalidatesTags: ["Reservations"],
     }),
+    updateReservation: builder.mutation({
+      query: ({ id, ...updatedReservation }) => ({
+        url: `Reservations/${id}`,
+        method: "PUT",
+        body: updatedReservation,
+      }),
+      invalidatesTags: ["Reservations"],
+    }),
   }),
 });
 
@@ -33,5 +41,6 @@ export const {
   useGetMenuDuJourQuery,
   useGetReservationsByDateQuery,
   useCreateReservationMutation,
+  useUpdateReservationMutation, // Ajoutez ceci pour utiliser le hook de mise à jour
 } = reservationsApi;
 export default reservationsApi;

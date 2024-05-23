@@ -17,6 +17,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 
 export default function ReservationForm() {
   const navigate = useNavigate();
+  // eslint-disable-next-line
   const [createReservation, { isLoading }] = useCreateReservationMutation();
 
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -149,6 +150,7 @@ export default function ReservationForm() {
         clientPrenom: prenom,
         clientTelephone: phone,
         clientEmail: email,
+        occupationStatusOnBook: occStatus,
       };
 
       await createReservation(reservation).unwrap();

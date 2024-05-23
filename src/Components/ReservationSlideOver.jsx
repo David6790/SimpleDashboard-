@@ -2,10 +2,20 @@ import React, { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
+function formatTimestamp(dateString) {
+  const options = {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+  };
+  return new Date(dateString).toLocaleDateString("fr-FR", options);
+}
+
 function ReservationSlideOver({ isOpen, onClose, reservation }) {
   return (
     <Transition.Root show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={onClose}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-in-out duration-500"
@@ -15,10 +25,10 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" />
         </Transition.Child>
 
-        <div className="fixed inset-0 overflow-hidden">
+        <div className="fixed inset-0 overflow-hidden z-50">
           <div className="absolute inset-0 overflow-hidden">
             <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
               <Transition.Child
@@ -31,10 +41,10 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                 leaveTo="translate-x-full"
               >
                 <Dialog.Panel className="pointer-events-auto w-screen max-w-md">
-                  <div className="flex h-full flex-col overflow-y-scroll bg-white py-6 shadow-xl">
+                  <div className="flex h-full flex-col overflow-y-scroll bg-white py-6 shadow-xl rounded-l-lg">
                     <div className="px-4 sm:px-6">
                       <div className="flex items-start justify-between">
-                        <Dialog.Title className="text-base font-semibold leading-6 text-gray-900">
+                        <Dialog.Title className="text-lg font-semibold leading-6 text-gray-900">
                           Détails de la réservation
                         </Dialog.Title>
                         <div className="ml-3 flex h-7 items-center">
@@ -50,56 +60,108 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                         </div>
                       </div>
                     </div>
-                    <div className="relative mt-6 flex-1 px-4 sm:px-6">
+                    <div className="relative mt-6 flex-1 px-4 sm:px-6 space-y-4">
                       {reservation && (
-                        <div>
-                          <p className="mb-2">
-                            <strong>Nom:</strong> {reservation.client.name}{" "}
-                            {reservation.client.prenom}
-                          </p>
-                          <p className="mb-2">
-                            <strong>Téléphone:</strong>{" "}
-                            {reservation.client.telephone}
-                          </p>
-                          <p className="mb-2">
-                            <strong>Email:</strong> {reservation.client.email}
-                          </p>
-                          <p className="mb-2">
-                            <strong>Date:</strong>{" "}
-                            {new Date(
-                              reservation.dateResa
-                            ).toLocaleDateString()}
-                          </p>
-                          <p className="mb-2">
-                            <strong>Heure:</strong> {reservation.timeResa}
-                          </p>
-                          <p className="mb-2">
-                            <strong>Nombre de couverts:</strong>{" "}
-                            {reservation.numberOfGuest}
-                          </p>
-                          <p className="mb-2">
-                            <strong>Commentaire:</strong>{" "}
-                            {reservation.comment || "N/A"}
-                          </p>
-                          <p className="mb-2">
-                            <strong>Status:</strong>{" "}
-                            {reservation.status === "P" ? "Pending" : "Validée"}
-                          </p>
-                          <p className="mb-2">
-                            <strong>Placée:</strong>{" "}
-                            {reservation.placed === "N" ? "NON" : "OUI"}
-                          </p>
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 p-4 rounded-lg shadow">
+                            <h3 className="text-md font-medium text-indigo-600">
+                              Client
+                            </h3>
+                            <p className="text-sm text-gray-700">
+                              <strong>Nom:</strong> {reservation.client.name}{" "}
+                              {reservation.client.prenom}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Téléphone:</strong>{" "}
+                              {reservation.client.telephone}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Email:</strong> {reservation.client.email}
+                            </p>
+                          </div>
+
+                          <div className="bg-gray-50 p-4 rounded-lg shadow">
+                            <h3 className="text-md font-medium text-indigo-600">
+                              Réservation
+                            </h3>
+                            <p className="text-sm text-gray-700">
+                              <strong>Date de réservation:</strong>{" "}
+                              {new Date(
+                                reservation.dateResa
+                              ).toLocaleDateString()}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Heure:</strong> {reservation.timeResa}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Nombre de couverts:</strong>{" "}
+                              {reservation.numberOfGuest}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Commentaire:</strong>{" "}
+                              {reservation.comment || "N/A"}
+                            </p>
+                          </div>
+
+                          <div className="bg-gray-50 p-4 rounded-lg shadow">
+                            <h3 className="text-md font-medium text-indigo-600">
+                              Statut
+                            </h3>
+                            <p className="text-sm text-gray-700">
+                              <strong>Status:</strong>{" "}
+                              {reservation.status === "P"
+                                ? "Pending"
+                                : "Validée"}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Placée:</strong>{" "}
+                              {reservation.placed === "N" ? "NON" : "OUI"}
+                            </p>
+                          </div>
+
+                          <div className="bg-gray-50 p-4 rounded-lg shadow">
+                            <h3 className="text-md font-medium text-indigo-600">
+                              Informations supplémentaires
+                            </h3>
+                            <p className="text-sm text-gray-700">
+                              <strong>Créée le:</strong>{" "}
+                              {formatTimestamp(reservation.creaTimeStamp)}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Modifiée le:</strong>{" "}
+                              {reservation.updateTimeStamp ===
+                              reservation.creaTimeStamp
+                                ? "Pas de modification"
+                                : formatTimestamp(reservation.updateTimeStamp)}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Créé par:</strong> {reservation.createdBy}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Modifié par:</strong>{" "}
+                              {reservation.updatedBy}
+                            </p>
+                          </div>
+
+                          <div className="bg-gray-50 p-4 rounded-lg shadow">
+                            <h3 className="text-md font-medium text-indigo-600">
+                              Détails techniques
+                            </h3>
+                            <p className="text-sm text-gray-700">
+                              <strong>Occupation Status on Book:</strong>{" "}
+                              {reservation.occupationStatusOnBook}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Free Table 21:</strong>{" "}
+                              {reservation.freeTable21}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Power User:</strong>{" "}
+                              {reservation.isPowerUser}
+                            </p>
+                          </div>
                         </div>
                       )}
-                    </div>
-                    <div className="px-4 sm:px-6 py-3 flex justify-end">
-                      <button
-                        type="button"
-                        className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        onClick={onClose}
-                      >
-                        Fermer
-                      </button>
                     </div>
                   </div>
                 </Dialog.Panel>
