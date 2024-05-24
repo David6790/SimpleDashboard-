@@ -1,6 +1,7 @@
 import React, { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 
 function formatTimestamp(dateString) {
   const options = {
@@ -13,6 +14,12 @@ function formatTimestamp(dateString) {
 }
 
 function ReservationSlideOver({ isOpen, onClose, reservation }) {
+  const navigate = useNavigate();
+
+  const handleEditReservation = () => {
+    navigate("/reservation-update", { state: { reservation } });
+  };
+
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -159,6 +166,15 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                               <strong>Power User:</strong>{" "}
                               {reservation.isPowerUser}
                             </p>
+                          </div>
+
+                          <div className="bg-gray-50 p-4 rounded-lg shadow">
+                            <button
+                              onClick={handleEditReservation}
+                              className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
+                            >
+                              Modifier la réservation
+                            </button>
                           </div>
                         </div>
                       )}
