@@ -2,15 +2,14 @@ import { Fragment, useState } from "react";
 import { Dialog, Menu, Transition } from "@headlessui/react";
 import {
   Bars3Icon,
-  BellIcon,
   CalendarIcon,
   ChartPieIcon,
   Cog6ToothIcon,
   DocumentDuplicateIcon,
-  FolderIcon,
   HomeIcon,
   UsersIcon,
   XMarkIcon,
+  CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
 import {
   ChevronDownIcon,
@@ -29,7 +28,12 @@ const navigation = [
     icon: UsersIcon,
     current: false,
   },
-  { name: "Projects", href: "/avenir", icon: FolderIcon, current: false },
+  {
+    name: "Gestion Occupation",
+    href: "/admin-occstat",
+    icon: CalendarDaysIcon,
+    current: false,
+  },
   { name: "Calendar", href: "/avenir2", icon: CalendarIcon, current: false },
   {
     name: "Documents",
@@ -189,8 +193,7 @@ export default function Layout({ children }) {
                           </ul>
                         </li>
                         <li className="mt-auto">
-                          <a
-                            href="#"
+                          <button
                             onClick={handleSignOut}
                             className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
                           >
@@ -199,7 +202,7 @@ export default function Layout({ children }) {
                               aria-hidden="true"
                             />
                             Sign out
-                          </a>
+                          </button>
                         </li>
                       </ul>
                     </nav>

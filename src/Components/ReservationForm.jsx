@@ -14,17 +14,11 @@ import {
   validateDate,
 } from "./ValidationSaisie";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
 
 export default function ReservationForm() {
   const navigate = useNavigate();
   // eslint-disable-next-line
   const [createReservation, { isLoading }] = useCreateReservationMutation();
-
-  const location = useLocation();
-  const reservation = location.state?.reservation;
-
-  console.log(reservation);
 
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [phone, setPhone] = useState("");

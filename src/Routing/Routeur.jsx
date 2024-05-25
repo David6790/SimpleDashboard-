@@ -6,12 +6,11 @@ import Dashboard from "../pages/Dashboard";
 import ReservationPage from "../pages/ReservationPage";
 import UpdateResaForm from "../Components/UpdateResaForm";
 import SignIn from "../Components/SignIn";
+import AccessDeniedPage from "../pages/AccessDeniedPage";
 import { setUser } from "../slices/userSlice";
-
-const ProtectedRoute = ({ element: Component }) => {
-  const user = useSelector((state) => state.user);
-  return user ? <Component /> : <Navigate to="/sign-in" />;
-};
+import UserProtectedRoute from "./UserProtectedRoute"; // Assurez-vous d'importer correctement
+import RoleProtectedRoute from "./RoleProtectedRoute"; // Assurez-vous d'importer correctement
+import OccStatusManagement from "../pages/OccStatusManagement";
 
 const Routeur = () => {
   const dispatch = useDispatch();
@@ -39,16 +38,37 @@ const Routeur = () => {
         />
         <Route
           path="/reservation-page"
-          element={<ProtectedRoute element={ReservationPage} />}
+          element={<UserProtectedRoute element={ReservationPage} />}
         />
         <Route
           path="/reservation-update"
-          element={<ProtectedRoute element={UpdateResaForm} />}
+          element={<UserProtectedRoute element={UpdateResaForm} />}
         />
         <Route
           path="/sign-in"
           element={user ? <Navigate to="/" /> : <SignIn />}
         />
+        {/* Utilisez RoleProtectedRoute pour les routes qui nécessitent des rôles spécifiques */}
+        <Route
+          path="/manager-dashboard"
+          element={
+            <RoleProtectedRoute
+              element={Dashboard}
+              allowedRoles={["manager", "admin"]}
+            />
+          }
+        />
+        <Route
+          path="/admin-occstat"
+          element={
+            <RoleProtectedRoute
+              element={OccStatusManagement}
+              allowedRoles={["ADMIN"]}
+            />
+          }
+        />
+        {/* Ajouter la route pour la page Access Denied */}
+        <Route path="/access-denied" element={<AccessDeniedPage />} />
       </Routes>
     </BrowserRouter>
   );
