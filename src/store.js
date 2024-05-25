@@ -1,13 +1,20 @@
 // store.js
 import { configureStore } from "@reduxjs/toolkit";
-import { reservationsApi } from "./services/reservations"; // Nous allons créer ce service ensuite
+import { reservationsApi } from "./services/reservations";
+import { authApi } from "./services/authApi"; // Import authApi
+import userReducer from "./slices/userSlice"; // Import userSlice
 
 export const store = configureStore({
   reducer: {
-    // Ajoutez les reducers de l'API ici
     [reservationsApi.reducerPath]: reservationsApi.reducer,
+    [authApi.reducerPath]: authApi.reducer, // Ajouter le réducteur authApi
+    user: userReducer, // Ajouter le réducteur userSlice
   },
-  // Ajout du middleware nécessaire pour RTK Query
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(reservationsApi.middleware),
+    getDefaultMiddleware().concat(
+      reservationsApi.middleware,
+      authApi.middleware
+    ),
 });
+
+export default store;
