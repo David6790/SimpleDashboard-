@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import {
   Menu,
   MenuButton,
@@ -65,6 +67,7 @@ function classNames(...classes) {
 
 export default function Example() {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [filterDate, setFilterDate] = useState(null);
   const {
     data: occupationStatuses = [],
     error,
@@ -106,9 +109,21 @@ export default function Example() {
       setSelectedStatus(null);
       setErrorMessage("");
     } catch (error) {
-      console.error("Échec de l'ajout du statut d'occupation:", error);
-      setErrorMessage("Échec de l'ajout du statut d'occupation");
+      if (error.status === 409) {
+        const conflictDate = new Date(error.data.occupations[0].dateOfEffect);
+        setFilterDate(conflictDate);
+        setErrorMessage("Statut d'occupation déjà configuré pour cette date.");
+      } else {
+        console.error("Échec de l'ajout du statut d'occupation:", error);
+        setErrorMessage("Échec de l'ajout du statut d'occupation");
+      }
     }
+  };
+
+  const handleCancelAdd = () => {
+    setIsAddingStatus(false);
+    setSelectedStatus(null);
+    setErrorMessage("");
   };
 
   const handleDelete = async (id) => {
@@ -118,6 +133,7 @@ export default function Example() {
         `Statut d'occupation '${deletedStatus.occStatus}' supprimé pour la date '${deletedStatus.dateOfEffect}'`
       );
       setDeletingStatusId(null);
+      setFilterDate(null);
     } catch (error) {
       console.error("Échec de la suppression du statut d'occupation:", error);
       alert("Échec de la suppression du statut d'occupation");
@@ -151,6 +167,10 @@ export default function Example() {
       setEditingStatusId(null);
       setNewStatus(null);
       setErrorMessage("");
+
+      setTimeout(() => {
+        setFilterDate(null);
+      }, 3000);
     } catch (error) {
       console.error("Échec de la mise à jour du statut d'occupation:", error);
       setErrorMessage("Échec de la mise à jour du statut d'occupation");
@@ -164,8 +184,16 @@ export default function Example() {
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading occupation statuses</div>;
 
+  // Filtrer les occupationStatuses par date
+  const filteredOccupationStatuses = filterDate
+    ? occupationStatuses.filter(
+        (status) =>
+          formatDate(new Date(status.dateOfEffect)) === formatDate(filterDate)
+      )
+    : occupationStatuses;
+
   // Trier les occupationStatuses par date d'effet
-  const sortedOccupationStatuses = occupationStatuses
+  const sortedOccupationStatuses = filteredOccupationStatuses
     .slice()
     .sort((a, b) => new Date(a.dateOfEffect) - new Date(b.dateOfEffect));
 
@@ -176,8 +204,29 @@ export default function Example() {
         <h2 className="text-base font-semibold leading-6 text-gray-900">
           Les statuts d'occupation déjà paramétrés :
         </h2>
+        <div className="mb-1 mt-10">
+          <label
+            htmlFor="filter-date"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Filtrer par date
+          </label>
+          <DatePicker
+            selected={filterDate}
+            onChange={(date) => setFilterDate(date)}
+            dateFormat="yyyy-MM-dd"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            placeholderText="Sélectionner une date"
+          />
+          <span
+            className="ml-5 text-sm font-medium text-gray-700 underline cursor-pointer"
+            onClick={() => setFilterDate(null)}
+          >
+            Afficher tout
+          </span>
+        </div>
         <div className="lg:grid lg:grid-cols-12 lg:gap-x-16">
-          <div className="mt-10 text-center lg:col-start-8 lg:col-end-13 lg:row-start-1 lg:mt-9 xl:col-start-9">
+          <div className="mt-5 text-center lg:col-start-8 lg:col-end-13 lg:row-start-1 lg:mt-9 xl:col-start-9">
             <div className="mt-6 w-full max-w-sm mx-auto">
               <Calendar
                 selectedDate={selectedDate}
@@ -263,13 +312,22 @@ export default function Example() {
                   {errorMessage && (
                     <p className="text-red-500 mt-2">{errorMessage}</p>
                   )}
-                  <button
-                    type="button"
-                    onClick={handleConfirm}
-                    className="mt-8 w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                  >
-                    Confirmer
-                  </button>
+                  <div className="mt-8 flex justify-evenly">
+                    <button
+                      type="button"
+                      onClick={handleConfirm}
+                      className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-1/3"
+                    >
+                      Confirmer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelAdd}
+                      className="rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600 w-1/3"
+                    >
+                      Annuler
+                    </button>
+                  </div>
                 </>
               ) : (
                 <button
