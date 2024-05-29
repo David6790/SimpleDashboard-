@@ -46,7 +46,7 @@ const occStatusInstructions = {
     "Client ayant réservé à 19h sont informés qu'ils doivent libérer la table à 21h.",
   Complet: "Restaurant complet. Aucune réservation possible pour cette date",
   MidiComplet:
-    "Midi complet, sont réservable uniquement les réservations du soir",
+    "Midi complet, sont réservables uniquement les réservations du soir",
 };
 
 const occStatusOptions = [

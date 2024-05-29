@@ -14,6 +14,7 @@ import {
   validateDate,
 } from "./ValidationSaisie";
 import { NavLink, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 export default function ReservationForm() {
   const navigate = useNavigate();
@@ -32,6 +33,8 @@ export default function ReservationForm() {
   const [occStatus, setOccStatus] = useState("");
   const [submitMessage, setSubmitMessage] = useState("");
   const [reservationDetails, setReservationDetails] = useState(null); // État pour les détails de la réservation
+
+  const user = useSelector((state) => state.user);
 
   const handleDateChange = (date) => {
     const formattedDate = format(date, "yyyy-MM-dd");
@@ -151,6 +154,7 @@ export default function ReservationForm() {
         clientTelephone: phone,
         clientEmail: email,
         occupationStatusOnBook: occStatus,
+        createdBy: user.username,
       };
 
       await createReservation(reservation).unwrap();

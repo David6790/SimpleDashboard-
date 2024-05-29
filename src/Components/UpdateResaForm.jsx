@@ -12,6 +12,7 @@ import { validateNumberOfPeople, validateDate } from "./ValidationSaisie";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import Layout from "../Layouts/Layout";
+import { useSelector } from "react-redux";
 
 export default function UpdateResaForm() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ export default function UpdateResaForm() {
   const resa = location.state?.reservation;
 
   const [updateReservation, { isLoading }] = useUpdateReservationMutation();
+  const user = useSelector((state) => state.user.username);
 
   const [startDate, setStartDate] = useState(
     format(new Date(resa.dateResa), "yyyy-MM-dd")
@@ -123,13 +125,14 @@ export default function UpdateResaForm() {
         numberOfGuest: numberOfGuests.toString(),
         comment: comment,
         occupationStatusOnBook: occStatus,
-        createdBy: "string",
+        createdBy: resa.createdBy,
         freeTable21: resa.freeTable21,
         placed: resa.placed,
         clientName: resa.client.name,
         clientPrenom: resa.client.prenom,
         clientTelephone: resa.client.telephone,
         clientEmail: resa.client.email,
+        updatedBy: user,
       };
 
       const response = await updateReservation({

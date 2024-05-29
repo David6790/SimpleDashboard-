@@ -8,6 +8,8 @@ const occStatusMessages = {
     "Le premier service du restaurant est complet ce soir. Les réservations ne sont disponibles qu'à partir de 21h. Merci d'en tenir compte'.",
   Complet:
     "Le restaurant est complet pour ce soir. Nous ne pouvons accepter de nouvelles réservations. Décliner toutes nouvelles réservations avec politesse.",
+  MidiComplet:
+    "Le restaurant est complet pour ce midi. Les clients peuvent tout de même réserver pour le soir",
 };
 
 export default occStatusMessages;

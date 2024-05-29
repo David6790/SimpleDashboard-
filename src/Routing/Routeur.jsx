@@ -11,6 +11,7 @@ import { setUser } from "../slices/userSlice";
 import UserProtectedRoute from "./UserProtectedRoute"; // Assurez-vous d'importer correctement
 import RoleProtectedRoute from "./RoleProtectedRoute"; // Assurez-vous d'importer correctement
 import OccStatusManagement from "../pages/OccStatusManagement";
+import PlanDeSalle from "../pages/PlanDeSalle";
 
 const Routeur = () => {
   const dispatch = useDispatch();
@@ -40,6 +41,7 @@ const Routeur = () => {
           path="/reservation-page"
           element={<UserProtectedRoute element={ReservationPage} />}
         />
+        <Route path="/plan" element={<PlanDeSalle />} />
         <Route
           path="/reservation-update"
           element={<UserProtectedRoute element={UpdateResaForm} />}

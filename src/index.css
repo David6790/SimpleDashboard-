@@ -84,3 +84,19 @@
   font-size: 1rem;
   line-height: 1.5;
 }
+
+.table {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.table-large {
+  width: 150px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
