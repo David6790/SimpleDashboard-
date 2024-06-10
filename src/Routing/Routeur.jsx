@@ -71,6 +71,7 @@ const Routeur = () => {
         />
         {/* Ajouter la route pour la page Access Denied */}
         <Route path="/access-denied" element={<AccessDeniedPage />} />
+        <Route path="/plansalle" element={<PlanDeSalle />} />
       </Routes>
     </BrowserRouter>
   );

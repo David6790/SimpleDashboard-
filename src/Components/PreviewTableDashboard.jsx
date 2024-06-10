@@ -2,6 +2,8 @@ import { useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import Pagination from "./Pagination";
 import ReservationSlideOver from "./ReservationSlideOver";
+import Modal from "react-modal";
+import ModalPlan from "../pages/ModalPlan";
 
 export default function PreviewTableDashboard({
   reservations,
@@ -11,6 +13,7 @@ export default function PreviewTableDashboard({
   const [currentPage, setCurrentPage] = useState(1);
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Calcul pour la pagination
   const itemsPerPage = 10;
@@ -29,6 +32,14 @@ export default function PreviewTableDashboard({
   const closeSlideOver = () => {
     setIsSlideOverOpen(false);
     setSelectedReservation(null);
+  };
+
+  const handlePlaceTableClick = (reservation, e) => {
+    e.stopPropagation();
+    if (reservation.placed === "N") {
+      setSelectedReservation(reservation);
+      setIsModalOpen(true);
+    }
   };
 
   return (
@@ -92,7 +103,7 @@ export default function PreviewTableDashboard({
                   Placée
                 </th>
                 <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
-                  <span className="sr-only">Edit</span>
+                  <span className="sr-only">Action</span>
                 </th>
               </tr>
             </thead>
@@ -151,13 +162,18 @@ export default function PreviewTableDashboard({
                     ) : null}
                   </td>
                   <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                    <a
-                      href="google.com"
-                      className="text-indigo-600 hover:text-indigo-900"
+                    <button
+                      className={`px-4 py-2 rounded-md text-sm font-medium ${
+                        reservation.placed === "N"
+                          ? "bg-green-50 text-green-700 hover:bg-green-100"
+                          : "bg-red-50 text-red-700 hover:bg-red-100"
+                      }`}
+                      onClick={(e) => handlePlaceTableClick(reservation, e)}
                     >
-                      Edit
-                      <span className="sr-only">, {reservation.name}</span>
-                    </a>
+                      {reservation.placed === "N"
+                        ? "Placer la table"
+                        : "Retirer du plan"}
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -177,6 +193,24 @@ export default function PreviewTableDashboard({
         onClose={closeSlideOver}
         reservation={selectedReservation}
       />
+
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={() => setIsModalOpen(false)}
+        className="fixed inset-10 bg-white p-4 overflow-auto rounded-md shadow-lg outline-none flex flex-col z-50"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-40"
+      >
+        <button
+          className="self-end bg-red-500 text-white px-4 py-2 rounded mb-4"
+          onClick={() => setIsModalOpen(false)}
+        >
+          Fermer
+        </button>
+        <ModalPlan
+          reservation={selectedReservation} // Pass the selected reservation
+          closeModal={() => setIsModalOpen(false)}
+        />
+      </Modal>
     </div>
   );
 }

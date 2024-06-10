@@ -100,3 +100,6 @@
   align-items: center;
   justify-content: center;
 }
+.multi-table-highlight {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
