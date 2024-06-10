@@ -89,17 +89,10 @@
   width: 100px;
   height: 100px;
   display: flex;
-  align-items: center;
+  align-items: end;
   justify-content: center;
 }
 
-.table-large {
-  width: 150px;
-  height: 150px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 .multi-table-highlight {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
