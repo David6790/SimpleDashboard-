@@ -17,6 +17,11 @@ export const reservationsApi = createApi({
       keepUnusedDataFor: 1440,
       providesTags: ["Reservations"],
     }),
+    getFuturReservations: builder.query({
+      query: () => "Reservations/futur",
+      keepUnusedDataFor: 1440,
+      providesTags: ["Reservations"],
+    }),
     createReservation: builder.mutation({
       query: (newReservation) => ({
         url: "Reservations",
@@ -41,6 +46,7 @@ export const {
   useGetMenuDuJourQuery,
   useGetReservationsByDateQuery,
   useCreateReservationMutation,
-  useUpdateReservationMutation, // Ajoutez ceci pour utiliser le hook de mise à jour
+  useUpdateReservationMutation,
+  useGetFuturReservationsQuery,
 } = reservationsApi;
 export default reservationsApi;

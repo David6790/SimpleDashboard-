@@ -12,6 +12,7 @@ import UserProtectedRoute from "./UserProtectedRoute"; // Assurez-vous d'importe
 import RoleProtectedRoute from "./RoleProtectedRoute"; // Assurez-vous d'importer correctement
 import OccStatusManagement from "../pages/OccStatusManagement";
 import PlanDeSalle from "../pages/PlanDeSalle";
+import StockComplet from "../pages/StockComplet";
 
 const Routeur = () => {
   const dispatch = useDispatch();
@@ -65,6 +66,15 @@ const Routeur = () => {
           element={
             <RoleProtectedRoute
               element={OccStatusManagement}
+              allowedRoles={["ADMIN"]}
+            />
+          }
+        />
+        <Route
+          path="/admin-stockComplet"
+          element={
+            <RoleProtectedRoute
+              element={StockComplet}
               allowedRoles={["ADMIN"]}
             />
           }

@@ -10,6 +10,7 @@ import {
   UsersIcon,
   XMarkIcon,
   CalendarDaysIcon,
+  CircleStackIcon,
 } from "@heroicons/react/24/outline";
 import {
   ChevronDownIcon,
@@ -32,6 +33,12 @@ const navigation = [
     name: "Gestion Occupation",
     href: "/admin-occstat",
     icon: CalendarDaysIcon,
+    current: false,
+  },
+  {
+    name: "Stock Complet",
+    href: "/admin-stockComplet",
+    icon: CircleStackIcon,
     current: false,
   },
   { name: "Calendar", href: "/avenir2", icon: CalendarIcon, current: false },

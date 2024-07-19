@@ -89,8 +89,19 @@ export default function Example() {
     const currentDate = new Date();
     const formattedDate = formatDate(selectedDate);
 
-    if (selectedDate < currentDate) {
+    // Reset the time portion of both dates
+    const resetTime = (date) => {
+      const newDate = new Date(date);
+      newDate.setHours(0, 0, 0, 0);
+      return newDate;
+    };
+
+    const selectedDateWithoutTime = resetTime(selectedDate);
+    const currentDateWithoutTime = resetTime(currentDate);
+
+    if (selectedDateWithoutTime < currentDateWithoutTime) {
       setErrorMessage("La date ne peut pas être antérieure à la date du jour.");
+      console.log(selectedDateWithoutTime, currentDateWithoutTime);
       return;
     }
 
