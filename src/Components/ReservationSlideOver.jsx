@@ -11,6 +11,8 @@ function formatTimestamp(dateString) {
     day: "2-digit",
     month: "2-digit",
     year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   };
   return new Date(dateString).toLocaleDateString("fr-FR", options);
 }
@@ -20,13 +22,15 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
 
   const [cancelReservation] = useCancelReservationMutation();
 
+  const user = useSelector((state) => state.user.username);
+
   const handleEditReservation = () => {
     navigate("/reservation-update", { state: { reservation } });
   };
-
-  const cancelResa = async (id) => {
+  console.log(reservation);
+  const cancelResa = async (i, u) => {
     try {
-      await cancelReservation(id).unwrap();
+      await cancelReservation({ id: i, user: u }).unwrap();
       onClose();
     } catch (error) {
       console.log(error);
@@ -151,8 +155,7 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                             </p>
                             <p className="text-sm text-gray-700">
                               <strong>Modifiée le:</strong>{" "}
-                              {reservation.updateTimeStamp ===
-                              reservation.creaTimeStamp
+                              {reservation.updateTimeStamp === null
                                 ? "Pas de modification"
                                 : formatTimestamp(reservation.updateTimeStamp)}
                             </p>
@@ -162,6 +165,18 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                             <p className="text-sm text-gray-700">
                               <strong>Modifié par:</strong>{" "}
                               {reservation.updatedBy}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Annulé par:</strong>{" "}
+                              {reservation.canceledBy}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Annulé le:</strong>{" "}
+                              {reservation.canceledTimeStamp === null
+                                ? ""
+                                : formatTimestamp(
+                                    reservation.canceledTimeStamp
+                                  )}
                             </p>
                           </div>
 
@@ -193,7 +208,7 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                             {isAdmin.role === "ADMIN" ? (
                               <button
                                 className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
-                                onClick={() => cancelResa(reservation.id)}
+                                onClick={() => cancelResa(reservation.id, user)}
                               >
                                 Annuler la réservation
                               </button>

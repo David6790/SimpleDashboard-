@@ -46,8 +46,8 @@ export const reservationsApi = createApi({
       invalidatesTags: ["Reservations"],
     }),
     cancelReservation: builder.mutation({
-      query: (id) => ({
-        url: `Reservations/${id}/cancel`,
+      query: ({ id, user }) => ({
+        url: `Reservations/${id}/cancel/${user}`,
         method: "PATCH",
       }),
       invalidatesTags: ["Reservations"],
