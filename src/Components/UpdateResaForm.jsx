@@ -13,6 +13,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import Layout from "../Layouts/Layout";
 import { useSelector } from "react-redux";
+import SectionHeading from "./SectionHeading";
 
 export default function UpdateResaForm() {
   const navigate = useNavigate();
@@ -50,10 +51,12 @@ export default function UpdateResaForm() {
       setPrenom(resa.client.prenom);
       setNumberOfGuests(resa.numberOfGuest.toString());
       setComment(resa.comment || "");
-      setSelectedTimeSlot("");
+      setSelectedTimeSlot(resa.timeResa);
       setOccStatus(resa.occupationStatusOnBook);
     }
   }, [resa]);
+
+  console.log(selectedTimeSlot);
 
   const handleDateChange = (date) => {
     const formattedDate = format(date, "yyyy-MM-dd");
@@ -178,7 +181,8 @@ export default function UpdateResaForm() {
 
   return (
     <Layout>
-      <div className="space-y-10 divide-y divide-gray-900/10">
+      <div className="space-y-10 ">
+        <SectionHeading title={"Modifier une réservation"} />
         <div className="grid grid-cols-1 gap-x-8 gap-y-8 pt-10 md:grid-cols-3">
           <div className="px-4 sm:px-0">
             {isSubmitted ? (

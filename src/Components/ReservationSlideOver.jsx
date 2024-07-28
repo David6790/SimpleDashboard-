@@ -2,6 +2,8 @@ import React, { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useCancelReservationMutation } from "../services/reservations";
 
 function formatTimestamp(dateString) {
   const options = {
@@ -16,10 +18,23 @@ function formatTimestamp(dateString) {
 function ReservationSlideOver({ isOpen, onClose, reservation }) {
   const navigate = useNavigate();
 
+  const [cancelReservation] = useCancelReservationMutation();
+
   const handleEditReservation = () => {
     navigate("/reservation-update", { state: { reservation } });
   };
 
+  const cancelResa = async (id) => {
+    try {
+      await cancelReservation(id).unwrap();
+      onClose();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const isAdmin = useSelector((state) => state.user);
+  console.log(isAdmin.role);
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -168,13 +183,23 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                             </p>
                           </div>
 
-                          <div className="bg-gray-50 p-4 rounded-lg shadow">
+                          <div className="bg-gray-50 p-4 rounded-lg shadow flex flex-col gap-10">
                             <button
                               onClick={handleEditReservation}
                               className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
                             >
                               Modifier la réservation
                             </button>
+                            {isAdmin.role === "ADMIN" ? (
+                              <button
+                                className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
+                                onClick={() => cancelResa(reservation.id)}
+                              >
+                                Annuler la réservation
+                              </button>
+                            ) : (
+                              ""
+                            )}
                           </div>
                         </div>
                       )}

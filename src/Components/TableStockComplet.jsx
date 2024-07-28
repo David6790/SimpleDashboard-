@@ -1,7 +1,11 @@
 import React, { useState } from "react";
-import { useGetFuturReservationsQuery } from "../services/reservations";
+import {
+  useGetFuturReservationsQuery,
+  useValidateReservationMutation,
+} from "../services/reservations";
 import ReservationSlideOver from "./ReservationSlideOver";
-
+import { getStatusStyles } from "../Outils/statusStyle";
+import { getStatusText } from "../Outils/conversionTextStatus";
 export default function TableStockComplet() {
   const {
     data: reservations,
@@ -10,6 +14,8 @@ export default function TableStockComplet() {
   } = useGetFuturReservationsQuery();
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState(null);
+
+  const [validateReservation] = useValidateReservationMutation();
 
   if (isLoading) return <div>Loading...</div>;
   if (error)
@@ -27,32 +33,15 @@ export default function TableStockComplet() {
     setSelectedReservation(null);
   };
 
-  const getStatusStyles = (status) => {
-    switch (status) {
-      case "P":
-        return "bg-yellow-100 text-yellow-800";
-      case "C":
-        return "bg-green-100 text-green-800";
-      case "A":
-      case "r":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case "P":
-        return "Pending";
-      case "C":
-        return "Confirmé";
-      case "A":
-        return "Annulé";
-      case "r":
-        return "Refusé";
-      default:
-        return "Unknown";
+  const gestionResa = async (status, id, reservation) => {
+    if (status === "C") {
+      openSlideOver(reservation);
+    } else {
+      try {
+        await validateReservation(id).unwrap();
+      } catch (error) {
+        console.error("Failed to update reservation status:", error);
+      }
     }
   };
 
@@ -163,18 +152,31 @@ export default function TableStockComplet() {
                     ) : null}
                   </td>
                   <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                    <button
-                      className={`px-4 py-2 rounded-md text-sm font-medium ${
-                        reservation.placed === "N"
-                          ? "bg-green-50 text-green-700 hover:bg-green-100"
-                          : "bg-red-50 text-red-700 hover:bg-red-100"
-                      }`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {reservation.placed === "N"
-                        ? "Placer la table"
-                        : "Retirer du plan"}
-                    </button>
+                    {reservation.status === "A" ? (
+                      ""
+                    ) : (
+                      <button
+                        className={`px-4 py-2 rounded-md text-sm font-medium ${
+                          reservation.placed === "N"
+                            ? "bg-green-50 text-green-700 hover:bg-green-100"
+                            : "bg-red-50 text-red-700 hover:bg-red-100"
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          gestionResa(
+                            reservation.status,
+                            reservation.id,
+                            reservation
+                          );
+                        }}
+                      >
+                        {reservation.status === "C"
+                          ? "Modifer"
+                          : reservation.status === "A"
+                          ? "Supprimer"
+                          : "Confirmer"}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -38,6 +38,20 @@ export const reservationsApi = createApi({
       }),
       invalidatesTags: ["Reservations"],
     }),
+    validateReservation: builder.mutation({
+      query: (id) => ({
+        url: `Reservations/${id}/validate`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Reservations"],
+    }),
+    cancelReservation: builder.mutation({
+      query: (id) => ({
+        url: `Reservations/${id}/cancel`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Reservations"],
+    }),
   }),
 });
 
@@ -47,6 +61,8 @@ export const {
   useGetReservationsByDateQuery,
   useCreateReservationMutation,
   useUpdateReservationMutation,
+  useValidateReservationMutation,
   useGetFuturReservationsQuery,
+  useCancelReservationMutation,
 } = reservationsApi;
 export default reservationsApi;

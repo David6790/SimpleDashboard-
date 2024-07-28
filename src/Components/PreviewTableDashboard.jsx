@@ -4,6 +4,8 @@ import Pagination from "./Pagination";
 import ReservationSlideOver from "./ReservationSlideOver";
 import Modal from "react-modal";
 import ModalPlan from "../pages/ModalPlan";
+import { getStatusStyles } from "../Outils/statusStyle";
+import { getStatusText } from "../Outils/conversionTextStatus";
 
 export default function PreviewTableDashboard({
   reservations,
@@ -140,15 +142,13 @@ export default function PreviewTableDashboard({
                     {reservation.client.telephone}
                   </td>
                   <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
-                    {reservation.status === "P" ? (
-                      <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
-                        Pending
-                      </span>
-                    ) : reservation.status === "V" ? (
-                      <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                        Validée
-                      </span>
-                    ) : null}
+                    <button
+                      className={`px-2 py-1 rounded ${getStatusStyles(
+                        reservation.status
+                      )}`}
+                    >
+                      {getStatusText(reservation.status)}
+                    </button>
                   </td>
                   <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
                     {reservation.placed === "N" ? (
@@ -162,18 +162,22 @@ export default function PreviewTableDashboard({
                     ) : null}
                   </td>
                   <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                    <button
-                      className={`px-4 py-2 rounded-md text-sm font-medium ${
-                        reservation.placed === "N"
-                          ? "bg-green-50 text-green-700 hover:bg-green-100"
-                          : "bg-red-50 text-red-700 hover:bg-red-100"
-                      }`}
-                      onClick={(e) => handlePlaceTableClick(reservation, e)}
-                    >
-                      {reservation.placed === "N"
-                        ? "Placer la table"
-                        : "Retirer du plan"}
-                    </button>
+                    {reservation.status === "A" ? (
+                      ""
+                    ) : (
+                      <button
+                        className={`px-4 py-2 rounded-md text-sm font-medium ${
+                          reservation.placed === "N"
+                            ? "bg-green-50 text-green-700 hover:bg-green-100"
+                            : "bg-red-50 text-red-700 hover:bg-red-100"
+                        }`}
+                        onClick={(e) => handlePlaceTableClick(reservation, e)}
+                      >
+                        {reservation.placed === "N"
+                          ? "Placer la table"
+                          : "Retirer du plan"}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
