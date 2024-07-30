@@ -11,6 +11,7 @@ export default function PreviewTableDashboard({
   reservations,
   isError,
   error,
+  refreshReservations,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
@@ -212,7 +213,10 @@ export default function PreviewTableDashboard({
         </button>
         <ModalPlan
           reservation={selectedReservation} // Pass the selected reservation
-          closeModal={() => setIsModalOpen(false)}
+          closeModal={() => {
+            setIsModalOpen(false);
+            refreshReservations(); // Call the refresh function after closing the modal
+          }}
         />
       </Modal>
     </div>

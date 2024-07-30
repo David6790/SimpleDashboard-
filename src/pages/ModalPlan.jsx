@@ -1,5 +1,39 @@
 import React, { useEffect, useState } from "react";
-import { useGetAllocationsQuery } from "../services/allocationsApi";
+import {
+  useGetAllocationsQuery,
+  useCreateAllocationMutation,
+} from "../services/allocationsApi";
+
+// Mapping table names to their IDs
+const tableIdMapping = {
+  1: 1,
+  "1-BIS": 2,
+  "2-BIS": 3,
+  2: 4,
+  3: 5,
+  4: 6,
+  5: 7,
+  6: 8,
+  7: 9,
+  8: 10,
+  9: 11,
+  11: 12,
+  12: 13,
+  13: 14,
+  14: 15,
+  15: 16,
+  16: 17,
+  17: 18,
+  18: 19,
+  19: 20,
+  20: 21,
+  21: 22,
+  22: 23,
+  23: 24,
+  24: 25,
+  25: 26,
+  26: 27,
+};
 
 const ModalPlan = ({ reservation, closeModal }) => {
   const [selectedTables, setSelectedTables] = useState([]);
@@ -23,6 +57,9 @@ const ModalPlan = ({ reservation, closeModal }) => {
     period: periode,
   });
 
+  const [createAllocation, { isLoading, isError, isSuccess }] =
+    useCreateAllocationMutation();
+
   useEffect(() => {
     if (allocations) {
       console.log("Allocations:", allocations);
@@ -37,6 +74,8 @@ const ModalPlan = ({ reservation, closeModal }) => {
   }, [allocations]);
 
   const handleTableClick = (table) => {
+    console.log("Table clicked:", table, "ID:", tableIdMapping[table]); // Ajout du console.log
+
     if (isOccupied(table)) {
       return;
     }
@@ -79,6 +118,26 @@ const ModalPlan = ({ reservation, closeModal }) => {
 
   const handleMultiTableToggle = () => setIsMultiTableMode(!isMultiTableMode);
 
+  const handleConfirmTables = async () => {
+    const tableIds = selectedTables.map((table) => tableIdMapping[table]);
+
+    const newAllocation = {
+      reservationId: reservation.id, // Assuming reservation has an id property
+      date: date,
+      period: periode,
+      tableId: tableIds,
+    };
+
+    try {
+      console.log(newAllocation);
+      await createAllocation(newAllocation).unwrap();
+      closeModal(); // Assuming you want to close the modal after creation
+    } catch (error) {
+      console.error("Failed to create allocation:", error);
+      alert("Failed to create allocation");
+    }
+  };
+
   return (
     <div className="w-full px-10 mb-14 z-50 ">
       <div className="pt-10 flex justify-between mb-4">
@@ -90,8 +149,14 @@ const ModalPlan = ({ reservation, closeModal }) => {
           />
           <span>Mode Multi-Table</span>
         </label>
-        <button className="bg-blue-500 text-white px-4 py-2 rounded">
-          Confirmer les Tables Sélectionnées ({selectedTables.length})
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+          onClick={handleConfirmTables}
+          disabled={isLoading}
+        >
+          {isLoading
+            ? "Creating..."
+            : `Confirmer les Tables Sélectionnées (${selectedTables.length})`}
         </button>
       </div>
 
@@ -116,7 +181,7 @@ const ModalPlan = ({ reservation, closeModal }) => {
             ))}
           </div>
           <div className="flex flex-row w-3/4 justify-end gap-5">
-            {["9", "10", "11", "12", "13", "14"].map((table) => (
+            {["9", "11", "12", "13", "14"].map((table) => (
               <div key={table} className="relative">
                 {isOccupied(table) && (
                   <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-yellow-300 px-4 py-2 rounded-full shadow-lg text-xs font-bold">

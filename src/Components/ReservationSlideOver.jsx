@@ -4,6 +4,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useCancelReservationMutation } from "../services/reservations";
+import { getStatusText } from "../Outils/conversionTextStatus";
 
 function formatTimestamp(dateString) {
   const options = {
@@ -135,9 +136,7 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                             </h3>
                             <p className="text-sm text-gray-700">
                               <strong>Status:</strong>{" "}
-                              {reservation.status === "P"
-                                ? "Pending"
-                                : "Validée"}
+                              {getStatusText(reservation.status)}
                             </p>
                             <p className="text-sm text-gray-700">
                               <strong>Placée:</strong>{" "}
@@ -198,24 +197,31 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                             </p>
                           </div>
 
-                          <div className="bg-gray-50 p-4 rounded-lg shadow flex flex-col gap-10">
-                            <button
-                              onClick={handleEditReservation}
-                              className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
-                            >
-                              Modifier la réservation
-                            </button>
-                            {isAdmin.role === "ADMIN" ? (
+                          {reservation.status === "A" ||
+                          reservation.status === "R" ? (
+                            ""
+                          ) : (
+                            <div className="bg-gray-50 p-4 rounded-lg shadow flex flex-col gap-10">
                               <button
+                                onClick={handleEditReservation}
                                 className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
-                                onClick={() => cancelResa(reservation.id, user)}
                               >
-                                Annuler la réservation
+                                Modifier la réservation
                               </button>
-                            ) : (
-                              ""
-                            )}
-                          </div>
+                              {isAdmin.role === "ADMIN" ? (
+                                <button
+                                  className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
+                                  onClick={() =>
+                                    cancelResa(reservation.id, user)
+                                  }
+                                >
+                                  Annuler la réservation
+                                </button>
+                              ) : (
+                                ""
+                              )}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

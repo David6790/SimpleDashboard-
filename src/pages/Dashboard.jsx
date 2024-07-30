@@ -20,7 +20,12 @@ const Dashboard = () => {
     data: reservations,
     isError,
     error,
+    refetch,
   } = useGetReservationsByDateQuery(formattedDate);
+
+  const refreshReservations = () => {
+    refetch();
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -70,6 +75,7 @@ const Dashboard = () => {
         error={error}
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
+        refreshReservations={refreshReservations}
       />
       <MenuDuJour />
     </Layout>

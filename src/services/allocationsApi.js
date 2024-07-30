@@ -10,10 +10,20 @@ export const allocationsApi = createApi({
       keepUnusedDataFor: 1440,
       providesTags: ["Allocations"],
     }),
+
+    createAllocation: builder.mutation({
+      query: (newAllocation) => ({
+        url: "Allocations/create",
+        method: "POST",
+        body: newAllocation,
+      }),
+      invalidatesTags: ["Allocations"],
+    }),
     // Tu peux ajouter d'autres endpoints pour les allocations ici plus tard
   }),
 });
 
-export const { useGetAllocationsQuery } = allocationsApi;
+export const { useGetAllocationsQuery, useCreateAllocationMutation } =
+  allocationsApi;
 
 export default allocationsApi;
