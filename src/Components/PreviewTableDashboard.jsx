@@ -6,19 +6,23 @@ import Modal from "react-modal";
 import ModalPlan from "../pages/ModalPlan";
 import { getStatusStyles } from "../Outils/statusStyle";
 import { getStatusText } from "../Outils/conversionTextStatus";
+import { useDeleteAllocationsByReservationMutation } from "../services/allocationsApi";
 
 export default function PreviewTableDashboard({
   reservations,
   isError,
   error,
-  refreshReservations,
+  refreshReservations, // Prop passed from parent component
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(null);
 
-  // Calcul pour la pagination
+  const [deleteAllocation, { isLoading: isDeleting }] =
+    useDeleteAllocationsByReservationMutation();
+
   const itemsPerPage = 10;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -42,7 +46,27 @@ export default function PreviewTableDashboard({
     if (reservation.placed === "N") {
       setSelectedReservation(reservation);
       setIsModalOpen(true);
+    } else {
+      setConfirmRemove(reservation.id);
     }
+  };
+
+  const handleConfirmRemove = async (reservation, e) => {
+    e.stopPropagation();
+    try {
+      const result = await deleteAllocation(reservation.id).unwrap();
+      console.log(result.message); // Log the message property
+
+      refreshReservations(); // Refresh the reservations after deletion
+      setConfirmRemove(null);
+    } catch (error) {
+      console.error("Failed to delete allocation:", error);
+    }
+  };
+
+  const handleCancelRemove = (e) => {
+    e.stopPropagation();
+    setConfirmRemove(null);
   };
 
   return (
@@ -165,6 +189,22 @@ export default function PreviewTableDashboard({
                   <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                     {reservation.status === "A" ? (
                       ""
+                    ) : confirmRemove === reservation.id ? (
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          className="px-4 py-2 bg-red-600 text-white rounded-md"
+                          onClick={(e) => handleConfirmRemove(reservation, e)}
+                          disabled={isDeleting} // Disable button while deleting
+                        >
+                          {isDeleting ? "Suppression..." : "Confirmer"}
+                        </button>
+                        <button
+                          className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md"
+                          onClick={handleCancelRemove}
+                        >
+                          Annuler
+                        </button>
+                      </div>
                     ) : (
                       <button
                         className={`px-4 py-2 rounded-md text-sm font-medium ${

@@ -19,11 +19,21 @@ export const allocationsApi = createApi({
       }),
       invalidatesTags: ["Allocations"],
     }),
-    // Tu peux ajouter d'autres endpoints pour les allocations ici plus tard
+
+    deleteAllocationsByReservation: builder.mutation({
+      query: (reservationId) => ({
+        url: `Allocations/deleteByReservation/${reservationId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Allocations"],
+    }),
   }),
 });
 
-export const { useGetAllocationsQuery, useCreateAllocationMutation } =
-  allocationsApi;
+export const {
+  useGetAllocationsQuery,
+  useCreateAllocationMutation,
+  useDeleteAllocationsByReservationMutation,
+} = allocationsApi;
 
 export default allocationsApi;

@@ -9,11 +9,14 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import ModalViewPlan from "./ModalViewPlan";
 
 const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalPeriod, setModalPeriod] = useState("");
   const formattedDate = format(selectedDate, "yyyy-MM-dd");
 
   const {
@@ -37,6 +40,15 @@ const Dashboard = () => {
     }
   }, [location, navigate]);
 
+  const handleOpenModal = (period) => {
+    setModalPeriod(period);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <Layout>
       <SectionHeading title={"IL GIRASOLE"} />
@@ -56,7 +68,21 @@ const Dashboard = () => {
               Liste des réservations du : {format(selectedDate, "dd/MM/yyyy")}
             </p>
           </div>
-          <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+          <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex items-center space-x-4">
+            <button
+              type="button"
+              onClick={() => handleOpenModal("midi")}
+              className="block rounded-md bg-green-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+            >
+              Voir plan Midi
+            </button>
+            <button
+              type="button"
+              onClick={() => handleOpenModal("soir")}
+              className="block rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            >
+              Voir plan Soir
+            </button>
             <NavLink to={"/reservation-page"}>
               <button
                 type="button"
@@ -78,6 +104,24 @@ const Dashboard = () => {
         refreshReservations={refreshReservations}
       />
       <MenuDuJour />
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-md shadow-lg">
+            <button
+              className="absolute top-2 right-2 text-gray-700 hover:text-gray-900"
+              onClick={handleCloseModal}
+            >
+              X
+            </button>
+            <ModalViewPlan
+              date={formattedDate}
+              period={modalPeriod}
+              onClose={handleCloseModal}
+            />
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

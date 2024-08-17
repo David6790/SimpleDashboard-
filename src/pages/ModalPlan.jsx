@@ -35,7 +35,7 @@ const tableIdMapping = {
   26: 27,
 };
 
-const ModalPlan = ({ reservation, closeModal }) => {
+const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
   const [selectedTables, setSelectedTables] = useState([]);
   const [isMultiTableMode, setIsMultiTableMode] = useState(false);
   const [occupiedTables, setOccupiedTables] = useState([]);
@@ -74,7 +74,7 @@ const ModalPlan = ({ reservation, closeModal }) => {
   }, [allocations]);
 
   const handleTableClick = (table) => {
-    console.log("Table clicked:", table, "ID:", tableIdMapping[table]); // Ajout du console.log
+    console.log("Table clicked:", table, "ID:", tableIdMapping[table]);
 
     if (isOccupied(table)) {
       return;
@@ -131,6 +131,12 @@ const ModalPlan = ({ reservation, closeModal }) => {
     try {
       console.log(newAllocation);
       await createAllocation(newAllocation).unwrap();
+
+      // Rafraîchir les réservations après la création de l'allocation
+      if (refreshReservations) {
+        refreshReservations();
+      }
+
       closeModal(); // Assuming you want to close the modal after creation
     } catch (error) {
       console.error("Failed to create allocation:", error);

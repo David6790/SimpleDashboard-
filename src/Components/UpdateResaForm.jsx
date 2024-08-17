@@ -8,6 +8,7 @@ import TimeSlotSelector from "./TimeSlotSelector";
 import OccStatusDisplay from "./OccStatusDisplay";
 import ValidationMessage from "./ValidationMessage";
 import { useUpdateReservationMutation } from "../services/reservations";
+import { useGetAllocationsQuery } from "../services/allocationsApi";
 import { validateNumberOfPeople, validateDate } from "./ValidationSaisie";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
@@ -42,6 +43,15 @@ export default function UpdateResaForm() {
   const [isSubmitted, setIsSubmitted] = useState(false); // État pour gérer le bouton de soumission
   const [countdown, setCountdown] = useState(5); // État pour le compteur
 
+  // Hook pour obtenir et rafraîchir les allocations
+  const { refetch } = useGetAllocationsQuery({
+    date: format(new Date(resa.dateResa), "yyyy-MM-dd"),
+    period:
+      new Date(`1970-01-01T${resa.timeResa}`) < new Date(`1970-01-01T14:00:00`)
+        ? "midi"
+        : "soir",
+  });
+
   useEffect(() => {
     if (resa) {
       setStartDate(format(new Date(resa.dateResa), "yyyy-MM-dd"));
@@ -55,8 +65,6 @@ export default function UpdateResaForm() {
       setOccStatus(resa.occupationStatusOnBook);
     }
   }, [resa]);
-
-  console.log(selectedTimeSlot);
 
   const handleDateChange = (date) => {
     const formattedDate = format(date, "yyyy-MM-dd");
@@ -142,7 +150,10 @@ export default function UpdateResaForm() {
         id: resa.id,
         ...updatedReservation,
       }).unwrap();
-      console.log(response);
+
+      // Forcer le rechargement des allocations après la mise à jour
+      refetch();
+
       setReservationDetails(response);
       setSubmitMessage("Réservation mise à jour avec succès !");
       setIsSubmitted(true); // Désactivez le bouton de soumission
@@ -158,7 +169,7 @@ export default function UpdateResaForm() {
       setSelectedTimeSlot("");
       setOccStatus("");
 
-      // Redirige après 3 secondes si rien ne se passe
+      // Redirige après 5 secondes si rien ne se passe
       const countdownInterval = setInterval(() => {
         setCountdown((prevCountdown) => prevCountdown - 1);
       }, 1000);

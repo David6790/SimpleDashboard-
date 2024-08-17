@@ -6,14 +6,19 @@ import {
 import ReservationSlideOver from "./ReservationSlideOver";
 import { getStatusStyles } from "../Outils/statusStyle";
 import { getStatusText } from "../Outils/conversionTextStatus";
+
 export default function TableStockComplet() {
   const {
     data: reservations,
     error,
     isLoading,
-  } = useGetFuturReservationsQuery();
+    refetch, // You can manually trigger a refetch if needed
+  } = useGetFuturReservationsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState(null);
+  const [showConfirmationOptions, setShowConfirmationOptions] = useState(null);
 
   const [validateReservation] = useValidateReservationMutation();
 
@@ -33,15 +38,27 @@ export default function TableStockComplet() {
     setSelectedReservation(null);
   };
 
-  const gestionResa = async (status, id, reservation) => {
+  const handleConfirmClick = (reservation) => {
+    setShowConfirmationOptions(reservation.id);
+  };
+
+  const handleFinalConfirmation = async (id) => {
+    try {
+      await validateReservation(id).unwrap();
+      setShowConfirmationOptions(null); // Reset confirmation options
+    } catch (error) {
+      console.error("Failed to update reservation status:", error);
+    }
+  };
+
+  const handleRejectClick = (id) => {
+    // Add your logic here to handle the rejection
+    console.log("Reservation rejected:", id);
+  };
+
+  const gestionResa = (status, reservation) => {
     if (status === "C") {
       openSlideOver(reservation);
-    } else {
-      try {
-        await validateReservation(id).unwrap();
-      } catch (error) {
-        console.error("Failed to update reservation status:", error);
-      }
     }
   };
 
@@ -152,31 +169,61 @@ export default function TableStockComplet() {
                     ) : null}
                   </td>
                   <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                    {reservation.status === "A" ? (
-                      ""
-                    ) : (
+                    {reservation.status === "C" ? (
                       <button
-                        className={`px-4 py-2 rounded-md text-sm font-medium ${
-                          reservation.placed === "N"
-                            ? "bg-green-50 text-green-700 hover:bg-green-100"
-                            : "bg-red-50 text-red-700 hover:bg-red-100"
-                        }`}
+                        className="px-4 py-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
                         onClick={(e) => {
                           e.stopPropagation();
-                          gestionResa(
-                            reservation.status,
-                            reservation.id,
-                            reservation
-                          );
+                          gestionResa(reservation.status, reservation);
                         }}
                       >
-                        {reservation.status === "C"
-                          ? "Modifer"
-                          : reservation.status === "A"
-                          ? "Supprimer"
-                          : "Confirmer"}
+                        Modifier
                       </button>
-                    )}
+                    ) : reservation.status === "P" ? (
+                      showConfirmationOptions === reservation.id ? (
+                        <>
+                          <button
+                            className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFinalConfirmation(reservation.id);
+                            }}
+                          >
+                            Par Email
+                          </button>
+                          <button
+                            className="px-4 py-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Add your logic for confirmation by Mail & SMS here
+                            }}
+                          >
+                            Par Mail & SMS
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-green-50 text-green-700 hover:bg-green-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleConfirmClick(reservation);
+                            }}
+                          >
+                            Confirmer
+                          </button>
+                          <button
+                            className="px-4 py-2 rounded-md text-sm font-medium bg-red-50 text-red-700 hover:bg-red-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRejectClick(reservation.id);
+                            }}
+                          >
+                            Refuser
+                          </button>
+                        </>
+                      )
+                    ) : null}
                   </td>
                 </tr>
               ))}
