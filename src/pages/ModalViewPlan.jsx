@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useGetAllocationsQuery } from "../services/allocationsApi";
 import { format } from "date-fns";
-import fr from "date-fns/locale/fr"; // Importez ceci pour formater en français
+import fr from "date-fns/locale/fr";
 
-// Mapping table names to their IDs
 const tableIdMapping = {
   1: 1,
   "1-BIS": 2,
@@ -45,35 +44,87 @@ const ModalViewPlan = ({ date, period, onClose }) => {
   useEffect(() => {
     document.body.classList.add("no-scroll");
     if (allocations) {
-      const occupied = allocations.map((allocation) => ({
-        tableName: allocation.table.name,
-        clientPrenom: allocation.reservation.clientPrenom,
-        timeResa: allocation.reservation.timeResa,
-        numberOfGuest: allocation.reservation.numberOfGuest,
-      }));
+      const occupied = allocations.reduce((acc, allocation) => {
+        const tableName = allocation.table.name;
+        if (!acc[tableName]) {
+          acc[tableName] = [];
+        }
+        acc[tableName].push({
+          clientPrenom: allocation.reservation.clientPrenom,
+          clientNom: allocation.reservation.clientName,
+          timeResa: allocation.reservation.timeResa,
+          numberOfGuest: allocation.reservation.numberOfGuest,
+          freeTable21: allocation.reservation.freeTable21,
+        });
+        return acc;
+      }, {});
       setOccupiedTables(occupied);
     }
     return () => {
-      // Retirer la classe no-scroll du body lorsqu'on démonte le composant (le modal se ferme)
       document.body.classList.remove("no-scroll");
     };
   }, [allocations]);
 
   const isOccupied = (table) =>
-    occupiedTables.some((occupied) => occupied.tableName === table);
+    occupiedTables[table] && occupiedTables[table].length > 0;
 
   const getTableClass = (table) => {
-    return `table border-4 shadow-lg flex items-end justify-center text-md ${
-      isOccupied(table) ? "bg-green-300" : "border-gray-500"
+    const isPartiallyAvailable =
+      isOccupied(table) &&
+      occupiedTables[table].some(
+        (reservation) =>
+          reservation.freeTable21 === "O" &&
+          new Date(`1970-01-01T${reservation.timeResa}`) <
+            new Date(`1970-01-01T21:00:00`)
+      );
+
+    return `table border-4 shadow-lg flex flex-col justify-between text-sm h-20 ${
+      isPartiallyAvailable
+        ? "bg-yellow-300"
+        : isOccupied(table)
+        ? "bg-green-300"
+        : "border-gray-500"
     }`;
   };
 
   const getOccupiedTableInfo = (table) => {
-    const occupiedTable = occupiedTables.find(
-      (occupied) => occupied.tableName === table
+    const occupiedReservations = occupiedTables[table];
+
+    if (occupiedReservations && occupiedReservations.length > 0) {
+      return (
+        <>
+          <div className="flex-1 flex items-center justify-center text-xs border-b border-gray-400">
+            {`${occupiedReservations[0].clientPrenom} ${occupiedReservations[0].clientNom} ${occupiedReservations[0].numberOfGuest}p ${occupiedReservations[0].timeResa}`}
+          </div>
+          {occupiedReservations.length > 1 && (
+            <div className="flex-1 flex items-center justify-center text-xs">
+              {`${occupiedReservations[1].clientPrenom} ${occupiedReservations[1].clientNom} ${occupiedReservations[1].numberOfGuest}p ${occupiedReservations[1].timeResa}`}
+            </div>
+          )}
+        </>
+      );
+    }
+    return (
+      <div className="flex-1 flex items-center justify-center text-xs"></div>
     );
-    if (occupiedTable) {
-      return `${occupiedTable.clientPrenom}, ${occupiedTable.timeResa}, ${occupiedTable.numberOfGuest}p`;
+  };
+
+  const getFreeTable21Info = (table) => {
+    const occupiedReservations = occupiedTables[table];
+    if (
+      occupiedReservations &&
+      occupiedReservations.some(
+        (reservation, index) =>
+          reservation.freeTable21 === "O" &&
+          index === 0 &&
+          occupiedReservations.length === 1
+      )
+    ) {
+      return (
+        <div className="text-xs font-bold bg-yellow-300 p-1 rounded-t mb-1">
+          Libre à 21h
+        </div>
+      );
     }
     return null;
   };
@@ -84,7 +135,6 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     }
   };
 
-  // Formater la date
   const formattedDate = format(new Date(date), "EEEE dd MMMM yyyy", {
     locale: fr,
   });
@@ -95,7 +145,6 @@ const ModalViewPlan = ({ date, period, onClose }) => {
       onClick={handleClickOutside}
     >
       <div className="bg-white p-6 rounded-md shadow-lg relative max-h-[95%] max-w-[95%] overflow-auto m-4">
-        {/* Titre avec la date formatée et la période */}
         <div className="text-xl font-semibold text-center mb-4">
           {formattedDate} - {period === "midi" ? "Midi" : "Soir"}
         </div>
@@ -104,29 +153,29 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
             <div className="flex flex-row w-1/4 justify-start gap-5">
               {["7", "8"].map((table) => (
-                <div key={table} className="relative">
-                  {isOccupied(table) && (
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-yellow-300 px-4 py-2 rounded-full shadow-lg text-xs font-bold">
-                      {getOccupiedTableInfo(table)}
-                    </div>
-                  )}
+                <div
+                  key={table}
+                  className="relative flex flex-col items-center"
+                >
+                  {getFreeTable21Info(table)}
                   <div id={table} className={getTableClass(table)}>
-                    {table}
+                    {getOccupiedTableInfo(table)}
                   </div>
+                  <div className="text-sm mt-1">{table}</div>
                 </div>
               ))}
             </div>
             <div className="flex flex-row w-3/4 justify-end gap-5">
               {["9", "11", "12", "13", "14"].map((table) => (
-                <div key={table} className="relative">
-                  {isOccupied(table) && (
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-yellow-300 px-4 py-2 rounded-full shadow-lg text-xs font-bold">
-                      {getOccupiedTableInfo(table)}
-                    </div>
-                  )}
+                <div
+                  key={table}
+                  className="relative flex flex-col items-center"
+                >
+                  {getFreeTable21Info(table)}
                   <div id={table} className={getTableClass(table)}>
-                    {table}
+                    {getOccupiedTableInfo(table)}
                   </div>
+                  <div className="text-sm mt-1">{table}</div>
                 </div>
               ))}
             </div>
@@ -134,29 +183,29 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
             <div className="flex flex-row w-1/4 justify-start">
               {["6"].map((table) => (
-                <div key={table} className="relative">
-                  {isOccupied(table) && (
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-yellow-300 px-4 py-2 rounded-full shadow-lg text-xs font-bold">
-                      {getOccupiedTableInfo(table)}
-                    </div>
-                  )}
+                <div
+                  key={table}
+                  className="relative flex flex-col items-center"
+                >
+                  {getFreeTable21Info(table)}
                   <div id={table} className={getTableClass(table)}>
-                    {table}
+                    {getOccupiedTableInfo(table)}
                   </div>
+                  <div className="text-sm mt-1">{table}</div>
                 </div>
               ))}
             </div>
             <div className="flex flex-row w-2/3 justify-end">
               {["15"].map((table) => (
-                <div key={table} className="relative">
-                  {isOccupied(table) && (
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-yellow-300 px-4 py-2 rounded-full shadow-lg text-xs font-bold">
-                      {getOccupiedTableInfo(table)}
-                    </div>
-                  )}
+                <div
+                  key={table}
+                  className="relative flex flex-col items-center"
+                >
+                  {getFreeTable21Info(table)}
                   <div id={table} className={getTableClass(table)}>
-                    {table}
+                    {getOccupiedTableInfo(table)}
                   </div>
+                  <div className="text-sm mt-1">{table}</div>
                 </div>
               ))}
             </div>
@@ -164,29 +213,29 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
             <div className="flex flex-row w-1/3 justify-between">
               {["5", "20"].map((table) => (
-                <div key={table} className="relative">
-                  {isOccupied(table) && (
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-yellow-300 px-4 py-2 rounded-full shadow-lg text-xs font-bold">
-                      {getOccupiedTableInfo(table)}
-                    </div>
-                  )}
+                <div
+                  key={table}
+                  className="relative flex flex-col items-center"
+                >
+                  {getFreeTable21Info(table)}
                   <div id={table} className={getTableClass(table)}>
-                    {table}
+                    {getOccupiedTableInfo(table)}
                   </div>
+                  <div className="text-sm mt-1">{table}</div>
                 </div>
               ))}
             </div>
             <div className="flex flex-row w-2/3 justify-end gap-5">
               {["19", "18", "16"].map((table) => (
-                <div key={table} className="relative">
-                  {isOccupied(table) && (
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-yellow-300 px-4 py-2 rounded-full shadow-lg text-xs font-bold">
-                      {getOccupiedTableInfo(table)}
-                    </div>
-                  )}
+                <div
+                  key={table}
+                  className="relative flex flex-col items-center"
+                >
+                  {getFreeTable21Info(table)}
                   <div id={table} className={getTableClass(table)}>
-                    {table}
+                    {getOccupiedTableInfo(table)}
                   </div>
+                  <div className="text-sm mt-1">{table}</div>
                 </div>
               ))}
             </div>
@@ -194,29 +243,29 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
             <div className="flex flex-row w-1/4 justify-start">
               {["4"].map((table) => (
-                <div key={table} className="relative">
-                  {isOccupied(table) && (
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-yellow-300 px-4 py-2 rounded-full shadow-lg text-xs font-bold">
-                      {getOccupiedTableInfo(table)}
-                    </div>
-                  )}
+                <div
+                  key={table}
+                  className="relative flex flex-col items-center"
+                >
+                  {getFreeTable21Info(table)}
                   <div id={table} className={getTableClass(table)}>
-                    {table}
+                    {getOccupiedTableInfo(table)}
                   </div>
+                  <div className="text-sm mt-1">{table}</div>
                 </div>
               ))}
             </div>
             <div className="flex flex-row w-2/3 justify-end">
               {["17"].map((table) => (
-                <div key={table} className="relative">
-                  {isOccupied(table) && (
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-yellow-300 px-4 py-2 rounded-full shadow-lg text-xs font-bold">
-                      {getOccupiedTableInfo(table)}
-                    </div>
-                  )}
+                <div
+                  key={table}
+                  className="relative flex flex-col items-center"
+                >
+                  {getFreeTable21Info(table)}
                   <div id={table} className={getTableClass(table)}>
-                    {table}
+                    {getOccupiedTableInfo(table)}
                   </div>
+                  <div className="text-sm mt-1">{table}</div>
                 </div>
               ))}
             </div>
@@ -224,15 +273,15 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
             <div className="flex flex-row w-2/3 justify-between gap-5">
               {["3", "22", "23", "24", "25", "26"].map((table) => (
-                <div key={table} className="relative">
-                  {isOccupied(table) && (
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-yellow-300 px-4 py-2 rounded-full shadow-lg text-xs font-bold">
-                      {getOccupiedTableInfo(table)}
-                    </div>
-                  )}
+                <div
+                  key={table}
+                  className="relative flex flex-col items-center"
+                >
+                  {getFreeTable21Info(table)}
                   <div id={table} className={getTableClass(table)}>
-                    {table}
+                    {getOccupiedTableInfo(table)}
                   </div>
+                  <div className="text-sm mt-1">{table}</div>
                 </div>
               ))}
             </div>
@@ -240,22 +289,21 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
             <div className="flex flex-row w-1/3 justify-between gap-5">
               {["2", "2-BIS", "1-BIS", "1"].map((table) => (
-                <div key={table} className="relative">
-                  {isOccupied(table) && (
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-yellow-300 px-4 py-2 rounded-full shadow-lg text-xs font-bold">
-                      {getOccupiedTableInfo(table)}
-                    </div>
-                  )}
+                <div
+                  key={table}
+                  className="relative flex flex-col items-center"
+                >
+                  {getFreeTable21Info(table)}
                   <div id={table} className={getTableClass(table)}>
-                    {table}
+                    {getOccupiedTableInfo(table)}
                   </div>
+                  <div className="text-sm mt-1">{table}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Bouton Fermer */}
         <div className="flex justify-center mt-6">
           <button
             className="bg-blue-500 text-white px-4 py-2 rounded"

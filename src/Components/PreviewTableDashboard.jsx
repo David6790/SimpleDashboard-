@@ -12,7 +12,7 @@ export default function PreviewTableDashboard({
   reservations,
   isError,
   error,
-  refreshReservations, // Prop passed from parent component
+  refreshReservations,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
@@ -54,9 +54,7 @@ export default function PreviewTableDashboard({
   const handleConfirmRemove = async (reservation, e) => {
     e.stopPropagation();
     try {
-      const result = await deleteAllocation(reservation.id).unwrap();
-      console.log(result.message); // Log the message property
-
+      await deleteAllocation(reservation.id).unwrap();
       refreshReservations(); // Refresh the reservations after deletion
       setConfirmRemove(null);
     } catch (error) {
@@ -187,38 +185,38 @@ export default function PreviewTableDashboard({
                     ) : null}
                   </td>
                   <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                    {reservation.status === "A" ? (
-                      ""
-                    ) : confirmRemove === reservation.id ? (
-                      <div className="flex justify-end space-x-2">
+                    {reservation.status !== "A" &&
+                      reservation.status !== "R" &&
+                      (confirmRemove === reservation.id ? (
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            className="px-4 py-2 bg-red-600 text-white rounded-md"
+                            onClick={(e) => handleConfirmRemove(reservation, e)}
+                            disabled={isDeleting} // Disable button while deleting
+                          >
+                            {isDeleting ? "Suppression..." : "Confirmer"}
+                          </button>
+                          <button
+                            className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md"
+                            onClick={handleCancelRemove}
+                          >
+                            Annuler
+                          </button>
+                        </div>
+                      ) : (
                         <button
-                          className="px-4 py-2 bg-red-600 text-white rounded-md"
-                          onClick={(e) => handleConfirmRemove(reservation, e)}
-                          disabled={isDeleting} // Disable button while deleting
+                          className={`px-4 py-2 rounded-md text-sm font-medium ${
+                            reservation.placed === "N"
+                              ? "bg-green-50 text-green-700 hover:bg-green-100"
+                              : "bg-red-50 text-red-700 hover:bg-red-100"
+                          }`}
+                          onClick={(e) => handlePlaceTableClick(reservation, e)}
                         >
-                          {isDeleting ? "Suppression..." : "Confirmer"}
+                          {reservation.placed === "N"
+                            ? "Placer la table"
+                            : "Retirer du plan"}
                         </button>
-                        <button
-                          className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md"
-                          onClick={handleCancelRemove}
-                        >
-                          Annuler
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        className={`px-4 py-2 rounded-md text-sm font-medium ${
-                          reservation.placed === "N"
-                            ? "bg-green-50 text-green-700 hover:bg-green-100"
-                            : "bg-red-50 text-red-700 hover:bg-red-100"
-                        }`}
-                        onClick={(e) => handlePlaceTableClick(reservation, e)}
-                      >
-                        {reservation.placed === "N"
-                          ? "Placer la table"
-                          : "Retirer du plan"}
-                      </button>
-                    )}
+                      ))}
                   </td>
                 </tr>
               ))}
@@ -252,10 +250,10 @@ export default function PreviewTableDashboard({
           Fermer
         </button>
         <ModalPlan
-          reservation={selectedReservation} // Pass the selected reservation
+          reservation={selectedReservation}
           closeModal={() => {
             setIsModalOpen(false);
-            refreshReservations(); // Call the refresh function after closing the modal
+            refreshReservations();
           }}
         />
       </Modal>

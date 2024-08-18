@@ -6,7 +6,7 @@ export const getStatusText = (status) => {
       return "Confirmée";
     case "A":
       return "Annulée";
-    case "r":
+    case "R":
       return "Refusée";
     default:
       return "Unknown";

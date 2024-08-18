@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   useGetFuturReservationsQuery,
   useValidateReservationMutation,
+  useRefuseReservationMutation,
 } from "../services/reservations";
 import ReservationSlideOver from "./ReservationSlideOver";
 import { getStatusStyles } from "../Outils/statusStyle";
@@ -12,7 +13,7 @@ export default function TableStockComplet() {
     data: reservations,
     error,
     isLoading,
-    refetch, // You can manually trigger a refetch if needed
+    refetch,
   } = useGetFuturReservationsQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
@@ -21,6 +22,7 @@ export default function TableStockComplet() {
   const [showConfirmationOptions, setShowConfirmationOptions] = useState(null);
 
   const [validateReservation] = useValidateReservationMutation();
+  const [refuseReservation] = useRefuseReservationMutation();
 
   if (isLoading) return <div>Loading...</div>;
   if (error)
@@ -45,15 +47,24 @@ export default function TableStockComplet() {
   const handleFinalConfirmation = async (id) => {
     try {
       await validateReservation(id).unwrap();
-      setShowConfirmationOptions(null); // Reset confirmation options
+      setShowConfirmationOptions(null);
     } catch (error) {
       console.error("Failed to update reservation status:", error);
     }
   };
 
-  const handleRejectClick = (id) => {
-    // Add your logic here to handle the rejection
-    console.log("Reservation rejected:", id);
+  const handleRejectClick = async (id) => {
+    try {
+      await refuseReservation({ id, user: "current_user" }).unwrap();
+      setShowConfirmationOptions(null);
+      refetch();
+    } catch (error) {
+      console.error("Failed to refuse reservation:", error);
+    }
+  };
+
+  const handleBackClick = () => {
+    setShowConfirmationOptions(null);
   };
 
   const gestionResa = (status, reservation) => {
@@ -192,13 +203,22 @@ export default function TableStockComplet() {
                             Par Email
                           </button>
                           <button
-                            className="px-4 py-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
+                            className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
                             onClick={(e) => {
                               e.stopPropagation();
                               // Add your logic for confirmation by Mail & SMS here
                             }}
                           >
                             Par Mail & SMS
+                          </button>
+                          <button
+                            className="px-4 py-2 rounded-md text-sm font-medium bg-gray-50 text-gray-700 hover:bg-gray-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBackClick(); // Handle back
+                            }}
+                          >
+                            Retour
                           </button>
                         </>
                       ) : (
