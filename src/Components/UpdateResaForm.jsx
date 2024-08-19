@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
@@ -10,11 +10,11 @@ import ValidationMessage from "./ValidationMessage";
 import { useUpdateReservationMutation } from "../services/reservations";
 import { useGetAllocationsQuery } from "../services/allocationsApi";
 import { validateNumberOfPeople, validateDate } from "./ValidationSaisie";
-import { NavLink, useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import Layout from "../Layouts/Layout";
 import { useSelector } from "react-redux";
 import SectionHeading from "./SectionHeading";
+import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
 
 export default function UpdateResaForm() {
   const navigate = useNavigate();
@@ -36,12 +36,15 @@ export default function UpdateResaForm() {
   );
   const [comment, setComment] = useState(resa.comment || "");
   const [errors, setErrors] = useState({});
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState(resa.timeResa);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [occStatus, setOccStatus] = useState(resa.occupationStatusOnBook);
   const [submitMessage, setSubmitMessage] = useState("");
   const [reservationDetails, setReservationDetails] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false); // État pour gérer le bouton de soumission
   const [countdown, setCountdown] = useState(5); // État pour le compteur
+
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false); // État pour contrôler la visibilité du modal d'erreur
+  const [errorMessage, setErrorMessage] = useState(""); // État pour stocker le message d'erreur
 
   // Hook pour obtenir et rafraîchir les allocations
   const { refetch } = useGetAllocationsQuery({
@@ -61,7 +64,7 @@ export default function UpdateResaForm() {
       setPrenom(resa.client.prenom);
       setNumberOfGuests(resa.numberOfGuest.toString());
       setComment(resa.comment || "");
-      setSelectedTimeSlot(resa.timeResa);
+      setSelectedTimeSlot("");
       setOccStatus(resa.occupationStatusOnBook);
     }
   }, [resa]);
@@ -179,10 +182,12 @@ export default function UpdateResaForm() {
         navigate(`/?redirect=true&date=${response.dateResa}`);
       }, 5000);
     } catch (error) {
-      console.log(error);
-      setSubmitMessage(
-        "Erreur lors de la mise à jour de la réservation. Veuillez réessayer."
+      console.error(error);
+      setErrorMessage(
+        error?.data?.error ||
+          "Erreur lors de la mise à jour de la réservation. Veuillez réessayer."
       );
+      setIsErrorModalOpen(true); // Ouvre le modal d'erreur
     }
   };
 
@@ -323,19 +328,30 @@ export default function UpdateResaForm() {
                   </div>
                 </div>
 
-                <TimeSlotSelector
-                  date={startDate}
-                  selectedTimeSlot={selectedTimeSlot}
-                  onTimeSlotChange={handleTimeSlotChange}
-                  setOccStatus={setOccStatus}
-                  required
-                  className="editable"
-                />
-                {errors.timeSlot && (
-                  <div className="sm:col-span-6" style={{ color: "red" }}>
-                    {errors.timeSlot}
+                <div className="sm:col-span-6">
+                  <TimeSlotSelector
+                    date={startDate}
+                    selectedTimeSlot={selectedTimeSlot}
+                    onTimeSlotChange={handleTimeSlotChange}
+                    setOccStatus={setOccStatus}
+                    required
+                    className="editable"
+                  />
+                  {errors.timeSlot && (
+                    <div style={{ color: "red" }}>{errors.timeSlot}</div>
+                  )}
+                </div>
+
+                {/* Ajout du message de rappel ergonomique */}
+                <div className="sm:col-span-6">
+                  <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md mt-2">
+                    <p className="font-semibold">
+                      Veuillez vérifier les disponibilités du créneau horaire
+                      choisi. Certains créneaux peuvent ne plus être disponibles
+                      en fonction du statut du restaurant.
+                    </p>
                   </div>
-                )}
+                </div>
 
                 <div className="sm:col-span-4">
                   <label
@@ -441,6 +457,13 @@ export default function UpdateResaForm() {
           </form>
         </div>
       </div>
+
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={isErrorModalOpen}
+        errorMessage={errorMessage}
+        onClose={() => setIsErrorModalOpen(false)}
+      />
     </Layout>
   );
 }

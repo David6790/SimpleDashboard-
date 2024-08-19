@@ -3,7 +3,7 @@ import {
   useGetAllocationsQuery,
   useCreateAllocationMutation,
 } from "../services/allocationsApi";
-
+import ErrorModal from "../Components/ErrorModal";
 const tableIdMapping = {
   1: 1,
   "1-BIS": 2,
@@ -38,6 +38,8 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
   const [selectedTables, setSelectedTables] = useState([]);
   const [isMultiTableMode, setIsMultiTableMode] = useState(false);
   const [occupiedTables, setOccupiedTables] = useState([]);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(""); // État pour le message d'erreur
 
   const date = reservation ? reservation.dateResa : null;
   const periode = reservation
@@ -174,6 +176,7 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
   const handleMultiTableToggle = () => setIsMultiTableMode(!isMultiTableMode);
 
   const handleConfirmTables = async () => {
+    setErrorMessage(""); // Reset error before starting the operation
     const tableIds = selectedTables.map((table) => tableIdMapping[table]);
 
     const newAllocation = {
@@ -193,7 +196,8 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
       closeModal();
     } catch (error) {
       console.error("Failed to create allocation:", error);
-      alert("Failed to create allocation");
+      setErrorMessage(error.data?.error || "Failed to create allocation"); // Set the error message
+      setIsErrorModalOpen(true); // Open the error modal
     }
   };
 
@@ -383,6 +387,13 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
           </div>
         </div>
       </div>
+
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={isErrorModalOpen}
+        errorMessage={errorMessage}
+        onClose={() => setIsErrorModalOpen(false)}
+      />
     </div>
   );
 };
