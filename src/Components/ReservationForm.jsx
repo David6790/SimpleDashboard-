@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
@@ -15,10 +15,10 @@ import {
 } from "./ValidationSaisie";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
 
 export default function ReservationForm() {
   const navigate = useNavigate();
-  // eslint-disable-next-line
   const [createReservation, { isLoading }] = useCreateReservationMutation();
 
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -33,6 +33,9 @@ export default function ReservationForm() {
   const [occStatus, setOccStatus] = useState("");
   const [submitMessage, setSubmitMessage] = useState("");
   const [reservationDetails, setReservationDetails] = useState(null); // État pour les détails de la réservation
+
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false); // État pour contrôler la visibilité du modal d'erreur
+  const [errorMessage, setErrorMessage] = useState(""); // État pour stocker le message d'erreur
 
   const user = useSelector((state) => state.user);
 
@@ -173,12 +176,20 @@ export default function ReservationForm() {
       setErrors({});
       setOccStatus("");
     } catch (error) {
-      setSubmitMessage("Erreur lors de la réservation. Veuillez réessayer.");
+      // Si une erreur survient, on affiche le message d'erreur dans le modal
+      console.log(error);
+      setErrorMessage(
+        error?.data?.error ||
+          "Erreur lors de la réservation. Veuillez réessayer."
+      );
+      setIsErrorModalOpen(true);
     }
   };
 
   const handlePlaceTable = () => {
-    navigate(`/?redirect=true&date=${reservationDetails.dateResa}`);
+    if (reservationDetails) {
+      navigate(`/?redirect=true&date=${reservationDetails.dateResa}`);
+    }
   };
 
   return (
@@ -430,6 +441,13 @@ export default function ReservationForm() {
           </div>
         </form>
       </div>
+
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={isErrorModalOpen}
+        errorMessage={errorMessage}
+        onClose={() => setIsErrorModalOpen(false)}
+      />
     </div>
   );
 }
