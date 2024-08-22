@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://localhost:7268/api/",
+    baseUrl: process.env.REACT_APP_API_URL,
     prepareHeaders: (headers) => {
       const token = Cookies.get("token");
       if (token) {

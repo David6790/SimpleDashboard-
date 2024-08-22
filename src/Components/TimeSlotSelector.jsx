@@ -13,7 +13,7 @@ function TimeSlotSelector({
     const fetchTimeSlots = async (date) => {
       try {
         const response = await axios.get(
-          `https://localhost:7268/api/OccupationStatus/ByDate/${date}`,
+          `${process.env.REACT_APP_API_URL}OccupationStatus/ByDate/${date}`,
           {
             headers: {
               Accept: "application/json",

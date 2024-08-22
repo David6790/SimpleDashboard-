@@ -2,7 +2,9 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const allocationsApi = createApi({
   reducerPath: "allocationsApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "https://localhost:7268/api/" }),
+  baseQuery: fetchBaseQuery({
+    baseUrl: process.env.REACT_APP_API_URL,
+  }),
   tagTypes: ["Allocations"],
   endpoints: (builder) => ({
     getAllocations: builder.query({

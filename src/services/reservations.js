@@ -2,7 +2,9 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const reservationsApi = createApi({
   reducerPath: "reservationsApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "https://localhost:7268/api/" }),
+  baseQuery: fetchBaseQuery({
+    baseUrl: process.env.REACT_APP_API_URL,
+  }),
   tagTypes: ["Reservations"],
   endpoints: (builder) => ({
     getReservations: builder.query({

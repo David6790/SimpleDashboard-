@@ -3,7 +3,7 @@ import Layout from "../Layouts/Layout";
 import SectionHeading from "../Components/SectionHeading";
 import PreviewTableDashboard from "../Components/PreviewTableDashboard";
 import BanniereStat from "../Components/BanniereStat";
-import MenuDuJour from "../Components/MenuDuJour";
+
 import { useGetReservationsByDateQuery } from "../services/reservations";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -195,7 +195,6 @@ const Dashboard = () => {
         setSelectedDate={setSelectedDate}
         refreshReservations={refreshReservations}
       />
-      <MenuDuJour />
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
