@@ -4,6 +4,7 @@ import {
   useCreateAllocationMutation,
 } from "../services/allocationsApi";
 import ErrorModal from "../Components/ErrorModal";
+
 const tableIdMapping = {
   1: 1,
   "1-BIS": 2,
@@ -69,6 +70,7 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
           timeResa: allocation.reservation.timeResa,
           numberOfGuest: allocation.reservation.numberOfGuest,
           freeTable21: allocation.reservation.freeTable21,
+          isAfter21hReservation: allocation.reservation.timeResa >= "21:00:00", // Ajout du drapeau isAfter21hReservation ici
         });
         return acc;
       }, {});
@@ -87,7 +89,28 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
             new Date(`1970-01-01T21:00:00`)
       );
 
-      if (!isAvailableAfter21 && isOccupied(table)) {
+      const isAfter21hReservation = occupiedReservations.some(
+        (reservation) => reservation.isAfter21hReservation
+      );
+
+      // Logique mise à jour pour permettre la sélection des tables dans tous les scénarios
+      if (!isAvailableAfter21 && !isAfter21hReservation && isOccupied(table)) {
+        return;
+      }
+
+      if (
+        reservation.timeResa >= "21:00:00" &&
+        !isAfter21hReservation &&
+        !isAvailableAfter21
+      ) {
+        return;
+      }
+
+      if (
+        reservation.timeResa < "21:00:00" &&
+        isAfter21hReservation &&
+        !reservation.freeTable21
+      ) {
         return;
       }
     }
@@ -115,9 +138,10 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
       isOccupied(table) &&
       occupiedTables[table].some(
         (reservation) =>
-          reservation.freeTable21 === "O" &&
-          new Date(`1970-01-01T${reservation.timeResa}`) <
-            new Date(`1970-01-01T21:00:00`)
+          (reservation.freeTable21 === "O" &&
+            new Date(`1970-01-01T${reservation.timeResa}`) <
+              new Date(`1970-01-01T21:00:00`)) ||
+          reservation.isAfter21hReservation // Considérer les réservations après 21h comme partiellement disponibles
       );
 
     return `table border-4 shadow-lg flex flex-col justify-between text-sm h-20 ${
@@ -155,6 +179,21 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
 
   const getFreeTable21Info = (table) => {
     const occupiedReservations = occupiedTables[table];
+
+    if (
+      occupiedReservations &&
+      occupiedReservations.some(
+        (reservation) =>
+          reservation.isAfter21hReservation && occupiedReservations.length === 1
+      )
+    ) {
+      return (
+        <div className="text-xs font-bold bg-blue-300 p-1 rounded-t mb-1">
+          Dispo pour 19h
+        </div>
+      );
+    }
+
     if (
       occupiedReservations &&
       occupiedReservations.some(

@@ -55,6 +55,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           timeResa: allocation.reservation.timeResa,
           numberOfGuest: allocation.reservation.numberOfGuest,
           freeTable21: allocation.reservation.freeTable21,
+          isAfter21hReservation: allocation.reservation.timeResa >= "21:00:00", // Ajout du drapeau isAfter21hReservation ici
         });
         return acc;
       }, {});
@@ -73,9 +74,10 @@ const ModalViewPlan = ({ date, period, onClose }) => {
       isOccupied(table) &&
       occupiedTables[table].some(
         (reservation) =>
-          reservation.freeTable21 === "O" &&
-          new Date(`1970-01-01T${reservation.timeResa}`) <
-            new Date(`1970-01-01T21:00:00`)
+          (reservation.freeTable21 === "O" &&
+            new Date(`1970-01-01T${reservation.timeResa}`) <
+              new Date(`1970-01-01T21:00:00`)) ||
+          reservation.isAfter21hReservation // Considérer les réservations après 21h comme partiellement disponibles
       );
 
     return `table border-4 shadow-lg flex flex-col justify-between text-sm h-20 ${
@@ -111,6 +113,21 @@ const ModalViewPlan = ({ date, period, onClose }) => {
 
   const getFreeTable21Info = (table) => {
     const occupiedReservations = occupiedTables[table];
+
+    if (
+      occupiedReservations &&
+      occupiedReservations.some(
+        (reservation) =>
+          reservation.isAfter21hReservation && occupiedReservations.length === 1
+      )
+    ) {
+      return (
+        <div className="text-xs font-bold bg-blue-300 p-1 rounded-t mb-1">
+          Dispo pour 19h
+        </div>
+      );
+    }
+
     if (
       occupiedReservations &&
       occupiedReservations.some(
