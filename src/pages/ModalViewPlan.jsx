@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useGetAllocationsQuery } from "../services/allocationsApi";
 import { format } from "date-fns";
 import fr from "date-fns/locale/fr";
+import ReservationDetailModal from "../Components/ReservationDetailModal";
 
 const tableIdMapping = {
   1: 1,
@@ -35,6 +36,8 @@ const tableIdMapping = {
 
 const ModalViewPlan = ({ date, period, onClose }) => {
   const [occupiedTables, setOccupiedTables] = useState([]);
+  const [selectedReservation, setSelectedReservation] = useState(null);
+  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
 
   const { data: allocations } = useGetAllocationsQuery({
     date,
@@ -49,13 +52,16 @@ const ModalViewPlan = ({ date, period, onClose }) => {
         if (!acc[tableName]) {
           acc[tableName] = [];
         }
+        console.log(allocation);
         acc[tableName].push({
           clientPrenom: allocation.reservation.clientPrenom,
           clientNom: allocation.reservation.clientName,
           timeResa: allocation.reservation.timeResa,
           numberOfGuest: allocation.reservation.numberOfGuest,
           freeTable21: allocation.reservation.freeTable21,
-          isAfter21hReservation: allocation.reservation.timeResa >= "21:00:00", // Ajout du drapeau isAfter21hReservation ici
+          comment: allocation.reservation.comment, // Ajout du commentaire
+          clienttelephone: allocation.reservation.clientTelephone, // Ajout du téléphone
+          isAfter21hReservation: allocation.reservation.timeResa >= "21:00:00",
         });
         return acc;
       }, {});
@@ -77,7 +83,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           (reservation.freeTable21 === "O" &&
             new Date(`1970-01-01T${reservation.timeResa}`) <
               new Date(`1970-01-01T21:00:00`)) ||
-          reservation.isAfter21hReservation // Considérer les réservations après 21h comme partiellement disponibles
+          reservation.isAfter21hReservation
       );
 
     return `table border-4 shadow-lg flex flex-col justify-between text-sm h-20 ${
@@ -95,11 +101,23 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     if (occupiedReservations && occupiedReservations.length > 0) {
       return (
         <>
-          <div className="flex-1 flex items-center justify-center text-xs border-b border-gray-400">
+          <div
+            className="flex-1 flex items-center justify-center text-xs border-b border-gray-400 cursor-pointer"
+            onClick={() => {
+              setSelectedReservation(occupiedReservations[0]);
+              setIsReservationModalOpen(true);
+            }}
+          >
             {`${occupiedReservations[0].clientPrenom} ${occupiedReservations[0].clientNom} ${occupiedReservations[0].numberOfGuest}p ${occupiedReservations[0].timeResa}`}
           </div>
           {occupiedReservations.length > 1 && (
-            <div className="flex-1 flex items-center justify-center text-xs">
+            <div
+              className="flex-1 flex items-center justify-center text-xs cursor-pointer"
+              onClick={() => {
+                setSelectedReservation(occupiedReservations[1]);
+                setIsReservationModalOpen(true);
+              }}
+            >
               {`${occupiedReservations[1].clientPrenom} ${occupiedReservations[1].clientNom} ${occupiedReservations[1].numberOfGuest}p ${occupiedReservations[1].timeResa}`}
             </div>
           )}
@@ -329,6 +347,14 @@ const ModalViewPlan = ({ date, period, onClose }) => {
             Fermer
           </button>
         </div>
+
+        {/* Reservation Details Modal */}
+        {isReservationModalOpen && (
+          <ReservationDetailModal
+            reservation={selectedReservation}
+            onClose={() => setIsReservationModalOpen(false)}
+          />
+        )}
       </div>
     </div>
   );
