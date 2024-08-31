@@ -27,17 +27,15 @@ const tableIdMapping = {
   18: 19,
   19: 20,
   20: 21,
-  21: 22,
-  22: 23,
-  23: 24,
-  24: 25,
-  25: 26,
-  26: 27,
+  22: 22,
+  23: 23,
+  24: 24,
+  25: 25,
+  26: 26,
 };
 
 const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
   const [selectedTables, setSelectedTables] = useState([]);
-  const [isMultiTableMode, setIsMultiTableMode] = useState(false);
   const [occupiedTables, setOccupiedTables] = useState([]);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState(""); // État pour le message d'erreur
@@ -115,17 +113,12 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
       }
     }
 
-    if (isMultiTableMode) {
-      setSelectedTables((prevSelectedTables) =>
-        prevSelectedTables.includes(table)
-          ? prevSelectedTables.filter((t) => t !== table)
-          : [...prevSelectedTables, table]
-      );
-    } else {
-      setSelectedTables((prevSelectedTables) =>
-        prevSelectedTables.includes(table) ? [] : [table]
-      );
-    }
+    // Mode multitable activé par défaut
+    setSelectedTables((prevSelectedTables) =>
+      prevSelectedTables.includes(table)
+        ? prevSelectedTables.filter((t) => t !== table)
+        : [...prevSelectedTables, table]
+    );
   };
 
   const isSelected = (table) => selectedTables.includes(table);
@@ -144,13 +137,13 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
           reservation.isAfter21hReservation // Considérer les réservations après 21h comme partiellement disponibles
       );
 
-    return `table border-4 shadow-lg flex flex-col justify-between text-sm h-20 ${
+    return `table border-4 shadow-lg flex flex-col justify-between text-sm h-20 rounded-md ${
       isSelected(table)
         ? "bg-blue-300"
         : isPartiallyAvailable
         ? "bg-yellow-300"
         : isOccupied(table)
-        ? "bg-green-300"
+        ? "bg-yellow-300"
         : "border-gray-500"
     }`;
   };
@@ -161,14 +154,17 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
     if (occupiedReservations && occupiedReservations.length > 0) {
       return (
         <>
-          <div className="flex-1 flex items-center justify-center text-xs border-b border-gray-400">
-            {`${occupiedReservations[0].clientPrenom} ${occupiedReservations[0].clientNom} ${occupiedReservations[0].numberOfGuest}p ${occupiedReservations[0].timeResa}`}
+          <div className="flex-1 flex items-center justify-center text-xs">
+            <div>{`${occupiedReservations[0].clientPrenom} ${occupiedReservations[0].clientNom} ${occupiedReservations[0].numberOfGuest}p ${occupiedReservations[0].timeResa}`}</div>
           </div>
           {occupiedReservations.length > 1 && (
-            <div className="flex-1 flex items-center justify-center text-xs">
+            <div className="border-t border-white mt-1 flex-1 flex items-center justify-center text-xs">
               {`${occupiedReservations[1].clientPrenom} ${occupiedReservations[1].clientNom} ${occupiedReservations[1].numberOfGuest}p ${occupiedReservations[1].timeResa}`}
             </div>
           )}
+          <div className="mt-auto mb-0 text-center w-full">
+            {getFreeTable21Info(table)}
+          </div>
         </>
       );
     }
@@ -188,8 +184,8 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
       )
     ) {
       return (
-        <div className="text-xs font-bold bg-blue-300 p-1 rounded-t mb-1">
-          Dispo pour 19h
+        <div className="text-xs text-white font-bold bg-blue-600 rounded-md py-0.5 px-2 inline-block">
+          Dispo 19h
         </div>
       );
     }
@@ -204,7 +200,7 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
       )
     ) {
       return (
-        <div className="text-xs font-bold bg-yellow-300 p-1 rounded-t mb-1">
+        <div className="text-xs text-white font-bold bg-green-600 rounded-md py-0.5 px-2 inline-block">
           Libre à 21h
         </div>
       );
@@ -212,10 +208,8 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
     return null;
   };
 
-  const handleMultiTableToggle = () => setIsMultiTableMode(!isMultiTableMode);
-
   const handleConfirmTables = async () => {
-    setErrorMessage(""); // Reset error before starting the operation
+    setErrorMessage(""); // Reset error before starting l'opération
     const tableIds = selectedTables.map((table) => tableIdMapping[table]);
 
     const newAllocation = {
@@ -243,14 +237,6 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
   return (
     <div className="w-full px-10 mb-14 z-50">
       <div className="pt-10 flex justify-between mb-4">
-        <label className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            checked={isMultiTableMode}
-            onChange={handleMultiTableToggle}
-          />
-          <span>Mode Multi-Table</span>
-        </label>
         <button
           className="bg-blue-500 text-white px-4 py-2 rounded"
           onClick={handleConfirmTables}
@@ -266,8 +252,10 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
         <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
           <div className="flex flex-row w-1/4 justify-start gap-5">
             {["7", "8"].map((table) => (
-              <div key={table} className="relative flex flex-col items-center">
-                {getFreeTable21Info(table)}
+              <div
+                key={table}
+                className="relative flex flex-col justify-between items-center"
+              >
                 <div
                   id={table}
                   className={getTableClass(table)}
@@ -282,7 +270,6 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
           <div className="flex flex-row w-3/4 justify-end gap-5">
             {["9", "11", "12", "13", "14"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
-                {getFreeTable21Info(table)}
                 <div
                   id={table}
                   className={getTableClass(table)}
@@ -299,7 +286,6 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
           <div className="flex flex-row w-1/4 justify-start">
             {["6"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
-                {getFreeTable21Info(table)}
                 <div
                   id={table}
                   className={getTableClass(table)}
@@ -314,7 +300,6 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
           <div className="flex flex-row w-2/3 justify-end">
             {["15"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
-                {getFreeTable21Info(table)}
                 <div
                   id={table}
                   className={getTableClass(table)}
@@ -331,7 +316,6 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
           <div className="flex flex-row w-1/3 justify-between">
             {["5", "20"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
-                {getFreeTable21Info(table)}
                 <div
                   id={table}
                   className={getTableClass(table)}
@@ -346,7 +330,6 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
           <div className="flex flex-row w-2/3 justify-end gap-5">
             {["19", "18", "16"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
-                {getFreeTable21Info(table)}
                 <div
                   id={table}
                   className={getTableClass(table)}
@@ -363,7 +346,6 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
           <div className="flex flex-row w-1/4 justify-start">
             {["4"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
-                {getFreeTable21Info(table)}
                 <div
                   id={table}
                   className={getTableClass(table)}
@@ -378,7 +360,6 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
           <div className="flex flex-row w-2/3 justify-end">
             {["17"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
-                {getFreeTable21Info(table)}
                 <div
                   id={table}
                   className={getTableClass(table)}
@@ -395,7 +376,6 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
           <div className="flex flex-row w-2/3 justify-between gap-5">
             {["3", "22", "23", "24", "25", "26"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
-                {getFreeTable21Info(table)}
                 <div
                   id={table}
                   className={getTableClass(table)}
@@ -412,7 +392,6 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
           <div className="flex flex-row w-1/3 justify-between gap-5">
             {["2", "2-BIS", "1-BIS", "1"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
-                {getFreeTable21Info(table)}
                 <div
                   id={table}
                   className={getTableClass(table)}

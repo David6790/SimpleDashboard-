@@ -29,6 +29,20 @@ export const allocationsApi = createApi({
       }),
       invalidatesTags: ["Allocations"],
     }),
+
+    changeAllocation: builder.mutation({
+      query: ({ reservationId, newTableIds, date, period }) => ({
+        url: `Allocations/change`,
+        method: "POST",
+        body: {
+          reservationId,
+          newTableIds,
+          date,
+          period,
+        },
+      }),
+      invalidatesTags: ["Allocations"],
+    }),
   }),
 });
 
@@ -36,6 +50,7 @@ export const {
   useGetAllocationsQuery,
   useCreateAllocationMutation,
   useDeleteAllocationsByReservationMutation,
+  useChangeAllocationMutation, // Ajout du hook pour changeAllocation
 } = allocationsApi;
 
 export default allocationsApi;
