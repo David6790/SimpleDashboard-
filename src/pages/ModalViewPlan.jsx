@@ -98,7 +98,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           reservation.isAfter21hReservation
       );
 
-    return `table border-4 shadow-lg flex flex-col justify-between text-sm h-20 rounded-md ${
+    return `table border-2 shadow-md flex flex-col justify-between text-xs h-12 rounded-md ${
       isSelected(table)
         ? "bg-blue-500 text-white"
         : isPartiallyAvailable
@@ -170,7 +170,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           </div>
           {occupiedReservations.length > 1 && (
             <div
-              className="flex-1 flex items-center justify-center text-xs border-t border-white  cursor-pointer"
+              className="flex-1 flex items-center justify-center text-xs border-t border-white cursor-pointer"
               onClick={() => {
                 if (!isEditing) {
                   setSelectedReservation(occupiedReservations[1]);
@@ -181,7 +181,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
               {`${occupiedReservations[1].clientPrenom} ${occupiedReservations[1].clientNom} ${occupiedReservations[1].numberOfGuest}p ${occupiedReservations[1].timeResa}`}
             </div>
           )}
-          <div className="text-center w-full mt-1">
+          <div className="text-center w-full mt-0.5">
             {getFreeTable21Info(table)}
           </div>
         </>
@@ -203,7 +203,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
       )
     ) {
       return (
-        <div className="text-xs text-white font-bold bg-blue-600 rounded-md py-0.5 px-2 inline-block">
+        <div className="text-xs text-white font-bold bg-blue-600 rounded-md py-0.5 px-1 inline-block">
           Dispo 19h
         </div>
       );
@@ -219,7 +219,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
       )
     ) {
       return (
-        <div className="text-xs text-white font-bold bg-green-600 rounded-md py-0.5 px-2 inline-block">
+        <div className="text-xs text-white font-bold bg-green-600 rounded-md py-0.5 px-1 inline-block">
           Libre à 21h
         </div>
       );
@@ -243,37 +243,37 @@ const ModalViewPlan = ({ date, period, onClose }) => {
       onClick={handleClickOutside}
     >
       <div
-        className="bg-white p-8 rounded-lg shadow-xl relative max-h-[95%] max-w-[95%] overflow-auto m-4"
+        className="bg-white p-4 rounded-lg shadow-xl relative max-h-[95%] max-w-[95%] overflow-auto m-2"
         onClick={(e) => e.stopPropagation()}
       >
         {isEditing ? (
-          <div className="text-2xl font-bold text-center mb-6 text-gray-700">
+          <div className="text-lg font-bold text-center mb-2 text-gray-700">
             Mode Edition Activée
           </div>
         ) : (
-          <div className="text-2xl font-bold text-center mb-6 text-gray-700">
+          <div className="text-lg font-bold text-center mb-2 text-gray-700">
             {formattedDate} - {period === "midi" ? "Midi" : "Soir"}
           </div>
         )}
 
         {isEditing && (
-          <div className="text-center text-sm text-gray-600 mb-4">
+          <div className="text-center text-xs text-gray-600 mb-1">
             Sélectionnez la ou les tables vers lesquelles vous souhaitez
             déplacer la réservation.
           </div>
         )}
 
         {isEditing && (
-          <div className="flex justify-between mb-6">
+          <div className="flex justify-between mb-2">
             <button
-              className="bg-blue-600 text-white px-6 py-2 rounded-md shadow-sm hover:bg-blue-700 transition duration-200"
+              className="bg-blue-600 text-white px-4 py-1 rounded-md shadow-sm hover:bg-blue-700 transition duration-200"
               onClick={() => setIsEditing(false)}
             >
               Annuler
             </button>
 
             <button
-              className="bg-blue-600 text-white px-6 py-2 rounded-md shadow-sm hover:bg-blue-700 transition duration-200"
+              className="bg-blue-600 text-white px-4 py-1 rounded-md shadow-sm hover:bg-blue-700 transition duration-200"
               onClick={handleConfirmMove}
               disabled={isLoading}
             >
@@ -282,9 +282,9 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           </div>
         )}
 
-        <div className="w-full h-full overflow-auto px-4">
-          <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
-            <div className="flex flex-row w-1/4 justify-start gap-5">
+        <div className="w-full h-full overflow-auto px-2">
+          <div className="pt-2 flex flex-row justify-between min-w-[900px]">
+            <div className="flex flex-row w-1/4 justify-start gap-2">
               {["7", "8"].map((table) => (
                 <div
                   key={table}
@@ -294,11 +294,11 @@ const ModalViewPlan = ({ date, period, onClose }) => {
                   <div id={table} className={getTableClass(table)}>
                     {getOccupiedTableInfo(table)}
                   </div>
-                  <div className="text-sm mt-1">{table}</div>
+                  <div className="text-xs mt-0.5">{table}</div>
                 </div>
               ))}
             </div>
-            <div className="flex flex-row w-3/4 justify-end gap-5">
+            <div className="flex flex-row w-3/4 justify-end gap-2">
               {["9", "11", "12", "13", "14"].map((table) => (
                 <div
                   key={table}
@@ -308,12 +308,12 @@ const ModalViewPlan = ({ date, period, onClose }) => {
                   <div id={table} className={getTableClass(table)}>
                     {getOccupiedTableInfo(table)}
                   </div>
-                  <div className="text-sm mt-1">{table}</div>
+                  <div className="text-xs mt-0.5">{table}</div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
+          <div className="pt-2 flex flex-row justify-between min-w-[900px]">
             <div className="flex flex-row w-1/4 justify-start">
               {["6"].map((table) => (
                 <div
@@ -324,7 +324,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
                   <div id={table} className={getTableClass(table)}>
                     {getOccupiedTableInfo(table)}
                   </div>
-                  <div className="text-sm mt-1">{table}</div>
+                  <div className="text-xs mt-0.5">{table}</div>
                 </div>
               ))}
             </div>
@@ -338,12 +338,12 @@ const ModalViewPlan = ({ date, period, onClose }) => {
                   <div id={table} className={getTableClass(table)}>
                     {getOccupiedTableInfo(table)}
                   </div>
-                  <div className="text-sm mt-1">{table}</div>
+                  <div className="text-xs mt-0.5">{table}</div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
+          <div className="pt-2 flex flex-row justify-between min-w-[900px]">
             <div className="flex flex-row w-1/3 justify-between">
               {["5", "20"].map((table) => (
                 <div
@@ -354,11 +354,11 @@ const ModalViewPlan = ({ date, period, onClose }) => {
                   <div id={table} className={getTableClass(table)}>
                     {getOccupiedTableInfo(table)}
                   </div>
-                  <div className="text-sm mt-1">{table}</div>
+                  <div className="text-xs mt-0.5">{table}</div>
                 </div>
               ))}
             </div>
-            <div className="flex flex-row w-2/3 justify-end gap-5">
+            <div className="flex flex-row w-2/3 justify-end gap-2">
               {["19", "18", "16"].map((table) => (
                 <div
                   key={table}
@@ -368,12 +368,12 @@ const ModalViewPlan = ({ date, period, onClose }) => {
                   <div id={table} className={getTableClass(table)}>
                     {getOccupiedTableInfo(table)}
                   </div>
-                  <div className="text-sm mt-1">{table}</div>
+                  <div className="text-xs mt-0.5">{table}</div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
+          <div className="pt-2 flex flex-row justify-between min-w-[900px]">
             <div className="flex flex-row w-1/4 justify-start">
               {["4"].map((table) => (
                 <div
@@ -384,7 +384,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
                   <div id={table} className={getTableClass(table)}>
                     {getOccupiedTableInfo(table)}
                   </div>
-                  <div className="text-sm mt-1">{table}</div>
+                  <div className="text-xs mt-0.5">{table}</div>
                 </div>
               ))}
             </div>
@@ -398,13 +398,13 @@ const ModalViewPlan = ({ date, period, onClose }) => {
                   <div id={table} className={getTableClass(table)}>
                     {getOccupiedTableInfo(table)}
                   </div>
-                  <div className="text-sm mt-1">{table}</div>
+                  <div className="text-xs mt-0.5">{table}</div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
-            <div className="flex flex-row w-2/3 justify-between gap-5">
+          <div className="pt-2 flex flex-row justify-between min-w-[900px]">
+            <div className="flex flex-row w-2/3 justify-between gap-2">
               {["3", "22", "23", "24", "25", "26"].map((table) => (
                 <div
                   key={table}
@@ -414,13 +414,13 @@ const ModalViewPlan = ({ date, period, onClose }) => {
                   <div id={table} className={getTableClass(table)}>
                     {getOccupiedTableInfo(table)}
                   </div>
-                  <div className="text-sm mt-1">{table}</div>
+                  <div className="text-xs mt-0.5">{table}</div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
-            <div className="flex flex-row w-1/3 justify-between gap-5">
+          <div className="pt-2 flex flex-row justify-between min-w-[900px]">
+            <div className="flex flex-row w-1/3 justify-between gap-2">
               {["2", "2-BIS", "1-BIS", "1"].map((table) => (
                 <div
                   key={table}
@@ -430,16 +430,16 @@ const ModalViewPlan = ({ date, period, onClose }) => {
                   <div id={table} className={getTableClass(table)}>
                     {getOccupiedTableInfo(table)}
                   </div>
-                  <div className="text-sm mt-1">{table}</div>
+                  <div className="text-xs mt-0.5">{table}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="flex justify-center mt-6">
+        <div className="flex justify-center mt-2">
           <button
-            className="bg-blue-500 text-white px-6 py-2 rounded-md shadow-sm hover:bg-blue-600 transition duration-200"
+            className="bg-blue-500 text-white px-4 py-1 rounded-md shadow-sm hover:bg-blue-600 transition duration-200"
             onClick={onClose}
           >
             Fermer

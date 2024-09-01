@@ -38,7 +38,7 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
   const [selectedTables, setSelectedTables] = useState([]);
   const [occupiedTables, setOccupiedTables] = useState([]);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(""); // État pour le message d'erreur
+  const [errorMessage, setErrorMessage] = useState("");
 
   const date = reservation ? reservation.dateResa : null;
   const periode = reservation
@@ -68,7 +68,7 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
           timeResa: allocation.reservation.timeResa,
           numberOfGuest: allocation.reservation.numberOfGuest,
           freeTable21: allocation.reservation.freeTable21,
-          isAfter21hReservation: allocation.reservation.timeResa >= "21:00:00", // Ajout du drapeau isAfter21hReservation ici
+          isAfter21hReservation: allocation.reservation.timeResa >= "21:00:00",
         });
         return acc;
       }, {});
@@ -91,7 +91,6 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
         (reservation) => reservation.isAfter21hReservation
       );
 
-      // Logique mise à jour pour permettre la sélection des tables dans tous les scénarios
       if (!isAvailableAfter21 && !isAfter21hReservation && isOccupied(table)) {
         return;
       }
@@ -113,7 +112,6 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
       }
     }
 
-    // Mode multitable activé par défaut
     setSelectedTables((prevSelectedTables) =>
       prevSelectedTables.includes(table)
         ? prevSelectedTables.filter((t) => t !== table)
@@ -134,10 +132,10 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
           (reservation.freeTable21 === "O" &&
             new Date(`1970-01-01T${reservation.timeResa}`) <
               new Date(`1970-01-01T21:00:00`)) ||
-          reservation.isAfter21hReservation // Considérer les réservations après 21h comme partiellement disponibles
+          reservation.isAfter21hReservation
       );
 
-    return `table border-4 shadow-lg flex flex-col justify-between text-sm h-20 rounded-md ${
+    return `table border-2 shadow-md flex flex-col justify-between text-xs h-12 rounded-md ${
       isSelected(table)
         ? "bg-blue-300"
         : isPartiallyAvailable
@@ -184,7 +182,7 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
       )
     ) {
       return (
-        <div className="text-xs text-white font-bold bg-blue-600 rounded-md py-0.5 px-2 inline-block">
+        <div className="text-xs text-white font-bold bg-blue-600 rounded-md py-0.5 px-1 inline-block">
           Dispo 19h
         </div>
       );
@@ -200,7 +198,7 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
       )
     ) {
       return (
-        <div className="text-xs text-white font-bold bg-green-600 rounded-md py-0.5 px-2 inline-block">
+        <div className="text-xs text-white font-bold bg-green-600 rounded-md py-0.5 px-1 inline-block">
           Libre à 21h
         </div>
       );
@@ -209,7 +207,7 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
   };
 
   const handleConfirmTables = async () => {
-    setErrorMessage(""); // Reset error before starting l'opération
+    setErrorMessage("");
     const tableIds = selectedTables.map((table) => tableIdMapping[table]);
 
     const newAllocation = {
@@ -229,14 +227,14 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
       closeModal();
     } catch (error) {
       console.error("Failed to create allocation:", error);
-      setErrorMessage(error.data?.error || "Failed to create allocation"); // Set the error message
-      setIsErrorModalOpen(true); // Open the error modal
+      setErrorMessage(error.data?.error || "Failed to create allocation");
+      setIsErrorModalOpen(true);
     }
   };
 
   return (
-    <div className="w-full px-10 mb-14 z-50">
-      <div className="pt-10 flex justify-between mb-4">
+    <div className="w-full px-8 mb-12 z-50">
+      <div className="pt-8 flex justify-between mb-4">
         <button
           className="bg-blue-500 text-white px-4 py-2 rounded"
           onClick={handleConfirmTables}
@@ -249,8 +247,8 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
       </div>
 
       <div className="overflow-x-auto">
-        <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
-          <div className="flex flex-row w-1/4 justify-start gap-5">
+        <div className="pt-8 flex flex-row justify-between ">
+          <div className="flex flex-row w-1/4 justify-start gap-2">
             {["7", "8"].map((table) => (
               <div
                 key={table}
@@ -263,11 +261,11 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
                 >
                   {getOccupiedTableInfo(table)}
                 </div>
-                <div className="text-sm mt-1">{table}</div>
+                <div className="text-xs mt-0.5">{table}</div>
               </div>
             ))}
           </div>
-          <div className="flex flex-row w-3/4 justify-end gap-5">
+          <div className="flex flex-row w-3/4 justify-end gap-2">
             {["9", "11", "12", "13", "14"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
                 <div
@@ -277,12 +275,12 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
                 >
                   {getOccupiedTableInfo(table)}
                 </div>
-                <div className="text-sm mt-1">{table}</div>
+                <div className="text-xs mt-0.5">{table}</div>
               </div>
             ))}
           </div>
         </div>
-        <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
+        <div className="pt-8 flex flex-row justify-between min-w-[1000px]">
           <div className="flex flex-row w-1/4 justify-start">
             {["6"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
@@ -293,7 +291,7 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
                 >
                   {getOccupiedTableInfo(table)}
                 </div>
-                <div className="text-sm mt-1">{table}</div>
+                <div className="text-xs mt-0.5">{table}</div>
               </div>
             ))}
           </div>
@@ -307,12 +305,12 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
                 >
                   {getOccupiedTableInfo(table)}
                 </div>
-                <div className="text-sm mt-1">{table}</div>
+                <div className="text-xs mt-0.5">{table}</div>
               </div>
             ))}
           </div>
         </div>
-        <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
+        <div className="pt-8 flex flex-row justify-between min-w-[1000px]">
           <div className="flex flex-row w-1/3 justify-between">
             {["5", "20"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
@@ -323,11 +321,11 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
                 >
                   {getOccupiedTableInfo(table)}
                 </div>
-                <div className="text-sm mt-1">{table}</div>
+                <div className="text-xs mt-0.5">{table}</div>
               </div>
             ))}
           </div>
-          <div className="flex flex-row w-2/3 justify-end gap-5">
+          <div className="flex flex-row w-2/3 justify-end gap-2">
             {["19", "18", "16"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
                 <div
@@ -337,12 +335,12 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
                 >
                   {getOccupiedTableInfo(table)}
                 </div>
-                <div className="text-sm mt-1">{table}</div>
+                <div className="text-xs mt-0.5">{table}</div>
               </div>
             ))}
           </div>
         </div>
-        <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
+        <div className="pt-8 flex flex-row justify-between min-w-[1000px]">
           <div className="flex flex-row w-1/4 justify-start">
             {["4"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
@@ -353,7 +351,7 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
                 >
                   {getOccupiedTableInfo(table)}
                 </div>
-                <div className="text-sm mt-1">{table}</div>
+                <div className="text-xs mt-0.5">{table}</div>
               </div>
             ))}
           </div>
@@ -367,13 +365,13 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
                 >
                   {getOccupiedTableInfo(table)}
                 </div>
-                <div className="text-sm mt-1">{table}</div>
+                <div className="text-xs mt-0.5">{table}</div>
               </div>
             ))}
           </div>
         </div>
-        <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
-          <div className="flex flex-row w-2/3 justify-between gap-5">
+        <div className="pt-8 flex flex-row justify-between min-w-[1000px]">
+          <div className="flex flex-row w-2/3 justify-between gap-2">
             {["3", "22", "23", "24", "25", "26"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
                 <div
@@ -383,13 +381,13 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
                 >
                   {getOccupiedTableInfo(table)}
                 </div>
-                <div className="text-sm mt-1">{table}</div>
+                <div className="text-xs mt-0.5">{table}</div>
               </div>
             ))}
           </div>
         </div>
-        <div className="pt-10 flex flex-row justify-between min-w-[1000px]">
-          <div className="flex flex-row w-1/3 justify-between gap-5">
+        <div className="pt-8 flex flex-row justify-between min-w-[1000px]">
+          <div className="flex flex-row w-1/3 justify-between gap-2">
             {["2", "2-BIS", "1-BIS", "1"].map((table) => (
               <div key={table} className="relative flex flex-col items-center">
                 <div
@@ -399,7 +397,7 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
                 >
                   {getOccupiedTableInfo(table)}
                 </div>
-                <div className="text-sm mt-1">{table}</div>
+                <div className="text-xs mt-0.5">{table}</div>
               </div>
             ))}
           </div>
