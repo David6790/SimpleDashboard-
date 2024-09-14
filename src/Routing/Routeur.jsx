@@ -13,6 +13,7 @@ import RoleProtectedRoute from "./RoleProtectedRoute"; // Assurez-vous d'importe
 import OccStatusManagement from "../pages/OccStatusManagement";
 import PlanDeSalle from "../pages/PlanDeSalle";
 import StockComplet from "../pages/StockComplet";
+import GestionInteractiveResa from "../pages/GestionInteractiveResa";
 
 const Routeur = () => {
   const dispatch = useDispatch();
@@ -82,6 +83,10 @@ const Routeur = () => {
         {/* Ajouter la route pour la page Access Denied */}
         <Route path="/access-denied" element={<AccessDeniedPage />} />
         <Route path="/plansalle" element={<PlanDeSalle />} />
+        <Route
+          path="/gir/:reservationId"
+          element={<GestionInteractiveResa />}
+        />
       </Routes>
     </BrowserRouter>
   );

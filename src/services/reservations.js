@@ -61,6 +61,11 @@ export const reservationsApi = createApi({
       }),
       invalidatesTags: ["Reservations"],
     }),
+    getReservationById: builder.query({
+      query: (id) => `Reservations/${id}`,
+      keepUnusedDataFor: 1440,
+      providesTags: ["Reservations"],
+    }),
   }),
 });
 
@@ -74,5 +79,6 @@ export const {
   useGetFuturReservationsQuery,
   useCancelReservationMutation,
   useRefuseReservationMutation,
+  useGetReservationByIdQuery,
 } = reservationsApi;
 export default reservationsApi;

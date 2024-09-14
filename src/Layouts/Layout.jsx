@@ -37,7 +37,7 @@ const navigation = [
     icon: CircleStackIcon,
     current: false,
   },
-  { name: "Calendar", href: "/avenir2", icon: CalendarIcon, current: false },
+  { name: "Calendar", href: "/gir", icon: CalendarIcon, current: false },
   {
     name: "Documents",
     href: "/avenir3",
