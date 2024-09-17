@@ -1,44 +1,13 @@
 import { Popover } from "@headlessui/react";
-import {
-  HandThumbUpIcon,
-  ClockIcon,
-  QuestionMarkCircleIcon,
-} from "@heroicons/react/20/solid";
+import { HandThumbUpIcon, ClockIcon } from "@heroicons/react/20/solid";
 import { useGetReservationByIdQuery } from "../services/reservations";
 import { useParams, useNavigate } from "react-router-dom"; // Importer useNavigate
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useGetHECStatutsByReservationIdQuery } from "../services/hecApi";
-
-const user = {
-  name: "Whitney Francis",
-  email: "whitney@example.com",
-  imageUrl:
-    "https://images.unsplash.com/photo-1517365830460-955ce3ccd263?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80",
-};
-
-const comments = [
-  {
-    id: 1,
-    name: "Leslie Alexander",
-    date: "4d ago",
-    imageId: "1494790108377-be9c29b29330",
-    body: "Ducimus quas delectus ad maxime totam doloribus reiciendis ex. Tempore dolorem maiores. Similique voluptatibus tempore non ut.",
-  },
-  {
-    id: 2,
-    name: "Michael Foster",
-    date: "4d ago",
-    imageId: "1519244703995-f4e0f30006d5",
-    body: "Et ut autem. Voluptatem eum dolores sint necessitatibus quos. Quis eum qui dolorem accusantium voluptas voluptatem ipsum. Quo facere iusto quia accusamus veniam id explicabo et aut.",
-  },
-  {
-    id: 3,
-    name: "Dries Vincent",
-    date: "4d ago",
-    imageId: "1506794778202-cad84cf45f1d",
-    body: "Expedita consequatur sit ea voluptas quo ipsam recusandae. Ab sint et voluptatem repudiandae voluptatem et eveniet. Nihil quas consequatur autem. Perferendis rerum et.",
-  },
-];
+import { useGetCommentairesByReservationIdQuery } from "../services/commentaireApi";
+import logoG from "../images/logoG.png";
+import heart from "../images/heart.png";
+import { useAddCommentaireMutation } from "../services/commentaireApi";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -49,10 +18,79 @@ function formatDateToDayMonth(dateString) {
   const date = new Date(dateString);
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
+function formatTimeAgo(createdAt) {
+  const createdDate = new Date(createdAt); // Crée une date à partir du timestamp
+  const now = new Date(); // Date actuelle
+
+  // Convertir les deux dates en millisecondes depuis l'epoch UTC
+  const diffInMinutes = Math.floor(
+    (now.getTime() - createdDate.getTime()) / (1000 * 60)
+  );
+
+  if (diffInMinutes < 60) {
+    // Moins d'une heure
+    return `il y a ${diffInMinutes} min`;
+  } else if (diffInMinutes < 1440) {
+    // Moins d'une journée (60 min * 24 = 1440 min)
+    const hours = Math.floor(diffInMinutes / 60);
+    return `il y a ${hours} heure${hours > 1 ? "s" : ""}`;
+  } else {
+    // Plus d'une journée
+    const days = Math.floor(diffInMinutes / 1440);
+    return `il y a ${days} jour${days > 1 ? "s" : ""}`;
+  }
+}
 
 export default function GestionInteractiveResa() {
   const { reservationId } = useParams(); // Récupérer l'ID depuis l'URL
   const navigate = useNavigate(); // Utiliser useNavigate pour redirection
+  const [addCommentaire] = useAddCommentaireMutation();
+
+  // État pour stocker le message du commentaire
+  const [commentMessage, setCommentMessage] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!commentMessage.trim()) {
+      alert("Veuillez entrer un message.");
+      return;
+    }
+
+    try {
+      // Obtenir la date actuelle en heure française (fuseau "Europe/Paris")
+      const frenchDate = new Date().toLocaleString("fr-FR", {
+        timeZone: "Europe/Paris",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+
+      // Transformer le format de "dd/MM/yyyy, HH:mm:ss" à "yyyy-MM-ddTHH:mm:ss"
+      const [datePart, timePart] = frenchDate.split(", ");
+      const [day, month, year] = datePart.split("/");
+      const formattedDate = `${year}-${month}-${day}T${timePart}`;
+
+      // Préparer les données du commentaire
+      const newComment = {
+        message: commentMessage,
+        auteur: `${reservationData.client.name} ${reservationData.client.prenom}`, // Concaténer nom et prénom
+        reservationId: reservationId,
+        createdAt: formattedDate, // Date dans le bon format et en heure française
+      };
+
+      // Appel à l'API pour poster le commentaire
+      await addCommentaire(newComment);
+
+      // Réinitialiser le champ de commentaire après l'envoi
+      setCommentMessage("");
+    } catch (error) {
+      console.error("Erreur lors de l'envoi du commentaire :", error);
+    }
+  };
 
   const {
     data: reservationData,
@@ -65,6 +103,12 @@ export default function GestionInteractiveResa() {
     error: hecError,
     isLoading: hecLoading,
   } = useGetHECStatutsByReservationIdQuery(reservationId);
+
+  const {
+    data: commentaireData,
+    error: commentaireError,
+    isLoading: commentaireIsLoading,
+  } = useGetCommentairesByReservationIdQuery(reservationId);
 
   function formatDateTime(date, time) {
     // Combine the date and time into a single Date object
@@ -93,12 +137,15 @@ export default function GestionInteractiveResa() {
     if (reservationData && hecData) {
       console.log("Réservation récupérée :", reservationData);
       console.log("HEC Statuts récupérés :", hecData);
+      console.log("commentaires récupérés :", commentaireData);
     }
-  }, [reservationData, hecData]);
+  }, [reservationData, hecData, commentaireData]);
 
   if (reservationLoading || hecLoading) return <p>Loading...</p>;
   if (reservationError) return <p>Error: {reservationError.message}</p>;
   if (hecError) return <p>Error: {hecError.message}</p>;
+  if (commentaireIsLoading) return <p>Loading...</p>;
+  if (commentaireError) return <p>Error: {commentaireError.message}</p>;
 
   const formattedDateTime = formatDateTime(
     reservationData.dateResa,
@@ -147,7 +194,9 @@ export default function GestionInteractiveResa() {
               </div>
             </div>
             <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
-              {reservationData.status !== "A" ? (
+              {reservationData.status !== "A" &&
+              reservationData.status !== "P" &&
+              reservationData.status !== "R" ? (
                 <button
                   type="button"
                   className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
@@ -171,7 +220,7 @@ export default function GestionInteractiveResa() {
                       id="applicant-information-title"
                       className="text-lg font-medium leading-6 text-gray-900"
                     >
-                      Détails de ta réservation
+                      Détails de votre réservation
                     </h2>
                   </div>
                   <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
@@ -231,9 +280,13 @@ export default function GestionInteractiveResa() {
                     </dl>
                   </div>
                   <div>
-                    <button className="block bg-gray-50 px-4 py-4 text-center text-sm font-medium text-gray-500 hover:text-gray-700 sm:rounded-b-lg w-full">
-                      Modifier la réservation
-                    </button>
+                    <a
+                      className="block bg-gray-50 px-4 py-4 text-center text-sm font-medium text-gray-500 hover:text-gray-700 sm:rounded-b-lg w-full cursor-pointer"
+                      href="https://il-girasole-strasbourg.com/menu"
+                      target="blank"
+                    >
+                      Consulter la carte
+                    </a>
                   </div>
                 </div>
               </section>
@@ -251,14 +304,16 @@ export default function GestionInteractiveResa() {
                       </h2>
                     </div>
                     <div className="px-4 py-6 sm:px-6">
-                      <ul role="list" className="space-y-8">
-                        {comments.map((comment) => (
+                      <ul className="space-y-8">
+                        {commentaireData.map((comment) => (
                           <li key={comment.id}>
                             <div className="flex space-x-3">
                               <div className="flex-shrink-0">
                                 <img
                                   alt=""
-                                  src={`https://images.unsplash.com/photo-${comment.imageId}?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80`}
+                                  src={
+                                    comment.auteur === "SYSTEM" ? logoG : heart
+                                  }
                                   className="h-10 w-10 rounded-full"
                                 />
                               </div>
@@ -268,25 +323,20 @@ export default function GestionInteractiveResa() {
                                     href="#"
                                     className="font-medium text-gray-900"
                                   >
-                                    {comment.name}
+                                    {comment.auteur === "SYSTEM"
+                                      ? "Restaurant Il Girasole"
+                                      : comment.auteur}
                                   </a>
                                 </div>
                                 <div className="mt-1 text-sm text-gray-700">
-                                  <p>{comment.body}</p>
+                                  <p style={{ whiteSpace: "pre-line" }}>
+                                    {comment.message}
+                                  </p>
                                 </div>
                                 <div className="mt-2 space-x-2 text-sm">
                                   <span className="font-medium text-gray-500">
-                                    {comment.date}
-                                  </span>{" "}
-                                  <span className="font-medium text-gray-500">
-                                    &middot;
-                                  </span>{" "}
-                                  <button
-                                    type="button"
-                                    className="font-medium text-gray-900"
-                                  >
-                                    Reply
-                                  </button>
+                                    {formatTimeAgo(comment.createdAt)}
+                                  </span>
                                 </div>
                               </div>
                             </div>
@@ -300,7 +350,7 @@ export default function GestionInteractiveResa() {
                       <div className="flex-shrink-0">
                         <img
                           alt=""
-                          src={user.imageUrl}
+                          src={heart}
                           className="h-10 w-10 rounded-full"
                         />
                       </div>
@@ -314,27 +364,21 @@ export default function GestionInteractiveResa() {
                               id="comment"
                               name="comment"
                               rows={3}
-                              placeholder="Add a note"
+                              placeholder="Ajouter un commentaire"
+                              value={commentMessage}
+                              onChange={(e) =>
+                                setCommentMessage(e.target.value)
+                              } // Mise à jour de l'état du message
                               className="block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
-                              defaultValue={""}
                             />
                           </div>
                           <div className="mt-3 flex items-center justify-between">
-                            <a
-                              href="#"
-                              className="group inline-flex items-start space-x-2 text-sm text-gray-500 hover:text-gray-900"
-                            >
-                              <QuestionMarkCircleIcon
-                                aria-hidden="true"
-                                className="h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
-                              />
-                              <span>Some HTML is okay.</span>
-                            </a>
                             <button
                               type="submit"
+                              onClick={handleSubmit}
                               className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                             >
-                              Comment
+                              Envoyer
                             </button>
                           </div>
                         </form>
@@ -373,13 +417,15 @@ export default function GestionInteractiveResa() {
                             <div>
                               <span
                                 className={classNames(
-                                  item.statut === "Réservation Validée: "
+                                  item.statut === "Réservation Validée: " ||
+                                    item.statut === "Modification Validée: "
                                     ? "bg-green-500"
                                     : "bg-gray-400",
                                   "flex h-8 w-8 items-center justify-center rounded-full ring-8 ring-white"
                                 )}
                               >
-                                {item.statut === "Réservation Validée: " ? (
+                                {item.statut === "Réservation Validée: " ||
+                                item.statut === "Modification Validée: " ? (
                                   <HandThumbUpIcon
                                     className="h-5 w-5 text-white"
                                     aria-hidden="true"

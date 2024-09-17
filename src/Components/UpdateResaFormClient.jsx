@@ -12,7 +12,6 @@ import { useGetAllocationsQuery } from "../services/allocationsApi";
 import { validateNumberOfPeople, validateDate } from "./ValidationSaisie";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useSelector } from "react-redux";
 import SectionHeading from "./SectionHeading";
 import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
 import OccStatusDisplayClient from "./OccStatusDisplayClient";
@@ -25,7 +24,6 @@ export default function UpdateResaFormClient() {
   const reservationId = resa.id; // Récupérer l'ID de la réservation
 
   const [updateReservation, { isLoading }] = useUpdateReservationMutation();
-  const user = useSelector((state) => state.user.username);
 
   const [startDate, setStartDate] = useState(
     format(new Date(resa.dateResa), "yyyy-MM-dd")
@@ -149,7 +147,7 @@ export default function UpdateResaFormClient() {
         clientPrenom: resa.client.prenom,
         clientTelephone: resa.client.telephone,
         clientEmail: resa.client.email,
-        updatedBy: user,
+        updatedBy: "Client",
         origin: "Client",
       };
 
@@ -176,8 +174,12 @@ export default function UpdateResaFormClient() {
       setSelectedTimeSlot("");
       setOccStatus("");
 
-      // Rediriger vers la page /gir/{reservationId}
+      const countdownInterval = setInterval(() => {
+        setCountdown((prevCountdown) => prevCountdown - 1);
+      }, 1000);
+
       setTimeout(() => {
+        clearInterval(countdownInterval);
         navigate(`/gir/${reservationId}`);
       }, 5000);
     } catch (error) {

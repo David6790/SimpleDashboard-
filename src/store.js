@@ -6,6 +6,7 @@ import userReducer from "./slices/userSlice"; // Import userSlice
 import { occupationStatusApi } from "./services/occupationStatusApi";
 import allocationsApi from "./services/allocationsApi";
 import { hecApi } from "./services/hecApi"; // Import hecApi
+import { commentaireApi } from "./services/commentaireApi"; // Import commentaireApi
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     [authApi.reducerPath]: authApi.reducer, // Ajouter le réducteur authApi
     [occupationStatusApi.reducerPath]: occupationStatusApi.reducer, // Ajouter le réducteur occupationStatusApi
     [hecApi.reducerPath]: hecApi.reducer, // Ajouter le réducteur hecApi
+    [commentaireApi.reducerPath]: commentaireApi.reducer, // Ajouter le réducteur commentaireApi
     user: userReducer, // Ajouter le réducteur userSlice
   },
   middleware: (getDefaultMiddleware) =>
@@ -22,7 +24,8 @@ export const store = configureStore({
       authApi.middleware,
       occupationStatusApi.middleware,
       allocationsApi.middleware,
-      hecApi.middleware // Ajouter le middleware hecApi
+      hecApi.middleware, // Ajouter le middleware hecApi
+      commentaireApi.middleware // Ajouter le middleware commentaireApi
     ),
 });
 
