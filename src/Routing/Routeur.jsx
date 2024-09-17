@@ -14,6 +14,7 @@ import OccStatusManagement from "../pages/OccStatusManagement";
 import PlanDeSalle from "../pages/PlanDeSalle";
 import StockComplet from "../pages/StockComplet";
 import GestionInteractiveResa from "../pages/GestionInteractiveResa";
+import UpdateResaFormClient from "../Components/UpdateResaFormClient";
 
 const Routeur = () => {
   const dispatch = useDispatch();
@@ -87,6 +88,7 @@ const Routeur = () => {
           path="/gir/:reservationId"
           element={<GestionInteractiveResa />}
         />
+        <Route path="/modif-resa-client" element={<UpdateResaFormClient />} />
       </Routes>
     </BrowserRouter>
   );

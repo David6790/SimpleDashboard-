@@ -1,6 +1,7 @@
 export const getStatusStyles = (status) => {
   switch (status) {
     case "P":
+    case "M":
       return "bg-yellow-100 text-yellow-800";
     case "C":
       return "bg-green-100 text-green-800";

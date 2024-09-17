@@ -8,6 +8,8 @@ export const getStatusText = (status) => {
       return "Annulée";
     case "R":
       return "Refusée";
+    case "M":
+      return "Modification à valider";
     default:
       return "Unknown";
   }

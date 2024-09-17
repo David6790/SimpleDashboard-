@@ -190,7 +190,8 @@ export default function TableStockComplet() {
                       >
                         Modifier
                       </button>
-                    ) : reservation.status === "P" ? (
+                    ) : reservation.status === "P" ||
+                      reservation.status === "M" ? (
                       showConfirmationOptions === reservation.id ? (
                         <>
                           <button

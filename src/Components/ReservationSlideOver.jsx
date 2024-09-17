@@ -37,7 +37,9 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
       console.log(error);
     }
   };
-
+  const handleGir = () => {
+    navigate(`/gir/${reservation.id}`); // Rediriger vers /gir/{reservationId} lorsqu'on clique sur Annuler
+  };
   const isAdmin = useSelector((state) => state.user);
   console.log(isAdmin.role);
   return (
@@ -201,12 +203,18 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                           reservation.status === "R" ? (
                             ""
                           ) : (
-                            <div className="bg-gray-50 p-4 rounded-lg shadow flex flex-col gap-10">
+                            <div className="bg-gray-50 p-4 rounded-lg shadow flex flex-col gap-5">
                               <button
                                 onClick={handleEditReservation}
                                 className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
                               >
                                 Modifier la réservation
+                              </button>
+                              <button
+                                onClick={handleGir}
+                                className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
+                              >
+                                Ouvrir la GIR
                               </button>
                               {isAdmin.role === "ADMIN" ? (
                                 <button
