@@ -5,7 +5,7 @@ export const reservationsApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_API_URL,
   }),
-  tagTypes: ["Reservations"],
+  tagTypes: ["Reservations", "HECStatuts"], // Ajout de "HECStatuts" ici
   endpoints: (builder) => ({
     getReservations: builder.query({
       query: () => "Reservations",
@@ -30,7 +30,7 @@ export const reservationsApi = createApi({
         method: "POST",
         body: newReservation,
       }),
-      invalidatesTags: ["Reservations"],
+      invalidatesTags: ["Reservations", "HECStatuts"], // Invalider "HECStatuts"
     }),
     updateReservation: builder.mutation({
       query: ({ id, ...updatedReservation }) => ({
@@ -38,33 +38,41 @@ export const reservationsApi = createApi({
         method: "PUT",
         body: updatedReservation,
       }),
-      invalidatesTags: ["Reservations"],
+      invalidatesTags: ["Reservations", "HECStatuts"], // Invalider "HECStatuts"
     }),
     validateReservation: builder.mutation({
       query: (id) => ({
         url: `Reservations/${id}/validate`,
         method: "PATCH",
       }),
-      invalidatesTags: ["Reservations"],
+      invalidatesTags: ["Reservations", "HECStatuts"], // Invalider "HECStatuts"
     }),
     cancelReservation: builder.mutation({
       query: ({ id, user }) => ({
         url: `Reservations/${id}/cancel/${user}`,
         method: "PATCH",
       }),
-      invalidatesTags: ["Reservations"],
+      invalidatesTags: ["Reservations", "HECStatuts"], // Invalider "HECStatuts"
     }),
     refuseReservation: builder.mutation({
       query: ({ id, user }) => ({
         url: `Reservations/${id}/refuse/${user}`,
         method: "PATCH",
       }),
-      invalidatesTags: ["Reservations"],
+      invalidatesTags: ["Reservations", "HECStatuts"], // Invalider "HECStatuts"
     }),
     getReservationById: builder.query({
       query: (id) => `Reservations/${id}`,
       keepUnusedDataFor: 1440,
       providesTags: ["Reservations"],
+    }),
+    // Ajout de validateDoubleConfirmation
+    validateDoubleConfirmation: builder.mutation({
+      query: (id) => ({
+        url: `Reservations/${id}/validateDoubleConfirmation`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Reservations", "HECStatuts"], // Invalider les deux tags
     }),
   }),
 });
@@ -80,5 +88,7 @@ export const {
   useCancelReservationMutation,
   useRefuseReservationMutation,
   useGetReservationByIdQuery,
+  useValidateDoubleConfirmationMutation, // Exportation du hook pour valider la double confirmation
 } = reservationsApi;
+
 export default reservationsApi;

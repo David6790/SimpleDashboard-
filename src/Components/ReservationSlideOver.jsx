@@ -38,7 +38,7 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
     }
   };
   const handleGir = () => {
-    navigate(`/gir/${reservation.id}`); // Rediriger vers /gir/{reservationId} lorsqu'on clique sur Annuler
+    navigate(`/gir-staff/${reservation.id}`); // Rediriger vers /gir/{reservationId} lorsqu'on clique sur Annuler
   };
   const isAdmin = useSelector((state) => state.user);
   console.log(isAdmin.role);

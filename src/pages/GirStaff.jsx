@@ -8,7 +8,9 @@ import { useGetCommentairesByReservationIdQuery } from "../services/commentaireA
 import logoG from "../images/logoG.png";
 import heart from "../images/heart.png";
 import { useAddCommentaireMutation } from "../services/commentaireApi";
-import { useValidateDoubleConfirmationMutation } from "../services/reservations";
+import Layout from "../Layouts/Layout";
+import SectionHeading from "../Components/SectionHeading";
+import { useAddHECStatutMutation } from "../services/hecApi";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -43,11 +45,11 @@ function formatTimeAgo(createdAt) {
   }
 }
 
-export default function GestionInteractiveResa() {
+export default function GirStaff() {
   const { reservationId } = useParams(); // Récupérer l'ID depuis l'URL
   const navigate = useNavigate(); // Utiliser useNavigate pour redirection
   const [addCommentaire] = useAddCommentaireMutation();
-  const [validateDoubleConfirmation] = useValidateDoubleConfirmationMutation(); // Hook pour la mutation
+  const [addHECStatut] = useAddHECStatutMutation();
 
   // État pour stocker le message du commentaire
   const [commentMessage, setCommentMessage] = useState("");
@@ -61,10 +63,9 @@ export default function GestionInteractiveResa() {
     }
 
     try {
-      // Préparer les données du commentaire
       const newComment = {
         message: commentMessage,
-        auteur: `${reservationData.client.name} ${reservationData.client.prenom}`, // Concaténer nom et prénom
+        auteur: "SYSTEM", // Concaténer nom et prénom
         reservationId: reservationId,
       };
 
@@ -75,18 +76,6 @@ export default function GestionInteractiveResa() {
       setCommentMessage("");
     } catch (error) {
       console.error("Erreur lors de l'envoi du commentaire :", error);
-    }
-  };
-
-  const handleValidateDoubleConfirmation = async () => {
-    try {
-      await validateDoubleConfirmation(reservationId);
-      refetchHEC(); // Re-fetch the HEC data to update the timeline
-    } catch (error) {
-      console.error(
-        "Erreur lors de la validation de la double confirmation :",
-        error
-      );
     }
   };
 
@@ -108,10 +97,7 @@ export default function GestionInteractiveResa() {
     error: commentaireError,
     isLoading: commentaireIsLoading,
   } = useGetCommentairesByReservationIdQuery(reservationId);
-  const showConfirmButton =
-    hecData &&
-    hecData.length > 0 &&
-    hecData[hecData.length - 1].actions === "DC";
+
   function formatDateTime(date, time) {
     // Combine the date and time into a single Date object
     const dateTimeString = `${date}T${time}`;
@@ -138,8 +124,6 @@ export default function GestionInteractiveResa() {
   useEffect(() => {
     if (reservationData && hecData) {
       refetchHEC();
-      console.log(hecData);
-      console.log(reservationData);
     }
   }, [reservationData, hecData, refetchHEC]);
 
@@ -154,48 +138,42 @@ export default function GestionInteractiveResa() {
     reservationData.timeResa
   );
 
-  // Fonction pour rediriger vers la page de modification de réservation
-  const handleEditReservation = () => {
-    navigate("/modif-resa-client", {
-      state: { reservation: reservationData },
-    });
+  const handleRequestDoubleConfirm = async () => {
+    try {
+      // Préparer le nouveau statut HEC
+      const newHECStatut = {
+        reservationId: reservationData.id, // Utiliser l'ID de la réservation actuelle
+        actions: "DC", // Action pour la double confirmation
+        statut: "Demande de double confirmation", // Statut associé
+        libelle: "En attente de la double confirmation", // Libellé à afficher
+        createdBy: "Client", // Qui a créé la demande, ici le client
+      };
+
+      await addHECStatut(newHECStatut);
+    } catch (error) {
+      console.error("Erreur lors de la demande de double confirmation:", error);
+    }
   };
 
   return (
-    <>
-      <div className="min-h-full bg-gray-50">
+    <Layout>
+      <div className="min-h-full bg-white">
         {/* Header section */}
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 shadow">
-          <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-8">
-            <Popover className="flex h-16 justify-between">
-              <div className="flex px-2 lg:px-0 mb-4">
-                <div className="flex flex-shrink-0 items-center">
-                  <div className="flex h-16 shrink-0 items-end text-white">
-                    <h1 className="text-4xl font-bold">Il Girasole</h1>
-                    <span className="text-sm ml-2 font-light">
-                      {" "}
-                      Powered by SIMPLE
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Popover>
-          </div>
-        </div>
-
+        <SectionHeading
+          title={"Espace de Gestion Intéractive de Réservation"}
+        />
         <main className="py-10">
           {/* Page header */}
           <div className="mx-auto max-w-3xl px-4 sm:px-6 md:flex md:items-center md:justify-between md:space-x-5 lg:max-w-7xl lg:px-8">
             <div className="flex items-center space-x-5">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
-                  Bonjour{" "}
                   {reservationData.client.name +
                     " " +
                     reservationData.client.prenom}
                 </h1>
                 <p className="text-sm font-medium text-gray-500">
-                  Bienvenu dans votre espace de gestion de réservation.
+                  Espace de Gestion Intéractive de Réservation
                 </p>
               </div>
             </div>
@@ -207,9 +185,9 @@ export default function GestionInteractiveResa() {
                 <button
                   type="button"
                   className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                  onClick={handleEditReservation} // Appel de la fonction de redirection
+                  onClick={handleRequestDoubleConfirm} // Appel de la fonction de redirection
                 >
-                  Modifier votre réservation
+                  Demander une double Confirmation
                 </button>
               ) : (
                 ""
@@ -227,7 +205,7 @@ export default function GestionInteractiveResa() {
                       id="applicant-information-title"
                       className="text-lg font-medium leading-6 text-gray-900"
                     >
-                      Détails de votre réservation
+                      Détails de la réservation
                     </h2>
                   </div>
                   <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
@@ -287,10 +265,10 @@ export default function GestionInteractiveResa() {
                       {reservationData.doubleConfirmation === "O" && (
                         <div className="sm:col-span-2">
                           <dt className="text-sm font-medium text-gray-500">
-                            Double Confirmation :
+                            Double Confirmation
                           </dt>
                           <dd className="mt-1 text-sm font-semibold text-black bg-green-200 inline-block px-2 rounded">
-                            Merci d'avoir re-confirmé votre réservation!
+                            Confirmé OK
                           </dd>
                         </div>
                       )}
@@ -318,7 +296,7 @@ export default function GestionInteractiveResa() {
                         id="notes-title"
                         className="text-lg font-medium text-gray-900"
                       >
-                        Nos échanges
+                        Echange avec le client
                       </h2>
                     </div>
                     <div className="px-4 py-6 sm:px-6">
@@ -337,7 +315,10 @@ export default function GestionInteractiveResa() {
                               </div>
                               <div>
                                 <div className="text-sm">
-                                  <div className="font-medium text-gray-900">
+                                  <div
+                                    href="#"
+                                    className="font-medium text-gray-900"
+                                  >
                                     {comment.auteur === "SYSTEM"
                                       ? "Restaurant Il Girasole"
                                       : comment.auteur}
@@ -365,7 +346,7 @@ export default function GestionInteractiveResa() {
                       <div className="flex-shrink-0">
                         <img
                           alt=""
-                          src={heart}
+                          src={logoG}
                           className="h-10 w-10 rounded-full"
                         />
                       </div>
@@ -393,7 +374,7 @@ export default function GestionInteractiveResa() {
                               onClick={handleSubmit}
                               className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                             >
-                              Envoyer
+                              Répondre
                             </button>
                           </div>
                         </form>
@@ -419,7 +400,7 @@ export default function GestionInteractiveResa() {
 
                 {/* Activity Feed */}
                 <div className="mt-6 flow-root">
-                  <ul role="list" className="-mb-8">
+                  <ul className="-mb-8">
                     {hecData.map((item, itemIdx) => (
                       <li key={item.id}>
                         <div className="relative pb-8">
@@ -481,21 +462,18 @@ export default function GestionInteractiveResa() {
                   </ul>
                 </div>
                 <div className="mt-6 flex flex-col justify-stretch">
-                  {showConfirmButton && (
-                    <button
-                      type="button"
-                      className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
-                      onClick={handleValidateDoubleConfirmation}
-                    >
-                      Confirmer
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                  >
+                    Confirmer
+                  </button>
                 </div>
               </div>
             </section>
           </div>
         </main>
       </div>
-    </>
+    </Layout>
   );
 }

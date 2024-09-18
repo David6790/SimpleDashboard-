@@ -150,7 +150,7 @@ export default function UpdateResaFormClient() {
         updatedBy: "Client",
         origin: "Client",
       };
-
+      console.log(updatedReservation);
       const response = await updateReservation({
         id: resa.id,
         ...updatedReservation,
@@ -181,7 +181,7 @@ export default function UpdateResaFormClient() {
       setTimeout(() => {
         clearInterval(countdownInterval);
         navigate(`/gir/${reservationId}`);
-      }, 5000);
+      }, 1);
     } catch (error) {
       console.error(error);
       setErrorMessage(

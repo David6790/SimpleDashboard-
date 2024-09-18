@@ -17,7 +17,7 @@ export const hecApi = createApi({
     // Ajouter un nouveau statut HEC
     addHECStatut: builder.mutation({
       query: (newHECStatut) => ({
-        url: "HECStatuts",
+        url: "HEC/add-statut",
         method: "POST",
         body: newHECStatut,
       }),
