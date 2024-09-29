@@ -28,7 +28,7 @@ const navigation = [
     current: false,
   },
   {
-    name: "Stock Complet",
+    name: "Réservations à traiter",
     href: "/admin-stockComplet",
     icon: CircleStackIcon,
     current: false,

@@ -74,6 +74,12 @@ export const reservationsApi = createApi({
       }),
       invalidatesTags: ["Reservations", "HECStatuts"], // Invalider les deux tags
     }),
+
+    getUntreatedReservations: builder.query({
+      query: () => "Reservations/untreated", // Appel de la nouvelle route
+      keepUnusedDataFor: 1440, // Conserve les données pour 1440 minutes (24 heures)
+      providesTags: ["Reservations"], // Invalide automatiquement les réservations
+    }),
   }),
 });
 
@@ -88,7 +94,8 @@ export const {
   useCancelReservationMutation,
   useRefuseReservationMutation,
   useGetReservationByIdQuery,
-  useValidateDoubleConfirmationMutation, // Exportation du hook pour valider la double confirmation
+  useValidateDoubleConfirmationMutation,
+  useGetUntreatedReservationsQuery, // Exportation du hook pour valider la double confirmation
 } = reservationsApi;
 
 export default reservationsApi;

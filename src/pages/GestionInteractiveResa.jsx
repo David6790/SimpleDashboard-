@@ -69,7 +69,7 @@ export default function GestionInteractiveResa() {
       };
 
       // Appel à l'API pour poster le commentaire
-      await addCommentaire(newComment);
+      await addCommentaire({ newCommentaire: newComment, origin: null });
 
       // Réinitialiser le champ de commentaire après l'envoi
       setCommentMessage("");

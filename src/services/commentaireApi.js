@@ -15,10 +15,10 @@ export const commentaireApi = createApi({
       providesTags: ["Commentaires"], // Invalider le cache si nécessaire
     }),
 
-    // Ajouter un nouveau commentaire
+    // Ajouter un nouveau commentaire avec l'option origin
     addCommentaire: builder.mutation({
-      query: (newCommentaire) => ({
-        url: "Commentaire/add-commentaire", // Point de terminaison pour l'ajout de commentaires
+      query: ({ newCommentaire, origin }) => ({
+        url: `Commentaire/add-commentaire${origin ? `?origin=${origin}` : ""}`, // Ajout du paramètre origin si fourni
         method: "POST", // Méthode HTTP
         body: newCommentaire, // Corps de la requête
       }),
@@ -30,7 +30,7 @@ export const commentaireApi = createApi({
 // Export des hooks générés par RTK Query
 export const {
   useGetCommentairesByReservationIdQuery, // Hook pour récupérer les commentaires par ID de réservation
-  useAddCommentaireMutation, // Hook pour ajouter un nouveau commentaire
+  useAddCommentaireMutation, // Hook pour ajouter un nouveau commentaire avec origin
 } = commentaireApi;
 
 export default commentaireApi;

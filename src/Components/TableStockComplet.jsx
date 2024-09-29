@@ -1,22 +1,22 @@
 import React, { useState } from "react";
 import {
-  useGetFuturReservationsQuery,
+  useGetUntreatedReservationsQuery, // Nouveau hook importé ici
   useValidateReservationMutation,
   useRefuseReservationMutation,
 } from "../services/reservations";
 import ReservationSlideOver from "./ReservationSlideOver";
-import { getStatusStyles } from "../Outils/statusStyle";
-import { getStatusText } from "../Outils/conversionTextStatus";
 
-export default function TableStockComplet() {
+export default function TableReservations() {
   const {
     data: reservations,
     error,
     isLoading,
     refetch,
-  } = useGetFuturReservationsQuery(undefined, {
+  } = useGetUntreatedReservationsQuery(undefined, {
+    // Utilisation du nouveau hook ici
     refetchOnMountOrArgChange: true,
   });
+
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [showConfirmationOptions, setShowConfirmationOptions] = useState(null);
@@ -113,16 +113,12 @@ export default function TableStockComplet() {
                 scope="col"
                 className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
               >
-                Status
-              </th>
-              <th
-                scope="col"
-                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-              >
-                Placée
+                État
               </th>
               <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
-                <span className="sr-only">Action</span>
+                <span className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  Action
+                </span>
               </th>
             </tr>
           </thead>
@@ -161,23 +157,11 @@ export default function TableStockComplet() {
                   </td>
                   <td className="whitespace-nowrap px-3 py-5 text-sm font-medium">
                     <button
-                      className={`px-2 py-1 rounded ${getStatusStyles(
-                        reservation.status
-                      )}`}
+                      className="px-2 py-1 rounded bg-yellow-100 text-yellow-800" // Fond jaune pour l'état
                     >
-                      {getStatusText(reservation.status)}
+                      {reservation.notifications}{" "}
+                      {/* Utilisation de la propriété notifications */}
                     </button>
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
-                    {reservation.placed === "N" ? (
-                      <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
-                        NON
-                      </span>
-                    ) : reservation.placed === "O" ? (
-                      <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                        OUI
-                      </span>
-                    ) : null}
                   </td>
                   <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                     {reservation.status === "C" ? (

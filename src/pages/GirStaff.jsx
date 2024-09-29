@@ -70,7 +70,7 @@ export default function GirStaff() {
       };
 
       // Appel à l'API pour poster le commentaire
-      await addCommentaire(newComment);
+      await addCommentaire({ newCommentaire: newComment, origin: "SYSTEM" });
 
       // Réinitialiser le champ de commentaire après l'envoi
       setCommentMessage("");
