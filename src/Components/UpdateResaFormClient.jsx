@@ -2,16 +2,13 @@ import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
-import "react-phone-number-input/style.css";
-import PhoneInput from "react-phone-number-input";
+import { parsePhoneNumberFromString } from "libphonenumber-js"; // Importation du parser
 import TimeSlotSelector from "./TimeSlotSelector";
-
 import ValidationMessage from "./ValidationMessage";
 import { useUpdateReservationMutation } from "../services/reservations";
 import { useGetAllocationsQuery } from "../services/allocationsApi";
 import { validateNumberOfPeople, validateDate } from "./ValidationSaisie";
 import { useLocation, useNavigate } from "react-router-dom";
-
 import SectionHeading from "./SectionHeading";
 import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
 import OccStatusDisplayClient from "./OccStatusDisplayClient";
@@ -92,6 +89,22 @@ export default function UpdateResaFormClient() {
     setErrors((prev) => ({ ...prev, numberOfGuests: error }));
   };
 
+  const handlePhoneChange = (event) => {
+    const inputPhone = event.target.value;
+    const phoneNumber = parsePhoneNumberFromString(inputPhone, "FR"); // Utilisation du parser
+    if (phoneNumber && phoneNumber.isValid()) {
+      setPhone(phoneNumber.formatInternational());
+    } else {
+      setPhone(inputPhone);
+    }
+
+    const error =
+      inputPhone.trim() === ""
+        ? "Le numéro de téléphone ne peut pas être vide."
+        : "";
+    setErrors((prev) => ({ ...prev, phone: error }));
+  };
+
   const handleCommentChange = (event) => {
     const value = event.target.value;
     if (value.length <= 1000) {
@@ -145,12 +158,12 @@ export default function UpdateResaFormClient() {
         placed: resa.placed,
         clientName: resa.client.name,
         clientPrenom: resa.client.prenom,
-        clientTelephone: resa.client.telephone,
-        clientEmail: resa.client.email,
+        clientTelephone: phone,
+        clientEmail: email,
         updatedBy: "Client",
         origin: "Client",
       };
-      console.log(updatedReservation);
+
       const response = await updateReservation({
         id: resa.id,
         ...updatedReservation,
@@ -345,13 +358,16 @@ export default function UpdateResaFormClient() {
                     Numéro de téléphone
                   </label>
                   <div className="mt-2">
-                    <PhoneInput
-                      defaultCountry="FR"
+                    <input
+                      type="tel"
                       value={phone}
-                      onChange={setPhone}
-                      readOnly
-                      className="custom-phone-input read-only"
+                      onChange={handlePhoneChange}
+                      className="block w-full px-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                      required
                     />
+                    {errors.phone && (
+                      <div style={{ color: "red" }}>{errors.phone}</div>
+                    )}
                   </div>
                   <label
                     htmlFor="email"

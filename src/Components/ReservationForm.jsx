@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
-import "react-phone-number-input/style.css";
-import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import { parsePhoneNumberFromString } from "libphonenumber-js"; // Importation du parser
 import TimeSlotSelector from "./TimeSlotSelector";
 import OccStatusDisplay from "./OccStatusDisplay";
 import ValidationMessage from "./ValidationMessage";
@@ -70,12 +69,17 @@ export default function ReservationForm() {
     setErrors((prev) => ({ ...prev, numberOfGuests: error }));
   };
 
-  const handleChange = (value) => {
-    setPhone(value);
+  const handlePhoneChange = (event) => {
+    const inputPhone = event.target.value;
+    const phoneNumber = parsePhoneNumberFromString(inputPhone, "FR"); // Utilisation du parser
+    if (phoneNumber && phoneNumber.isValid()) {
+      setPhone(phoneNumber.formatInternational());
+    } else {
+      setPhone(inputPhone);
+    }
+
     const error =
-      value && !isValidPhoneNumber(value)
-        ? "Le numéro de téléphone n'est pas valide."
-        : value === ""
+      inputPhone.trim() === ""
         ? "Le numéro de téléphone ne peut pas être vide."
         : "";
     setErrors((prev) => ({ ...prev, phone: error }));
@@ -126,11 +130,10 @@ export default function ReservationForm() {
       numberOfGuests: validateNumberOfPeople(numberOfGuests)
         ? ""
         : "Le nombre de personnes doit être un entier positif et non nul.",
-      phone: phone
-        ? phone.trim() === ""
+      phone:
+        phone.trim() === ""
           ? "Le numéro de téléphone ne peut pas être vide."
-          : ""
-        : "Le numéro de téléphone ne peut pas être vide.",
+          : "",
       date: validateDate(startDate)
         ? ""
         : "La date doit être aujourd'hui ou dans le futur.",
@@ -177,7 +180,6 @@ export default function ReservationForm() {
       setErrors({});
       setOccStatus("");
     } catch (error) {
-      // Si une erreur survient, on affiche le message d'erreur dans le modal
       console.log(error);
       setErrorMessage(
         error?.data?.error ||
@@ -345,11 +347,12 @@ export default function ReservationForm() {
                   Numéro de téléphone
                 </label>
                 <div className="mt-2">
-                  <PhoneInput
-                    defaultCountry="FR"
+                  <input
+                    type="tel"
                     value={phone}
-                    onChange={handleChange}
-                    className="custom-phone-input"
+                    onChange={handlePhoneChange}
+                    className="block w-full px-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    required
                   />
                   {errors.phone && (
                     <div style={{ color: "red" }}>{errors.phone}</div>
