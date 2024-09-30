@@ -80,6 +80,7 @@ export default function Example() {
   const [isAddingStatus, setIsAddingStatus] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  // eslint-disable-next-line
   const [successMessage, setSuccessMessage] = useState("");
   const [deletingStatusId, setDeletingStatusId] = useState(null);
   const [editingStatusId, setEditingStatusId] = useState(null);

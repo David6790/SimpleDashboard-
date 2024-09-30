@@ -19,7 +19,7 @@ import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
 
 export default function ReservationForm() {
   const navigate = useNavigate();
-  const [createReservation, { isLoading }] = useCreateReservationMutation();
+  const [createReservation] = useCreateReservationMutation();
 
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [phone, setPhone] = useState("");
@@ -31,6 +31,7 @@ export default function ReservationForm() {
   const [errors, setErrors] = useState({});
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [occStatus, setOccStatus] = useState("");
+  // eslint-disable-next-line
   const [submitMessage, setSubmitMessage] = useState("");
   const [reservationDetails, setReservationDetails] = useState(null); // État pour les détails de la réservation
 

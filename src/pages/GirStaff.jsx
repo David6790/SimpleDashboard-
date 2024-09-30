@@ -1,7 +1,6 @@
-import { Popover } from "@headlessui/react";
 import { HandThumbUpIcon, ClockIcon } from "@heroicons/react/20/solid";
 import { useGetReservationByIdQuery } from "../services/reservations";
-import { useParams, useNavigate } from "react-router-dom"; // Importer useNavigate
+import { useParams } from "react-router-dom"; // Importer useNavigate
 import { useEffect, useState } from "react";
 import { useGetHECStatutsByReservationIdQuery } from "../services/hecApi";
 import { useGetCommentairesByReservationIdQuery } from "../services/commentaireApi";
@@ -47,7 +46,7 @@ function formatTimeAgo(createdAt) {
 
 export default function GirStaff() {
   const { reservationId } = useParams(); // Récupérer l'ID depuis l'URL
-  const navigate = useNavigate(); // Utiliser useNavigate pour redirection
+
   const [addCommentaire] = useAddCommentaireMutation();
   const [addHECStatut] = useAddHECStatutMutation();
 
