@@ -157,8 +157,9 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     if (occupiedReservations && occupiedReservations.length > 0) {
       return (
         <>
+          {/* Première réservation avec style standard */}
           <div
-            className="flex-1 flex items-center justify-center text-xs cursor-pointer"
+            className="flex-1 flex items-center justify-center text-xs cursor-pointer bg-yellow-400 p-1 rounded-t"
             onClick={() => {
               if (!isEditing) {
                 setSelectedReservation(occupiedReservations[0]);
@@ -168,9 +169,11 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           >
             {`${occupiedReservations[0].clientPrenom} ${occupiedReservations[0].clientNom} ${occupiedReservations[0].numberOfGuest}p ${occupiedReservations[0].timeResa}`}
           </div>
+
+          {/* Deuxième réservation avec style légèrement différent */}
           {occupiedReservations.length > 1 && (
             <div
-              className="flex-1 flex items-center justify-center text-xs border-t border-white cursor-pointer"
+              className="flex-1 flex items-center justify-center text-xs border-t border-white cursor-pointer bg-yellow-500 p-1 rounded-b"
               onClick={() => {
                 if (!isEditing) {
                   setSelectedReservation(occupiedReservations[1]);

@@ -152,11 +152,13 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
     if (occupiedReservations && occupiedReservations.length > 0) {
       return (
         <>
-          <div className="flex-1 flex items-center justify-center text-xs">
+          {/* Première réservation avec style normal */}
+          <div className="flex-1 flex items-center justify-center text-xs bg-yellow-300 p-1 rounded-t">
             <div>{`${occupiedReservations[0].clientPrenom} ${occupiedReservations[0].clientNom} ${occupiedReservations[0].numberOfGuest}p ${occupiedReservations[0].timeResa}`}</div>
           </div>
           {occupiedReservations.length > 1 && (
-            <div className="border-t border-white mt-1 flex-1 flex items-center justify-center text-xs">
+            <div className="border-t border-white mt-1 flex-1 flex items-center justify-center text-xs bg-orange-400 p-1 rounded-b">
+              {/* Deuxième réservation avec style plus foncé */}
               {`${occupiedReservations[1].clientPrenom} ${occupiedReservations[1].clientNom} ${occupiedReservations[1].numberOfGuest}p ${occupiedReservations[1].timeResa}`}
             </div>
           )}

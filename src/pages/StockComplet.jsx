@@ -12,7 +12,7 @@ const StockComplet = () => {
 
   return (
     <Layout>
-      <SectionHeading title={"Stock Complet des réservations"} />
+      <SectionHeading title={"Réservations à traiter"} />
       <div className="px-4 sm:px-6 lg:px-8 mt-10">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">

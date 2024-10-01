@@ -246,7 +246,7 @@ export default function PreviewTableDashboard({
         {/* Ligne avec le bouton fermer et les informations de la réservation */}
         <div className="flex justify-between items-center mb-4 space-x-4">
           {/* Informations de la réservation */}
-          <div className="flex-1 flex flex-row items-center space-x-6 overflow-hidden bg-green-100 text-green-900 rounded-lg px-4 py-2 shadow-sm border border-green-300">
+          <div className="flex-1 flex flex-wrap items-center space-x-6 bg-green-100 text-green-900 rounded-lg px-4 py-2 shadow-sm border border-green-300">
             <div className="truncate">
               <span className="font-semibold">Nom : </span>
               <span className="font-normal">{`${selectedReservation?.client.prenom} ${selectedReservation?.client.name}`}</span>
@@ -267,6 +267,12 @@ export default function PreviewTableDashboard({
                 </span>
               </div>
             )}
+            <div className="truncate">
+              <span className="font-semibold">Libère la table à 21h : </span>
+              <span className="font-normal">{`${
+                selectedReservation?.freeTable21 === "O" ? "OUI" : "NON"
+              }`}</span>
+            </div>
           </div>
 
           {/* Bouton Fermer */}
