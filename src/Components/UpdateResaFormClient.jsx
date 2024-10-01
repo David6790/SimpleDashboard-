@@ -117,13 +117,32 @@ export default function UpdateResaFormClient() {
     }
   };
 
+  // Nouvelle fonction pour vérifier si l'heure est dans le passé
+  const isTimeInThePast = (selectedTime) => {
+    const currentDate = new Date();
+    const selectedDateTime = new Date(`${startDate}T${selectedTime}`);
+    // Vérifier si la date est aujourd'hui et que l'heure est dans le passé
+    if (
+      startDate === format(currentDate, "yyyy-MM-dd") &&
+      selectedDateTime < currentDate
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   const handleTimeSlotChange = (event) => {
-    setSelectedTimeSlot(event.target.value);
-    const error =
-      event.target.value === ""
-        ? "Le créneau horaire ne peut pas être vide."
-        : "";
-    setErrors((prev) => ({ ...prev, timeSlot: error }));
+    const selectedTime = event.target.value;
+    if (isTimeInThePast(selectedTime)) {
+      setErrors((prev) => ({
+        ...prev,
+        timeSlot: "Le créneau horaire ne peut pas être dans le passé.",
+      }));
+      setSelectedTimeSlot("");
+    } else {
+      setErrors((prev) => ({ ...prev, timeSlot: null }));
+      setSelectedTimeSlot(selectedTime);
+    }
   };
 
   const handleSubmit = async (event) => {
