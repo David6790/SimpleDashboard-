@@ -243,12 +243,42 @@ export default function PreviewTableDashboard({
         className="fixed inset-10 bg-white p-4 overflow-auto rounded-md shadow-lg outline-none flex flex-col z-50"
         overlayClassName="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-40"
       >
-        <button
-          className="self-end bg-red-500 text-white px-4 py-2 rounded mb-4"
-          onClick={() => setIsModalOpen(false)}
-        >
-          Fermer
-        </button>
+        {/* Ligne avec le bouton fermer et les informations de la réservation */}
+        <div className="flex justify-between items-center mb-4 space-x-4">
+          {/* Informations de la réservation */}
+          <div className="flex-1 flex flex-row items-center space-x-6 overflow-hidden bg-green-100 text-green-900 rounded-lg px-4 py-2 shadow-sm border border-green-300">
+            <div className="truncate">
+              <span className="font-semibold">Nom : </span>
+              <span className="font-normal">{`${selectedReservation?.client.prenom} ${selectedReservation?.client.name}`}</span>
+            </div>
+            <div className="truncate">
+              <span className="font-semibold">Personnes : </span>
+              <span className="font-normal">{`${selectedReservation?.numberOfGuest}`}</span>
+            </div>
+            <div className="truncate">
+              <span className="font-semibold">Heure : </span>
+              <span className="font-normal">{`${selectedReservation?.timeResa}`}</span>
+            </div>
+            {selectedReservation?.comment && (
+              <div className="truncate">
+                <span className="font-semibold">Commentaire : </span>
+                <span className="font-normal">
+                  {selectedReservation.comment}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Bouton Fermer */}
+          <button
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
+            onClick={() => setIsModalOpen(false)}
+          >
+            Fermer
+          </button>
+        </div>
+
+        {/* Contenu du ModalPlan */}
         <ModalPlan
           reservation={selectedReservation}
           closeModal={() => {
