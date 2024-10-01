@@ -112,12 +112,20 @@ export default function ReservationForm() {
   };
 
   const handleTimeSlotChange = (event) => {
-    setSelectedTimeSlot(event.target.value);
-    const error =
-      event.target.value === ""
-        ? "Le créneau horaire ne peut pas être vide."
-        : "";
-    setErrors((prev) => ({ ...prev, timeSlot: error }));
+    const selectedTime = event.target.value;
+    const currentDate = new Date();
+    const selectedDateTime = new Date(`${startDate}T${selectedTime}`);
+
+    if (selectedDateTime < currentDate) {
+      setErrors((prev) => ({
+        ...prev,
+        timeSlot: "Le créneau horaire ne peut pas être dans le passé.",
+      }));
+      setSelectedTimeSlot("");
+    } else {
+      setErrors((prev) => ({ ...prev, timeSlot: null }));
+      setSelectedTimeSlot(selectedTime);
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -181,6 +189,7 @@ export default function ReservationForm() {
       setOccStatus("");
     } catch (error) {
       console.log(error);
+      // Capture de l'erreur et ouverture du modal
       setErrorMessage(
         error?.data?.error ||
           "Erreur lors de la réservation. Veuillez réessayer."
