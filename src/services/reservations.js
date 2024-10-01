@@ -24,6 +24,13 @@ export const reservationsApi = createApi({
       keepUnusedDataFor: 1440,
       providesTags: ["Reservations"],
     }),
+    // Nouvelle méthode getReservationsByDateAndPeriod
+    getReservationsByDateAndPeriod: builder.query({
+      query: ({ date, period }) =>
+        `Reservations/byDateAndPeriod?date=${date}&period=${period}`,
+      keepUnusedDataFor: 1440,
+      providesTags: ["Reservations"],
+    }),
     createReservation: builder.mutation({
       query: (newReservation) => ({
         url: "Reservations",
@@ -95,7 +102,8 @@ export const {
   useRefuseReservationMutation,
   useGetReservationByIdQuery,
   useValidateDoubleConfirmationMutation,
-  useGetUntreatedReservationsQuery, // Exportation du hook pour valider la double confirmation
+  useGetUntreatedReservationsQuery,
+  useGetReservationsByDateAndPeriodQuery, // Exportation du hook pour cette méthode
 } = reservationsApi;
 
 export default reservationsApi;

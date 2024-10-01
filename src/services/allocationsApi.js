@@ -19,7 +19,7 @@ export const allocationsApi = createApi({
         method: "POST",
         body: newAllocation,
       }),
-      invalidatesTags: ["Allocations"],
+      invalidatesTags: ["Allocations", "Reservations"], // Invalider les deux tags
     }),
 
     deleteAllocationsByReservation: builder.mutation({

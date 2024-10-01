@@ -7,6 +7,8 @@ import ModalPlan from "../pages/ModalPlan";
 import { getStatusStyles } from "../Outils/statusStyle";
 import { getStatusText } from "../Outils/conversionTextStatus";
 import { useDeleteAllocationsByReservationMutation } from "../services/allocationsApi";
+import { reservationsApi } from "../services/reservations";
+import { useDispatch } from "react-redux";
 
 export default function PreviewTableDashboard({
   reservations,
@@ -22,6 +24,8 @@ export default function PreviewTableDashboard({
 
   const [deleteAllocation, { isLoading: isDeleting }] =
     useDeleteAllocationsByReservationMutation();
+
+  const dispatch = useDispatch();
 
   const itemsPerPage = 10;
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -55,7 +59,8 @@ export default function PreviewTableDashboard({
     e.stopPropagation();
     try {
       await deleteAllocation(reservation.id).unwrap();
-      refreshReservations(); // Refresh the reservations after deletion
+      refreshReservations();
+      dispatch(reservationsApi.util.invalidateTags(["Reservations"])); // Refresh the reservations after deletion
       setConfirmRemove(null);
     } catch (error) {
       console.error("Failed to delete allocation:", error);

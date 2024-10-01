@@ -1,6 +1,12 @@
 import React from "react";
+import { useDeleteAllocationsByReservationMutation } from "../services/allocationsApi";
+import { reservationsApi } from "../services/reservations"; // Import du hook de mutation
+import { useDispatch } from "react-redux";
 
 const ReservationDetailModal = ({ reservation, onClose, onMove }) => {
+  const [deleteAllocation] = useDeleteAllocationsByReservationMutation();
+  const dispatch = useDispatch();
+
   if (!reservation) return null;
 
   const freeTable21Style =
@@ -9,6 +15,17 @@ const ReservationDetailModal = ({ reservation, onClose, onMove }) => {
   const handleMoveClick = () => {
     if (onMove && reservation.reservationId) {
       onMove(reservation.reservationId); // Renvoie uniquement le reservationId
+    }
+  };
+
+  const handleDeleteAllocation = async () => {
+    try {
+      await deleteAllocation(reservation.reservationId).unwrap();
+      onClose();
+      dispatch(reservationsApi.util.invalidateTags(["Reservations"]));
+      // Ferme le modal après suppression
+    } catch (error) {
+      console.error("Erreur lors de la suppression de l'allocation:", error);
     }
   };
 
@@ -62,6 +79,12 @@ const ReservationDetailModal = ({ reservation, onClose, onMove }) => {
             onClick={handleMoveClick} // Appel de la fonction pour activer le mode édition avec le reservationId
           >
             Déplacer
+          </button>
+          <button
+            className="bg-red-500 text-white px-4 py-2 rounded" // Bouton pour retirer du plan
+            onClick={handleDeleteAllocation}
+          >
+            Retirer du plan
           </button>
         </div>
       </div>

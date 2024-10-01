@@ -4,6 +4,8 @@ import {
   useCreateAllocationMutation,
 } from "../services/allocationsApi";
 import ErrorModal from "../Components/ErrorModal";
+import { reservationsApi } from "../services/reservations"; // Import du hook de mutation
+import { useDispatch } from "react-redux";
 
 const tableIdMapping = {
   1: 1,
@@ -39,6 +41,7 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
   const [occupiedTables, setOccupiedTables] = useState([]);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const dispatch = useDispatch();
 
   const date = reservation ? reservation.dateResa : null;
   const periode = reservation
@@ -221,7 +224,7 @@ const ModalPlan = ({ reservation, closeModal, refreshReservations }) => {
 
     try {
       await createAllocation(newAllocation).unwrap();
-
+      dispatch(reservationsApi.util.invalidateTags(["Reservations"]));
       if (refreshReservations) {
         refreshReservations();
       }
