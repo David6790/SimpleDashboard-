@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import {
-  useGetUntreatedReservationsQuery, // Nouveau hook importé ici
+  useGetUntreatedReservationsQuery,
   useValidateReservationMutation,
   useRefuseReservationMutation,
 } from "../services/reservations";
+import { useGetNotificationToggleQuery } from "../services/toggleApi"; // Import du hook pour le toggle
 import ReservationSlideOver from "./ReservationSlideOver";
 
 export default function TableReservations() {
@@ -11,11 +12,14 @@ export default function TableReservations() {
     data: reservations,
     error,
     isLoading,
-    refetch,
+    refetch: refetchReservations, // Refetch pour les réservations
   } = useGetUntreatedReservationsQuery(undefined, {
-    // Utilisation du nouveau hook ici
     refetchOnMountOrArgChange: true,
   });
+
+  const {
+    refetch: refetchToggle, // Refetch pour le toggle
+  } = useGetNotificationToggleQuery(); // Appel de l'API toggle
 
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState(null);
@@ -46,8 +50,11 @@ export default function TableReservations() {
 
   const handleFinalConfirmation = async (id) => {
     try {
-      await validateReservation(id).unwrap();
+      await validateReservation(id).unwrap(); // Validation de la réservation
       setShowConfirmationOptions(null);
+
+      // Refetch les données de notification après la validation
+      await refetchToggle(); // Rafraîchir l'état du toggle
     } catch (error) {
       console.error("Failed to update reservation status:", error);
     }
@@ -57,7 +64,7 @@ export default function TableReservations() {
     try {
       await refuseReservation({ id, user: "current_user" }).unwrap();
       setShowConfirmationOptions(null);
-      refetch();
+      refetchReservations(); // Rafraîchir les réservations après le refus
     } catch (error) {
       console.error("Failed to refuse reservation:", error);
     }
@@ -156,11 +163,8 @@ export default function TableReservations() {
                     {reservation.client.telephone}
                   </td>
                   <td className="whitespace-nowrap px-3 py-5 text-sm font-medium">
-                    <button
-                      className="px-2 py-1 rounded bg-yellow-100 text-yellow-800" // Fond jaune pour l'état
-                    >
+                    <button className="px-2 py-1 rounded bg-yellow-100 text-yellow-800">
                       {reservation.notifications}{" "}
-                      {/* Utilisation de la propriété notifications */}
                     </button>
                   </td>
                   <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
@@ -191,7 +195,6 @@ export default function TableReservations() {
                             className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
                             onClick={(e) => {
                               e.stopPropagation();
-                              // Add your logic for confirmation by Mail & SMS here
                             }}
                           >
                             Par Mail & SMS
@@ -200,7 +203,7 @@ export default function TableReservations() {
                             className="px-4 py-2 rounded-md text-sm font-medium bg-gray-50 text-gray-700 hover:bg-gray-100"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleBackClick(); // Handle back
+                              handleBackClick();
                             }}
                           >
                             Retour

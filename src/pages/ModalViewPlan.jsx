@@ -60,6 +60,8 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     period,
   });
 
+  console.log(period);
+
   const {
     data: reservations,
     refetch: refetchReservations, // Ajoute la méthode refetch
@@ -67,6 +69,8 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     date,
     period,
   });
+
+  console.log(reservations);
   const [changeAllocation, { isLoading }] = useChangeAllocationMutation();
   const [createAllocation, { isLoading: isCreatingLoading }] =
     useCreateAllocationMutation();

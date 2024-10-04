@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import {
   Bars3Icon,
@@ -12,6 +12,7 @@ import {
   CircleStackIcon,
 } from "@heroicons/react/24/outline";
 import { NavLink } from "react-router-dom";
+import { useGetNotificationToggleQuery } from "../services/toggleApi"; // Import du hook API toggle
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: HomeIcon, current: false },
@@ -49,6 +50,19 @@ function classNames(...classes) {
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Appel de l'API pour récupérer le nombre de notifications
+  const { data: notificationStatus } = useGetNotificationToggleQuery();
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    if (notificationStatus && notificationStatus.count !== undefined) {
+      setNotificationCount(notificationStatus.count);
+      // Mettez à jour avec la valeur du nombre de notifications
+    } else {
+      setNotificationCount(0);
+    }
+  }, [notificationStatus]);
 
   return (
     <>
@@ -121,7 +135,12 @@ export default function Layout({ children }) {
                                       "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold",
                                       nav.isActive
                                         ? "bg-gray-50 text-indigo-600"
-                                        : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                                        : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
+                                      // Ajout d'une classe pour clignoter si notificationCount > 0
+                                      item.name === "Réservations à traiter" &&
+                                        notificationCount > 0
+                                        ? "animate-pulse bg-yellow-300 text-black"
+                                        : ""
                                     )
                                   }
                                 >
@@ -169,7 +188,12 @@ export default function Layout({ children }) {
                               "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold",
                               nav.isActive
                                 ? "bg-gray-50 text-indigo-600"
-                                : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                                : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
+                              // Ajout d'une classe pour clignoter si notificationCount > 0
+                              item.name === "Réservations à traiter" &&
+                                notificationCount > 0
+                                ? "animate-pulse bg-yellow-300 text-black"
+                                : ""
                             )
                           }
                         >
@@ -192,7 +216,15 @@ export default function Layout({ children }) {
 
         <div className="lg:pl-72">
           {/* Remove this empty div for desktop */}
-          <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:hidden">
+          <div
+            className={classNames(
+              "sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:hidden",
+              // Clignotement du background en mode responsive si notificationCount > 0
+              notificationCount > 0
+                ? "animate-pulse bg-yellow-300 text-black"
+                : "bg-white"
+            )}
+          >
             <button
               type="button"
               className="-m-2.5 p-2.5 text-gray-700 lg:hidden"

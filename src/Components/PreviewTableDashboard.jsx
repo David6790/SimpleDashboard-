@@ -192,6 +192,7 @@ export default function PreviewTableDashboard({
                   <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                     {reservation.status !== "A" &&
                       reservation.status !== "R" &&
+                      reservation.status !== "P" && // Ne pas afficher le bouton si le statut est "P"
                       (confirmRemove === reservation.id ? (
                         <div className="flex justify-end space-x-2">
                           <button

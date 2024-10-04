@@ -12,6 +12,7 @@ import {
   validateNumberOfPeople,
   validateDate,
 } from "./ValidationSaisie";
+import { useGetNotificationToggleQuery } from "../services/toggleApi";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
@@ -36,6 +37,10 @@ export default function ReservationForm() {
 
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false); // État pour contrôler la visibilité du modal d'erreur
   const [errorMessage, setErrorMessage] = useState(""); // État pour stocker le message d'erreur
+
+  const {
+    refetch: refetchToggle, // Refetch pour le toggle
+  } = useGetNotificationToggleQuery();
 
   const user = useSelector((state) => state.user);
 
@@ -187,6 +192,8 @@ export default function ReservationForm() {
       setSelectedTimeSlot("");
       setErrors({});
       setOccStatus("");
+
+      await refetchToggle();
     } catch (error) {
       console.log(error);
       // Capture de l'erreur et ouverture du modal
