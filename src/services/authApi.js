@@ -13,6 +13,7 @@ export const authApi = createApi({
       return headers;
     },
   }),
+  tagTypes: ["Users"], // Ajout des tags pour invalidation
   endpoints: (builder) => ({
     login: builder.mutation({
       query: (credentials) => ({
@@ -23,13 +24,29 @@ export const authApi = createApi({
     }),
     signup: builder.mutation({
       query: (newUser) => ({
-        url: "Auth/signup", // Assuming this is the correct endpoint for signup
+        url: "Auth/signup", // Endpoint pour l'inscription
         method: "POST",
         body: newUser,
       }),
     }),
+    getUsers: builder.query({
+      query: () => "Auth/users", // Endpoint pour obtenir la liste des utilisateurs
+      providesTags: ["Users"], // Utilisation des tags pour le caching et invalidation
+    }),
+    logout: builder.mutation({
+      queryFn: () => {
+        // Supprime le cookie contenant le token lors de la déconnexion
+        Cookies.remove("token");
+        return { data: null }; // Retourne une réponse vide après le logout
+      },
+    }),
   }),
 });
 
-export const { useLoginMutation, useSignupMutation } = authApi;
+export const {
+  useLoginMutation,
+  useSignupMutation,
+  useGetUsersQuery,
+  useLogoutMutation,
+} = authApi;
 export default authApi;

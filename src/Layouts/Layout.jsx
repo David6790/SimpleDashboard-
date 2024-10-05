@@ -2,7 +2,7 @@ import { Fragment, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import {
   Bars3Icon,
-  CalendarIcon,
+  BookOpenIcon,
   ChartPieIcon,
   DocumentDuplicateIcon,
   HomeIcon,
@@ -19,7 +19,7 @@ const navigation = [
   {
     name: "Prendre une réservation",
     href: "/reservation-page",
-    icon: UsersIcon,
+    icon: BookOpenIcon,
     current: false,
   },
   {
@@ -34,7 +34,12 @@ const navigation = [
     icon: CircleStackIcon,
     current: false,
   },
-  { name: "Calendar", href: "/gir", icon: CalendarIcon, current: false },
+  {
+    name: "Admin Users",
+    href: "/user-admin",
+    icon: UsersIcon,
+    current: false,
+  },
   {
     name: "Documents",
     href: "/avenir3",

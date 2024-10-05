@@ -16,6 +16,7 @@ import StockComplet from "../pages/StockComplet";
 import GestionInteractiveResa from "../pages/GestionInteractiveResa";
 import UpdateResaFormClient from "../Components/UpdateResaFormClient";
 import GirStaff from "../pages/GirStaff";
+import UserList from "../pages/UserList";
 
 const Routeur = () => {
   const dispatch = useDispatch();
@@ -73,6 +74,13 @@ const Routeur = () => {
             />
           }
         />
+        <Route
+          path="/user-admin"
+          element={
+            <RoleProtectedRoute element={UserList} allowedRoles={["ADMIN"]} />
+          }
+        />
+
         <Route
           path="/admin-stockComplet"
           element={
