@@ -20,15 +20,13 @@ function formatTimestamp(dateString) {
 
 function ReservationSlideOver({ isOpen, onClose, reservation }) {
   const navigate = useNavigate();
-
   const [cancelReservation] = useCancelReservationMutation();
-
   const user = useSelector((state) => state.user.username);
 
   const handleEditReservation = () => {
     navigate("/reservation-update", { state: { reservation } });
   };
-  console.log(reservation);
+
   const cancelResa = async (i, u) => {
     try {
       await cancelReservation({ id: i, user: u }).unwrap();
@@ -37,11 +35,19 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
       console.log(error);
     }
   };
+
   const handleGir = () => {
-    navigate(`/gir-staff/${reservation.id}`); // Rediriger vers /gir/{reservationId} lorsqu'on clique sur Annuler
+    navigate(`/gir-staff/${reservation.id}`);
   };
+
   const isAdmin = useSelector((state) => state.user);
-  console.log(isAdmin.role);
+
+  // Vérification que la réservation et timeResa existent
+  const isMidi = reservation?.timeResa && reservation.timeResa < "15:00:00";
+  const occupationStatus = isMidi
+    ? reservation?.occupationStatusMidiOnBook
+    : reservation?.occupationStatusSoirOnBook;
+
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -90,7 +96,7 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                       </div>
                     </div>
                     <div className="relative mt-6 flex-1 px-4 sm:px-6 space-y-4">
-                      {reservation && (
+                      {reservation ? (
                         <div className="space-y-4">
                           <div className="bg-gray-50 p-4 rounded-lg shadow">
                             <h3 className="text-md font-medium text-indigo-600">
@@ -165,11 +171,11 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                             </p>
                             <p className="text-sm text-gray-700">
                               <strong>Modifié par:</strong>{" "}
-                              {reservation.updatedBy}
+                              {reservation.updatedBy || "N/A"}
                             </p>
                             <p className="text-sm text-gray-700">
                               <strong>Annulé par:</strong>{" "}
-                              {reservation.canceledBy}
+                              {reservation.canceledBy || "N/A"}
                             </p>
                             <p className="text-sm text-gray-700">
                               <strong>Annulé le:</strong>{" "}
@@ -186,16 +192,22 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                               Détails techniques
                             </h3>
                             <p className="text-sm text-gray-700">
-                              <strong>Occupation Status on Book:</strong>{" "}
-                              {reservation.occupationStatusOnBook}
+                              <strong>Occupation Status:</strong>{" "}
+                              {occupationStatus}
                             </p>
                             <p className="text-sm text-gray-700">
                               <strong>Free Table 21:</strong>{" "}
-                              {reservation.freeTable21}
+                              {reservation.freeTable21 === "O" ? "Oui" : "Non"}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Free Table 13:30:</strong>{" "}
+                              {reservation.freeTable1330 === "O"
+                                ? "Oui"
+                                : "Non"}
                             </p>
                             <p className="text-sm text-gray-700">
                               <strong>Power User:</strong>{" "}
-                              {reservation.isPowerUser}
+                              {reservation.isPowerUser === "O" ? "Oui" : "Non"}
                             </p>
                           </div>
 
@@ -231,6 +243,8 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                             </div>
                           )}
                         </div>
+                      ) : (
+                        <div>Chargement des détails...</div>
                       )}
                     </div>
                   </div>

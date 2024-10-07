@@ -11,15 +11,9 @@ function TimeSlotSelector({
   const [timeSlots, setTimeSlots] = useState([]);
 
   // Utiliser le hook Redux Toolkit Query pour récupérer les statuts par date
-  const { data, error, refetch } = useGetOccupationStatusByDateQuery(date, {
+  const { data, error } = useGetOccupationStatusByDateQuery(date, {
     skip: !date, // Ne pas exécuter tant que la date n'est pas définie
   });
-
-  useEffect(() => {
-    if (date) {
-      refetch(); // Rafraîchir les données quand la date change
-    }
-  }, [date, refetch]);
 
   useEffect(() => {
     if (data) {
