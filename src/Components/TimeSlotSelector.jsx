@@ -1,54 +1,43 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { useGetOccupationStatusByDateQuery } from "../services/occupationStatusApi";
 
 function TimeSlotSelector({
   date,
   selectedTimeSlot,
   onTimeSlotChange,
-  setOccStatus,
+  setOccStatusLunch, // Met à jour le statut du déjeuner
+  setOccStatusDinner, // Met à jour le statut du dîner
 }) {
   const [timeSlots, setTimeSlots] = useState([]);
 
-  useEffect(() => {
-    const fetchTimeSlots = async (date) => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_API_URL}OccupationStatus/ByDate/${date}`,
-          {
-            headers: {
-              Accept: "application/json",
-            },
-          }
-        );
-        if (response.data && response.data.timeSlots) {
-          setTimeSlots(response.data.timeSlots);
-          setOccStatus(response.data.occStatus); // Mettre à jour occStatus
-        } else {
-          console.error(
-            "Expected timeSlots array but received:",
-            response.data
-          );
-          setTimeSlots([]); // Reset to an empty array if the response is not as expected
-          setOccStatus(""); // Reset occStatus if the response is not as expected
-        }
-      } catch (error) {
-        if (error.response) {
-          console.error("Failed to fetch time slots", error.response.data);
-        } else if (error.request) {
-          console.error("No response received", error.request);
-        } else {
-          console.error("Error", error.message);
-        }
-        setTimeSlots([]); // Reset to an empty array in case of an error
-        setOccStatus(""); // Reset occStatus in case of an error
-      }
-    };
+  // Utiliser le hook Redux Toolkit Query pour récupérer les statuts par date
+  const { data, error, refetch } = useGetOccupationStatusByDateQuery(date, {
+    skip: !date, // Ne pas exécuter tant que la date n'est pas définie
+  });
 
+  useEffect(() => {
     if (date) {
-      fetchTimeSlots(date);
+      refetch(); // Rafraîchir les données quand la date change
     }
-    // eslint-disable-next-line
-  }, [date]);
+  }, [date, refetch]);
+
+  useEffect(() => {
+    if (data) {
+      const { timeSlots: slots, occStatusMidi, occStatusDiner } = data;
+
+      setTimeSlots(slots); // Mettre à jour les créneaux horaires
+      setOccStatusLunch(occStatusMidi); // Mettre à jour le statut du midi
+      setOccStatusDinner(occStatusDiner); // Mettre à jour le statut du dîner
+    } else {
+      setTimeSlots([]);
+      setOccStatusLunch(""); // Réinitialiser si aucune donnée n'est trouvée
+      setOccStatusDinner("");
+    }
+  }, [data, setOccStatusLunch, setOccStatusDinner]);
+
+  if (error) {
+    return <div>Erreur lors de la récupération des créneaux horaires.</div>;
+  }
 
   return (
     <div className="sm:col-span-4">

@@ -12,6 +12,10 @@ export const occupationStatusApi = createApi({
       keepUnusedDataFor: 1440,
       providesTags: ["OccupationStatus"],
     }),
+    getOccupationStatusByDate: builder.query({
+      query: (date) => `OccupationStatus/ByDate/${date}`, // API call to get status by date
+      providesTags: ["OccupationStatus"],
+    }),
     postOccupationStatus: builder.mutation({
       query: (newOccupationStatus) => ({
         url: "OccupationStatus",
@@ -31,13 +35,16 @@ export const occupationStatusApi = createApi({
       invalidatesTags: ["OccupationStatus"],
     }),
     updateOccupationStatus: builder.mutation({
-      query: ({ id, newOccStatus }) => ({
+      query: ({ id, occStatusMidi, occStatusDiner }) => ({
         url: `OccupationStatus/${id}`,
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: `"${newOccStatus}"`, // Envelopper newOccStatus dans des guillemets
+        body: JSON.stringify({
+          occStatusMidi, // Ce champ correspond à newOccStatusDTO.OccStatusMidi
+          occStatusDiner, // Ce champ correspond à newOccStatusDTO.OccStatusDiner
+        }),
       }),
       invalidatesTags: ["OccupationStatus"],
     }),
@@ -46,6 +53,7 @@ export const occupationStatusApi = createApi({
 
 export const {
   useGetOccupationStatusesQuery,
+  useGetOccupationStatusByDateQuery, // Export the new hook
   usePostOccupationStatusMutation,
   useDeleteOccupationStatusMutation,
   useUpdateOccupationStatusMutation,

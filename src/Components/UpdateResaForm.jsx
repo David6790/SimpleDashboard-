@@ -36,7 +36,8 @@ export default function UpdateResaForm() {
   const [comment, setComment] = useState(resa.comment || "");
   const [errors, setErrors] = useState({});
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
-  const [occStatus, setOccStatus] = useState(resa.occupationStatusOnBook);
+  const [occStatusLunch, setOccStatusLunch] = useState(resa.occStatusLunch); // Statut pour le déjeuner
+  const [occStatusDinner, setOccStatusDinner] = useState(resa.occStatusDinner); // Statut pour le dîner
   const [submitMessage, setSubmitMessage] = useState("");
   const [reservationDetails, setReservationDetails] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false); // État pour gérer le bouton de soumission
@@ -64,9 +65,13 @@ export default function UpdateResaForm() {
       setNumberOfGuests(resa.numberOfGuest.toString());
       setComment(resa.comment || "");
       setSelectedTimeSlot("");
-      setOccStatus(resa.occupationStatusOnBook);
+      setOccStatusLunch(resa.occStatusLunch);
+      setOccStatusDinner(resa.occStatusDinner);
     }
   }, [resa]);
+
+  console.log(occStatusDinner);
+  console.log(occStatusLunch);
 
   const handleDateChange = (date) => {
     const formattedDate = format(date, "yyyy-MM-dd");
@@ -172,7 +177,8 @@ export default function UpdateResaForm() {
         timeResa: selectedTimeSlot,
         numberOfGuest: numberOfGuests.toString(),
         comment: comment,
-        occupationStatusOnBook: occStatus,
+        occStatusLunch: occStatusLunch,
+        occStatusDinner: occStatusDinner,
         createdBy: resa.createdBy,
         freeTable21: resa.freeTable21,
         placed: resa.placed,
@@ -204,7 +210,8 @@ export default function UpdateResaForm() {
       setNumberOfGuests("");
       setComment("");
       setSelectedTimeSlot("");
-      setOccStatus("");
+      setOccStatusLunch("");
+      setOccStatusDinner("");
 
       // Redirige après 5 secondes si rien ne se passe
       const countdownInterval = setInterval(() => {
@@ -239,10 +246,22 @@ export default function UpdateResaForm() {
               ""
             ) : (
               <h2 className="text-base font-semibold leading-7 text-gray-900">
-                Informations du service Dîner
+                Informations des services Déjeuner et Dîner
               </h2>
             )}
-            <OccStatusDisplay status={occStatus} />
+
+            {/* Statut pour le Déjeuner */}
+            <h3 className="text-sm font-medium leading-6 text-gray-900">
+              Informations du service Déjeuner
+            </h3>
+            <OccStatusDisplay status={occStatusLunch} />
+
+            {/* Statut pour le Dîner */}
+            <h3 className="text-sm font-medium leading-6 text-gray-900 mt-4">
+              Informations du service Dîner
+            </h3>
+            <OccStatusDisplay status={occStatusDinner} />
+
             {submitMessage && <ValidationMessage message={submitMessage} />}
             {reservationDetails && (
               <div>
@@ -367,7 +386,8 @@ export default function UpdateResaForm() {
                     date={startDate}
                     selectedTimeSlot={selectedTimeSlot}
                     onTimeSlotChange={handleTimeSlotChange}
-                    setOccStatus={setOccStatus}
+                    setOccStatusLunch={setOccStatusLunch} // Statut pour le midi
+                    setOccStatusDinner={setOccStatusDinner} // Statut pour le soir
                     required
                     className="editable"
                   />

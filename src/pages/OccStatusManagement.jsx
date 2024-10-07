@@ -2,22 +2,22 @@ import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import {
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuItems,
-  Transition,
   Listbox,
   ListboxButton,
   ListboxOption,
   ListboxOptions,
+  Transition,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuItems,
 } from "@headlessui/react";
 import {
+  CheckIcon,
+  ChevronUpDownIcon,
   CalendarIcon,
   EllipsisHorizontalIcon,
   InformationCircleIcon,
-  CheckIcon,
-  ChevronUpDownIcon,
 } from "@heroicons/react/20/solid";
 import Calendar from "../Components/Calendar";
 import Layout from "../Layouts/Layout";
@@ -28,6 +28,8 @@ import {
   useDeleteOccupationStatusMutation,
   useUpdateOccupationStatusMutation,
 } from "../services/occupationStatusApi";
+import ErrorModal from "../Components/ErrorModal";
+import SuccessModal from "../Components/SuccessModal"; // Import du modal de succès
 
 const occStatusTrigram = {
   FreeTable21: "F21",
@@ -35,6 +37,8 @@ const occStatusTrigram = {
   Service2Complet: "S2C",
   Complet: "CCC",
   MidiComplet: "MCC",
+  MidiEtendu: "MET",
+  MidiDoubleService: "MDS",
 };
 
 const occStatusInstructions = {
@@ -47,6 +51,11 @@ const occStatusInstructions = {
   Complet: "Restaurant complet. Aucune réservation possible pour cette date",
   MidiComplet:
     "Midi complet, sont réservables uniquement les réservations du soir",
+  MidiEtendu:
+    "Pour gérer un maximum de clients, le service a été élargi avec un début à 11h15 et une dernière réservation à 14h45.",
+  MidiDoubleService:
+    "Le service est organisé en double service. Les clients ayant réservé entre 11h et 12h doivent libérer la table à 13h30.",
+  RAS: "Pas de configuration spécifique",
 };
 
 const occStatusOptions = [
@@ -54,12 +63,17 @@ const occStatusOptions = [
   { value: "Service1Complet", label: "Service1Complet" },
   { value: "Service2Complet", label: "Service2Complet" },
   { value: "Complet", label: "Complet" },
-  { value: "MidiComplet", label: "MidiComplet" },
+  { value: "RAS", label: "RAS" },
 ];
 
-const formatDate = (date) => {
-  return date.toLocaleDateString("en-CA");
-};
+const occStatusOptionsMidi = [
+  { value: "MidiComplet", label: "MidiComplet" },
+  { value: "MidiDoubleService", label: "MidiDoubleService" },
+  { value: "MidiEtendu", label: "MidiEtendu" },
+  { value: "RAS", label: "RAS" },
+];
+
+const formatDate = (date) => date.toLocaleDateString("en-CA");
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -67,30 +81,33 @@ function classNames(...classes) {
 
 export default function Example() {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedMidiStatus, setSelectedMidiStatus] = useState(null);
+  const [selectedDinerStatus, setSelectedDinerStatus] = useState(null);
+  const [deletingStatusId, setDeletingStatusId] = useState(null);
+  const [editingStatusId, setEditingStatusId] = useState(null);
+  const [newMidiStatus, setNewMidiStatus] = useState("");
+  const [newDinerStatus, setNewDinerStatus] = useState("");
   const [filterDate, setFilterDate] = useState(null);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [modalErrorMessage, setModalErrorMessage] = useState("");
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [modalSuccessMessage, setModalSuccessMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
   const {
     data: occupationStatuses = [],
     error,
     isLoading,
   } = useGetOccupationStatusesQuery();
+
   const [postOccupationStatus] = usePostOccupationStatusMutation();
   const [deleteOccupationStatus] = useDeleteOccupationStatusMutation();
   const [updateOccupationStatus] = useUpdateOccupationStatusMutation();
-
-  const [isAddingStatus, setIsAddingStatus] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
-  // eslint-disable-next-line
-  const [successMessage, setSuccessMessage] = useState("");
-  const [deletingStatusId, setDeletingStatusId] = useState(null);
-  const [editingStatusId, setEditingStatusId] = useState(null);
-  const [newStatus, setNewStatus] = useState(null);
 
   const handleConfirm = async () => {
     const currentDate = new Date();
     const formattedDate = formatDate(selectedDate);
 
-    // Reset the time portion of both dates
     const resetTime = (date) => {
       const newDate = new Date(date);
       newDate.setHours(0, 0, 0, 0);
@@ -101,91 +118,73 @@ export default function Example() {
     const currentDateWithoutTime = resetTime(currentDate);
 
     if (selectedDateWithoutTime < currentDateWithoutTime) {
-      setErrorMessage("La date ne peut pas être antérieure à la date du jour.");
-      console.log(selectedDateWithoutTime, currentDateWithoutTime);
+      setModalErrorMessage(
+        "La date ne peut pas être antérieure à la date du jour."
+      );
+      setIsErrorModalOpen(true); // Ouvrir le modal d'erreur
       return;
     }
 
-    if (!selectedStatus) {
-      setErrorMessage("Le statut ne peut pas être vide.");
-      return;
-    }
+    // Vérification pour remplacer "RAS" par une chaîne vide ""
+    const midiStatusToSend =
+      selectedMidiStatus && selectedMidiStatus.value !== "RAS"
+        ? selectedMidiStatus.value
+        : "";
+
+    // Si rien n'est sélectionné pour le soir, envoyer une chaîne vide ""
+    const dinerStatusToSend =
+      selectedDinerStatus && selectedDinerStatus.value !== "RAS"
+        ? selectedDinerStatus.value
+        : "";
 
     try {
       await postOccupationStatus({
         dateOfEffect: formattedDate,
-        occStatus: selectedStatus.value,
+        occStatusMidi: midiStatusToSend, // Envoie "" si RAS ou rien n'est sélectionné
+        occStatusDiner: dinerStatusToSend, // Envoie "" si RAS ou rien n'est sélectionné
       }).unwrap();
-      setSuccessMessage("Statut d'occupation ajouté avec succès");
-      setIsAddingStatus(false);
-      setSelectedStatus(null);
-      setErrorMessage("");
+
+      // Si succès, on affiche le modal de succès
+      setModalSuccessMessage("Statut d'occupation ajouté avec succès");
+      setIsSuccessModalOpen(true);
+      setSelectedMidiStatus(null);
+      setSelectedDinerStatus(null);
     } catch (error) {
-      if (error.status === 409) {
-        const conflictDate = new Date(error.data.occupations[0].dateOfEffect);
-        setFilterDate(conflictDate);
-        setErrorMessage("Statut d'occupation déjà configuré pour cette date.");
+      if (error?.data?.message) {
+        setModalErrorMessage(error.data.message);
       } else {
-        console.error("Échec de l'ajout du statut d'occupation:", error);
-        setErrorMessage("Échec de l'ajout du statut d'occupation");
+        setModalErrorMessage("Échec de l'ajout du statut d'occupation.");
       }
+      setIsErrorModalOpen(true); // Ouvrir le modal d'erreur
     }
-  };
-
-  const handleCancelAdd = () => {
-    setIsAddingStatus(false);
-    setSelectedStatus(null);
-    setErrorMessage("");
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      const deletedStatus = await deleteOccupationStatus(id).unwrap();
-      alert(
-        `Statut d'occupation '${deletedStatus.occStatus}' supprimé pour la date '${deletedStatus.dateOfEffect}'`
-      );
-      setDeletingStatusId(null);
-      setFilterDate(null);
-    } catch (error) {
-      console.error("Échec de la suppression du statut d'occupation:", error);
-      alert("Échec de la suppression du statut d'occupation");
-    }
-  };
-
-  const handleDeleteConfirm = (id) => {
-    setDeletingStatusId(id);
-  };
-
-  const handleDeleteCancel = () => {
-    setDeletingStatusId(null);
-  };
-
-  const handleEdit = (id) => {
-    setEditingStatusId(id);
   };
 
   const handleEditConfirm = async (id) => {
-    if (!newStatus) {
-      setErrorMessage("Le nouveau statut ne peut pas être vide.");
+    if (!newDinerStatus) {
+      setModalErrorMessage("Le statut du dîner ne peut pas être vide.");
+      setIsErrorModalOpen(true);
       return;
     }
 
     try {
       await updateOccupationStatus({
         id,
-        newOccStatus: newStatus.value,
+        occStatusMidi: newMidiStatus ? newMidiStatus.value : "RAS", // Si midi est null, envoyer 'RAS' par défaut
+        occStatusDiner: newDinerStatus.value,
       }).unwrap();
-      setSuccessMessage("Statut d'occupation mis à jour avec succès");
-      setEditingStatusId(null);
-      setNewStatus(null);
-      setErrorMessage("");
 
-      setTimeout(() => {
-        setFilterDate(null);
-      }, 3000);
+      setModalSuccessMessage("Statut d'occupation mis à jour avec succès");
+      setIsSuccessModalOpen(true);
+      setEditingStatusId(null);
+      setNewMidiStatus(null);
+      setNewDinerStatus(null);
     } catch (error) {
-      console.error("Échec de la mise à jour du statut d'occupation:", error);
-      setErrorMessage("Échec de la mise à jour du statut d'occupation");
+      if (error?.data?.message) {
+        setModalErrorMessage(error.data.message);
+      } else {
+        setModalErrorMessage("Échec de la mise à jour du statut d'occupation.");
+      }
+      setIsErrorModalOpen(true); // Ouvrir le modal d'erreur
     }
   };
 
@@ -204,6 +203,42 @@ export default function Example() {
       )
     : occupationStatuses;
 
+  const handleDeleteConfirm = async (id) => {
+    try {
+      await deleteOccupationStatus(id).unwrap();
+
+      // Afficher le message de succès
+      setModalSuccessMessage("Statut d'occupation supprimé avec succès");
+      setIsSuccessModalOpen(true);
+
+      setDeletingStatusId(null);
+    } catch (error) {
+      console.error("Échec de la suppression du statut d'occupation:", error);
+      setModalErrorMessage("Échec de la suppression du statut d'occupation");
+      setIsErrorModalOpen(true); // Ouvrir le modal d'erreur
+    }
+  };
+
+  const handleEdit = (id) => {
+    const statusToEdit = occupationStatuses.find((status) => status.id === id);
+
+    // Initialiser les nouveaux statuts avec les valeurs actuelles de la réservation
+    if (statusToEdit) {
+      setNewMidiStatus(
+        occStatusOptionsMidi.find(
+          (option) => option.value === statusToEdit.occStatusMidi
+        ) || null
+      );
+      setNewDinerStatus(
+        occStatusOptions.find(
+          (option) => option.value === statusToEdit.occStatusDiner
+        ) || null
+      );
+    }
+
+    setEditingStatusId(id);
+  };
+
   // Trier les occupationStatuses par date d'effet
   const sortedOccupationStatuses = filteredOccupationStatuses
     .slice()
@@ -211,163 +246,65 @@ export default function Example() {
 
   return (
     <Layout>
+      {/* Modals for success and error messages */}
+      <ErrorModal
+        isOpen={isErrorModalOpen}
+        errorMessage={modalErrorMessage}
+        onClose={() => setIsErrorModalOpen(false)}
+      />
+      <SuccessModal
+        isOpen={isSuccessModalOpen}
+        successMessage={modalSuccessMessage}
+        onClose={() => setIsSuccessModalOpen(false)}
+      />
+
       <SectionHeading title={"Gestion de l'occupation de la salle"} />
+
       <div className="px-10 mt-20">
-        <h2 className="text-base font-semibold leading-6 text-gray-900">
-          Les statuts d'occupation déjà paramétrés :
-        </h2>
-        <div className="mb-1 mt-10">
-          <label
-            htmlFor="filter-date"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Filtrer par date
-          </label>
-          <DatePicker
-            selected={filterDate}
-            onChange={(date) => setFilterDate(date)}
-            dateFormat="yyyy-MM-dd"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            placeholderText="Sélectionner une date"
-          />
-          <span
-            className="ml-5 text-sm font-medium text-gray-700 underline cursor-pointer"
-            onClick={() => setFilterDate(null)}
-          >
-            Afficher tout
-          </span>
-        </div>
         <div className="lg:grid lg:grid-cols-12 lg:gap-x-16">
-          <div className="mt-5 text-center lg:col-start-8 lg:col-end-13 lg:row-start-1 lg:mt-9 xl:col-start-9">
-            <div className="mt-6 w-full max-w-sm mx-auto">
-              <Calendar
-                selectedDate={selectedDate}
-                setSelectedDate={setSelectedDate}
+          {/* Div de gauche pour afficher les statuts déjà paramétrés */}
+          <div className="lg:col-span-7 xl:col-span-8 border border-gray-200 rounded-lg px-5">
+            <h2 className="text-base font-semibold leading-6 text-gray-900">
+              Les statuts d'occupation déjà paramétrés :
+            </h2>
+            <div className="mb-1 mt-10">
+              <label
+                htmlFor="filter-date"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Filtrer par date
+              </label>
+              <DatePicker
+                selected={filterDate}
+                onChange={(date) => setFilterDate(date)}
+                dateFormat="yyyy-MM-dd"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                placeholderText="Sélectionner une date"
               />
-              {isAddingStatus ? (
-                <>
-                  <Listbox value={selectedStatus} onChange={setSelectedStatus}>
-                    {({ open }) => (
-                      <>
-                        <Listbox.Label className="block text-sm font-medium leading-6 text-gray-900">
-                          Choisir un statut
-                        </Listbox.Label>
-                        <div className="relative mt-2">
-                          <ListboxButton className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6">
-                            <span className="block truncate">
-                              {selectedStatus
-                                ? selectedStatus.label
-                                : "Sélectionner un statut"}
-                            </span>
-                            <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-                              <ChevronUpDownIcon
-                                className="h-5 w-5 text-gray-400"
-                                aria-hidden="true"
-                              />
-                            </span>
-                          </ListboxButton>
-                          <Transition
-                            show={open}
-                            leave="transition ease-in duration-100"
-                            leaveFrom="opacity-100"
-                            leaveTo="opacity-0"
-                          >
-                            <ListboxOptions className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                              {occStatusOptions.map((status) => (
-                                <ListboxOption
-                                  key={status.value}
-                                  className={({ active }) =>
-                                    classNames(
-                                      active ? "bg-indigo-600 text-white" : "",
-                                      "relative cursor-default select-none py-2 pl-3 pr-9"
-                                    )
-                                  }
-                                  value={status}
-                                >
-                                  {({ selected, active }) => (
-                                    <>
-                                      <span
-                                        className={classNames(
-                                          selected
-                                            ? "font-semibold"
-                                            : "font-normal",
-                                          "block truncate"
-                                        )}
-                                      >
-                                        {status.label}
-                                      </span>
-                                      {selected ? (
-                                        <span
-                                          className={classNames(
-                                            active
-                                              ? "text-white"
-                                              : "text-indigo-600",
-                                            "absolute inset-y-0 right-0 flex items-center pr-4"
-                                          )}
-                                        >
-                                          <CheckIcon
-                                            className="h-5 w-5"
-                                            aria-hidden="true"
-                                          />
-                                        </span>
-                                      ) : null}
-                                    </>
-                                  )}
-                                </ListboxOption>
-                              ))}
-                            </ListboxOptions>
-                          </Transition>
-                        </div>
-                      </>
-                    )}
-                  </Listbox>
-                  {errorMessage && (
-                    <p className="text-red-500 mt-2">{errorMessage}</p>
-                  )}
-                  <div className="mt-8 flex justify-evenly">
-                    <button
-                      type="button"
-                      onClick={handleConfirm}
-                      className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-1/3"
-                    >
-                      Confirmer
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCancelAdd}
-                      className="rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600 w-1/3"
-                    >
-                      Annuler
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsAddingStatus(true);
-                    setSuccessMessage("");
-                  }}
-                  className="mt-8 w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                >
-                  Ajouter un Statut
-                </button>
-              )}
+              <span
+                className="ml-5 text-sm font-medium text-gray-700 underline cursor-pointer"
+                onClick={() => setFilterDate(null)}
+              >
+                Afficher tout
+              </span>
             </div>
-          </div>
-          <div className="mt-4 lg:col-span-7 xl:col-span-8 border border-gray-200 rounded-lg px-5">
+
             <ol className="divide-y divide-gray-100 text-sm leading-6">
               {sortedOccupationStatuses.map((status) => (
                 <li
                   key={status.id}
                   className="relative flex space-x-6 py-6 xl:static"
                 >
-                  <div className="h-14 w-14 flex-none rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold">
-                    {occStatusTrigram[status.occStatus] || "N/A"}
+                  <div className="h-14 text-xs w-14 text-center flex-none rounded-full bg-indigo-600 flex items-center justify-center text-white">
+                    {occStatusTrigram[status.occStatusMidi]
+                      ? occStatusTrigram[status.occStatusMidi] + " /"
+                      : ""}{" "}
+                    {occStatusTrigram[status.occStatusDiner]}
                   </div>
                   <div className="flex-auto">
                     <h3 className="pr-10 font-semibold text-gray-900 xl:pr-0">
-                      {status.occStatus}
+                      Midi : {status.occStatusMidi} / Soir:{" "}
+                      {status.occStatusDiner}
                     </h3>
                     <dl className="mt-2 flex flex-col text-gray-500 xl:flex-row">
                       <div
@@ -404,45 +341,17 @@ export default function Example() {
                           />
                         </dt>
                         <dd>
-                          {occStatusInstructions[status.occStatus] || "N/A"}
+                          Midi:{" "}
+                          {occStatusInstructions[status.occStatusMidi] || "N/A"}
+                          <br />
+                          <br />{" "}
+                          {/* Cette ligne ajoute un saut de ligne entre les instructions */}
+                          Soir:{" "}
+                          {occStatusInstructions[status.occStatusDiner] ||
+                            "N/A"}
                         </dd>
                       </div>
                     </dl>
-                    {deletingStatusId === status.id && (
-                      <div className="mt-2 p-4 border border-red-500 bg-red-50 text-red-800 rounded-md">
-                        <p>
-                          Êtes-vous sûr de vouloir supprimer le statut{" "}
-                          <strong>{status.occStatus}</strong> pour la date{" "}
-                          <strong>
-                            {new Date(status.dateOfEffect).toLocaleDateString(
-                              "fr-FR",
-                              {
-                                weekday: "long",
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric",
-                              }
-                            )}
-                          </strong>
-                          ? Cette action est irréversible et la date passera en
-                          "RAS".
-                        </p>
-                        <div className="mt-2 flex justify-end space-x-2">
-                          <button
-                            onClick={handleDeleteCancel}
-                            className="px-3 py-1 bg-gray-200 text-gray-800 rounded-md"
-                          >
-                            Annuler
-                          </button>
-                          <button
-                            onClick={() => handleDelete(status.id)}
-                            className="px-3 py-1 bg-red-600 text-white rounded-md"
-                          >
-                            Confirmer
-                          </button>
-                        </div>
-                      </div>
-                    )}
                     {editingStatusId === status.id && (
                       <div className="mt-2 p-4 border border-yellow-500 bg-yellow-50 text-yellow-800 rounded-md">
                         <p>
@@ -459,18 +368,109 @@ export default function Example() {
                             )}
                           </strong>
                           , le statut d'occupation est{" "}
-                          <strong>{status.occStatus}</strong>.
+                          <strong>{status.occStatusMidi}</strong> (midi) et{" "}
+                          <strong>{status.occStatusDiner}</strong> (dîner).
                         </p>
-                        <p>Choisissez le nouveau statut :</p>
-                        <Listbox value={newStatus} onChange={setNewStatus}>
+                        <p>Choisissez les nouveaux statuts :</p>
+
+                        {/* Ajout des labels pour Midi et Soir */}
+                        <label className="block text-sm font-bold leading-6 text-gray-900 mt-4">
+                          Midi :
+                        </label>
+                        <Listbox
+                          value={newMidiStatus}
+                          onChange={setNewMidiStatus}
+                        >
                           {({ open }) => (
                             <>
                               <div className="relative mt-2">
                                 <ListboxButton className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6">
                                   <span className="block truncate">
-                                    {newStatus
-                                      ? newStatus.label
-                                      : "Sélectionner un statut"}
+                                    {newMidiStatus
+                                      ? newMidiStatus.label
+                                      : "Sélectionner un statut pour le midi"}
+                                  </span>
+                                  <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                                    <ChevronUpDownIcon
+                                      className="h-5 w-5 text-gray-400"
+                                      aria-hidden="true"
+                                    />
+                                  </span>
+                                </ListboxButton>
+                                <Transition
+                                  show={open}
+                                  leave="transition ease-in duration-100"
+                                  leaveFrom="opacity-100"
+                                  leaveTo="opacity-0"
+                                >
+                                  <ListboxOptions className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                    {occStatusOptionsMidi.map((status) => (
+                                      <ListboxOption
+                                        key={status.value}
+                                        className={({ active }) =>
+                                          classNames(
+                                            active
+                                              ? "bg-indigo-600 text-white"
+                                              : "",
+                                            "relative cursor-default select-none py-2 pl-3 pr-9"
+                                          )
+                                        }
+                                        value={status}
+                                      >
+                                        {({ selected, active }) => (
+                                          <>
+                                            <span
+                                              className={classNames(
+                                                selected
+                                                  ? "font-semibold"
+                                                  : "font-normal",
+                                                "block truncate"
+                                              )}
+                                            >
+                                              {status.label}
+                                            </span>
+                                            {selected ? (
+                                              <span
+                                                className={classNames(
+                                                  active
+                                                    ? "text-white"
+                                                    : "text-indigo-600",
+                                                  "absolute inset-y-0 right-0 flex items-center pr-4"
+                                                )}
+                                              >
+                                                <CheckIcon
+                                                  className="h-5 w-5"
+                                                  aria-hidden="true"
+                                                />
+                                              </span>
+                                            ) : null}
+                                          </>
+                                        )}
+                                      </ListboxOption>
+                                    ))}
+                                  </ListboxOptions>
+                                </Transition>
+                              </div>
+                            </>
+                          )}
+                        </Listbox>
+
+                        {/* Label pour Soir */}
+                        <label className="block text-sm font-bold leading-6 text-gray-900 mt-4">
+                          Soir :
+                        </label>
+                        <Listbox
+                          value={newDinerStatus}
+                          onChange={setNewDinerStatus}
+                        >
+                          {({ open }) => (
+                            <>
+                              <div className="relative mt-2">
+                                <ListboxButton className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6">
+                                  <span className="block truncate">
+                                    {newDinerStatus
+                                      ? newDinerStatus.label
+                                      : "Sélectionner un statut pour le dîner"}
                                   </span>
                                   <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
                                     <ChevronUpDownIcon
@@ -536,6 +536,7 @@ export default function Example() {
                             </>
                           )}
                         </Listbox>
+
                         <div className="mt-2 flex justify-end space-x-2">
                           <button
                             onClick={handleEditCancel}
@@ -566,7 +567,6 @@ export default function Example() {
                         />
                       </MenuButton>
                     </div>
-
                     <Transition
                       enter="transition ease-out duration-100"
                       enterFrom="transform opacity-0 scale-95"
@@ -614,6 +614,188 @@ export default function Example() {
                 </li>
               ))}
             </ol>
+          </div>
+
+          {/* Div de droite pour ajouter un nouveau statut */}
+          <div className="mt-5 text-center lg:col-start-8 lg:col-end-13 lg:row-start-1 lg:mt-9 xl:col-start-9">
+            <div className="mt-6 w-full max-w-sm mx-auto">
+              <Calendar
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+              />
+              <Listbox
+                value={selectedMidiStatus}
+                onChange={setSelectedMidiStatus}
+              >
+                {({ open }) => (
+                  <>
+                    <Listbox.Label className="block text-sm  leading-6 text-gray-900 mt-5 font-bold">
+                      Choisir un statut pour le midi
+                    </Listbox.Label>
+                    <div className="relative mt-2">
+                      <ListboxButton className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6">
+                        <span className="block truncate">
+                          {selectedMidiStatus
+                            ? selectedMidiStatus.label
+                            : "Pas de modification"}
+                        </span>
+                        <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                          <ChevronUpDownIcon
+                            className="h-5 w-5 text-gray-400"
+                            aria-hidden="true"
+                          />
+                        </span>
+                      </ListboxButton>
+                      <Transition
+                        show={open}
+                        leave="transition ease-in duration-100"
+                        leaveFrom="opacity-100"
+                        leaveTo="opacity-0"
+                      >
+                        <ListboxOptions className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                          {occStatusOptionsMidi.map((status) => (
+                            <ListboxOption
+                              key={status.value}
+                              className={({ active }) =>
+                                classNames(
+                                  active ? "bg-indigo-600 text-white" : "",
+                                  "relative cursor-default select-none py-2 pl-3 pr-9"
+                                )
+                              }
+                              value={status}
+                            >
+                              {({ selected, active }) => (
+                                <>
+                                  <span
+                                    className={classNames(
+                                      selected
+                                        ? "font-semibold"
+                                        : "font-normal",
+                                      "block truncate"
+                                    )}
+                                  >
+                                    {status.label}
+                                  </span>
+                                  {selected ? (
+                                    <span
+                                      className={classNames(
+                                        active
+                                          ? "text-white"
+                                          : "text-indigo-600",
+                                        "absolute inset-y-0 right-0 flex items-center pr-4"
+                                      )}
+                                    >
+                                      <CheckIcon
+                                        className="h-5 w-5"
+                                        aria-hidden="true"
+                                      />
+                                    </span>
+                                  ) : null}
+                                </>
+                              )}
+                            </ListboxOption>
+                          ))}
+                        </ListboxOptions>
+                      </Transition>
+                    </div>
+                  </>
+                )}
+              </Listbox>
+              <Listbox
+                value={selectedDinerStatus}
+                onChange={setSelectedDinerStatus}
+              >
+                {({ open }) => (
+                  <>
+                    <Listbox.Label className="block text-sm font-bold leading-6 text-gray-900 mt-4">
+                      Choisir un statut pour le dîner
+                    </Listbox.Label>
+                    <div className="relative mt-2">
+                      <ListboxButton className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6">
+                        <span className="block truncate">
+                          {selectedDinerStatus
+                            ? selectedDinerStatus.label
+                            : "Sélectionner un statut"}
+                        </span>
+                        <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                          <ChevronUpDownIcon
+                            className="h-5 w-5 text-gray-400"
+                            aria-hidden="true"
+                          />
+                        </span>
+                      </ListboxButton>
+                      <Transition
+                        show={open}
+                        leave="transition ease-in duration-100"
+                        leaveFrom="opacity-100"
+                        leaveTo="opacity-0"
+                      >
+                        <ListboxOptions className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                          {occStatusOptions.map((status) => (
+                            <ListboxOption
+                              key={status.value}
+                              className={({ active }) =>
+                                classNames(
+                                  active ? "bg-indigo-600 text-white" : "",
+                                  "relative cursor-default select-none py-2 pl-3 pr-9"
+                                )
+                              }
+                              value={status}
+                            >
+                              {({ selected, active }) => (
+                                <>
+                                  <span
+                                    className={classNames(
+                                      selected
+                                        ? "font-semibold"
+                                        : "font-normal",
+                                      "block truncate"
+                                    )}
+                                  >
+                                    {status.label}
+                                  </span>
+                                  {selected ? (
+                                    <span
+                                      className={classNames(
+                                        active
+                                          ? "text-white"
+                                          : "text-indigo-600",
+                                        "absolute inset-y-0 right-0 flex items-center pr-4"
+                                      )}
+                                    >
+                                      <CheckIcon
+                                        className="h-5 w-5"
+                                        aria-hidden="true"
+                                      />
+                                    </span>
+                                  ) : null}
+                                </>
+                              )}
+                            </ListboxOption>
+                          ))}
+                        </ListboxOptions>
+                      </Transition>
+                    </div>
+                  </>
+                )}
+              </Listbox>
+              <div className="mt-8 flex justify-evenly">
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-1/3"
+                >
+                  Confirmer
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEditCancel}
+                  className="rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600 w-1/3"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

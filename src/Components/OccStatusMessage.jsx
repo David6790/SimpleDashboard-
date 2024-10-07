@@ -1,5 +1,5 @@
 const occStatusMessages = {
-  RAS: "Rien de particulier à signaler pour ce soir. Tous les créneaux horaires sont disponibles et aucune disposition spéciale n'est nécessaire.",
+  RAS: "Rien de particulier à signaler pour ce service. Tous les créneaux horaires sont disponibles et aucune disposition spéciale n'est nécessaire.",
   FreeTable21:
     "Attention, il y a une forte demande ce soir. Pour les réservations à 19h, il est nécessaire de libérer la table à 21h. Pensez à prévenir lors de la prise de réservation. Les clients auront deux heures complètes pour profiter de notre service.",
   Service2Complet:
@@ -10,6 +10,10 @@ const occStatusMessages = {
     "Le restaurant est complet pour ce soir. Nous ne pouvons accepter de nouvelles réservations. Veuillez décliner toutes nouvelles demandes avec politesse.",
   MidiComplet:
     "Le restaurant est complet pour ce midi. Les clients peuvent tout de même réserver pour le soir.",
+  MidiEtendu:
+    "Pour gérer un maximum de clients, les créneaux ont été élargis. Le service commence à 11h et la dernière réservation est prise à 14h45.",
+  MidiDoubleService:
+    "Le service de midi est en double service. Les clients qui ont réservé entre 11h et 12h doivent libérer leur table à 13h30 afin de pouvoir accueillir les clients du second service.",
 };
 
 export default occStatusMessages;

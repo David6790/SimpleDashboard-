@@ -35,7 +35,8 @@ export default function UpdateResaFormClient() {
   const [comment, setComment] = useState(resa.comment || "");
   const [errors, setErrors] = useState({});
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
-  const [occStatus, setOccStatus] = useState(resa.occupationStatusOnBook);
+  const [occStatusLunch, setOccStatusLunch] = useState(resa.occStatusMidi); // OccStatus Midi
+  const [occStatusDinner, setOccStatusDinner] = useState(resa.occStatusDiner); // OccStatus Diner
   const [submitMessage, setSubmitMessage] = useState("");
   const [reservationDetails, setReservationDetails] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false); // État pour gérer le bouton de soumission
@@ -63,7 +64,8 @@ export default function UpdateResaFormClient() {
       setNumberOfGuests(resa.numberOfGuest.toString());
       setComment(resa.comment || "");
       setSelectedTimeSlot("");
-      setOccStatus(resa.occupationStatusOnBook);
+      setOccStatusLunch(resa.occStatusMidi); // Mettre à jour le statut du déjeuner
+      setOccStatusDinner(resa.occStatusDiner); // Mettre à jour le statut du dîner
     }
   }, [resa]);
 
@@ -117,23 +119,12 @@ export default function UpdateResaFormClient() {
     }
   };
 
-  // Nouvelle fonction pour vérifier si l'heure est dans le passé
-  const isTimeInThePast = (selectedTime) => {
-    const currentDate = new Date();
-    const selectedDateTime = new Date(`${startDate}T${selectedTime}`);
-    // Vérifier si la date est aujourd'hui et que l'heure est dans le passé
-    if (
-      startDate === format(currentDate, "yyyy-MM-dd") &&
-      selectedDateTime < currentDate
-    ) {
-      return true;
-    }
-    return false;
-  };
-
   const handleTimeSlotChange = (event) => {
     const selectedTime = event.target.value;
-    if (isTimeInThePast(selectedTime)) {
+    const currentDate = new Date();
+    const selectedDateTime = new Date(`${startDate}T${selectedTime}`);
+
+    if (selectedDateTime < currentDate) {
       setErrors((prev) => ({
         ...prev,
         timeSlot: "Le créneau horaire ne peut pas être dans le passé.",
@@ -171,7 +162,8 @@ export default function UpdateResaFormClient() {
         timeResa: selectedTimeSlot,
         numberOfGuest: numberOfGuests.toString(),
         comment: comment,
-        occupationStatusOnBook: occStatus,
+        occupationStatusSoirOnBook: occStatusDinner, // Assure que le bon statut est utilisé
+        occupationStatusMidiOnBook: occStatusLunch,
         createdBy: resa.createdBy,
         freeTable21: resa.freeTable21,
         placed: resa.placed,
@@ -195,17 +187,6 @@ export default function UpdateResaFormClient() {
       setSubmitMessage("Réservation mise à jour avec succès !");
       setIsSubmitted(true); // Désactivez le bouton de soumission
 
-      // Réinitialiser les champs du formulaire
-      setStartDate("");
-      setPhone("");
-      setEmail("");
-      setName("");
-      setPrenom("");
-      setNumberOfGuests("");
-      setComment("");
-      setSelectedTimeSlot("");
-      setOccStatus("");
-
       const countdownInterval = setInterval(() => {
         setCountdown((prevCountdown) => prevCountdown - 1);
       }, 1000);
@@ -213,7 +194,7 @@ export default function UpdateResaFormClient() {
       setTimeout(() => {
         clearInterval(countdownInterval);
         navigate(`/gir/${reservationId}`);
-      }, 1);
+      }, 5000);
     } catch (error) {
       console.error(error);
       setErrorMessage(
@@ -238,10 +219,16 @@ export default function UpdateResaFormClient() {
               ""
             ) : (
               <h2 className="text-base font-semibold leading-7 text-gray-900">
-                Informations du service Dîner
+                Informations du service Déjeuner
               </h2>
             )}
-            <OccStatusDisplayClient status={occStatus} />
+            <OccStatusDisplayClient status={occStatusLunch} />{" "}
+            {/* Afficher le statut du midi */}
+            <h2 className="mt-8 text-base font-semibold leading-7 text-gray-900">
+              Informations du service Dîner
+            </h2>
+            <OccStatusDisplayClient status={occStatusDinner} />{" "}
+            {/* Afficher le statut du soir */}
             {submitMessage && <ValidationMessage message={submitMessage} />}
             {reservationDetails && (
               <div>
@@ -360,7 +347,8 @@ export default function UpdateResaFormClient() {
                     date={startDate}
                     selectedTimeSlot={selectedTimeSlot}
                     onTimeSlotChange={handleTimeSlotChange}
-                    setOccStatus={setOccStatus}
+                    setOccStatusLunch={setOccStatusLunch} // Ajout du statut déjeuner
+                    setOccStatusDinner={setOccStatusDinner} // Ajout du statut dîner
                     required
                     className="editable"
                   />

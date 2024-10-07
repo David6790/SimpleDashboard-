@@ -30,20 +30,21 @@ export default function ReservationForm() {
   const [comment, setComment] = useState("");
   const [errors, setErrors] = useState({});
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
-  const [occStatus, setOccStatus] = useState("");
-  // eslint-disable-next-line
-  const [submitMessage, setSubmitMessage] = useState("");
+  const [submitMessage, setSubmitMessage] = useState(""); // Message à afficher après la soumission
   const [reservationDetails, setReservationDetails] = useState(null); // État pour les détails de la réservation
 
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false); // État pour contrôler la visibilité du modal d'erreur
   const [errorMessage, setErrorMessage] = useState(""); // État pour stocker le message d'erreur
 
-  const {
-    refetch: refetchToggle, // Refetch pour le toggle
-  } = useGetNotificationToggleQuery();
+  // Ajout des nouveaux états pour le statut du midi et du dîner
+  const [occStatusLunch, setOccStatusLunch] = useState("");
+  const [occStatusDinner, setOccStatusDinner] = useState("");
+
+  const { refetch: refetchToggle } = useGetNotificationToggleQuery(); // Refetch pour le toggle
 
   const user = useSelector((state) => state.user);
 
+  // Fonction pour gérer le changement de date
   const handleDateChange = (date) => {
     const formattedDate = format(date, "yyyy-MM-dd");
     setStartDate(formattedDate);
@@ -116,6 +117,7 @@ export default function ReservationForm() {
     setErrors((prev) => ({ ...prev, prenom: error }));
   };
 
+  // Gérer le changement de créneau horaire
   const handleTimeSlotChange = (event) => {
     const selectedTime = event.target.value;
     const currentDate = new Date();
@@ -133,6 +135,7 @@ export default function ReservationForm() {
     }
   };
 
+  // Fonction de soumission du formulaire
   const handleSubmit = async (event) => {
     event.preventDefault();
     const formErrors = {
@@ -173,7 +176,8 @@ export default function ReservationForm() {
         clientPrenom: prenom,
         clientTelephone: phone,
         clientEmail: email,
-        occupationStatusOnBook: occStatus,
+        occupationStatusSoirOnBook: occStatusDinner,
+        OccupationStatusMidiOnBook: occStatusLunch,
         createdBy: user.username,
       };
 
@@ -191,7 +195,8 @@ export default function ReservationForm() {
       setComment("");
       setSelectedTimeSlot("");
       setErrors({});
-      setOccStatus("");
+      setOccStatusLunch("");
+      setOccStatusDinner("");
 
       await refetchToggle();
     } catch (error) {
@@ -216,10 +221,15 @@ export default function ReservationForm() {
       <div className="grid grid-cols-1 gap-x-8 gap-y-8 pt-10 md:grid-cols-3">
         <div className="px-4 sm:px-0">
           <h2 className="text-base font-semibold leading-7 text-gray-900">
+            Informations du service Déjeuner
+          </h2>
+          <OccStatusDisplay status={occStatusLunch} />{" "}
+          {/* Afficher le statut du midi */}
+          <h2 className="mt-8 text-base font-semibold leading-7 text-gray-900">
             Informations du service Dîner
           </h2>
-
-          <OccStatusDisplay status={occStatus} />
+          <OccStatusDisplay status={occStatusDinner} />{" "}
+          {/* Afficher le statut du soir */}
           {submitMessage && <ValidationMessage message={submitMessage} />}
           {reservationDetails && (
             <div>
@@ -342,11 +352,13 @@ export default function ReservationForm() {
                 </div>
               </div>
 
+              {/* Appel du TimeSlotSelector pour gérer les créneaux horaires */}
               <TimeSlotSelector
                 date={startDate}
                 selectedTimeSlot={selectedTimeSlot}
                 onTimeSlotChange={handleTimeSlotChange}
-                setOccStatus={setOccStatus}
+                setOccStatusLunch={setOccStatusLunch} // Setter pour le midi
+                setOccStatusDinner={setOccStatusDinner} // Setter pour le soir
                 required
               />
               {errors.timeSlot && (
