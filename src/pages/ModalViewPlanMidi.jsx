@@ -272,7 +272,8 @@ const ModalViewPlanMidi = ({ date, period, onClose }) => {
     if (
       occupiedReservations &&
       occupiedReservations.some(
-        (reservation) => reservation.freeTable1330 === "O"
+        (reservation) =>
+          reservation.freeTable1330 === "O" && occupiedReservations.length === 1
       )
     ) {
       return (

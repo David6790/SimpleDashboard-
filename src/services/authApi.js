@@ -28,6 +28,7 @@ export const authApi = createApi({
         method: "POST",
         body: newUser,
       }),
+      invalidatesTags: ["Users"], // Invalide le cache des utilisateurs après l'inscription
     }),
     getUsers: builder.query({
       query: () => "Auth/users", // Endpoint pour obtenir la liste des utilisateurs
@@ -40,6 +41,23 @@ export const authApi = createApi({
         return { data: null }; // Retourne une réponse vide après le logout
       },
     }),
+    // Nouvelle mutation pour modifier le rôle d'un utilisateur
+    updateUserRole: builder.mutation({
+      query: ({ email, newRole }) => ({
+        url: `Auth/users/role`,
+        method: "PUT",
+        body: { email, newRole },
+      }),
+      invalidatesTags: ["Users"], // Invalide le cache des utilisateurs après la modification du rôle
+    }),
+    // Nouvelle mutation pour supprimer un utilisateur par email
+    deleteUser: builder.mutation({
+      query: (email) => ({
+        url: `Auth/users/${email}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Users"], // Invalide le cache des utilisateurs après suppression
+    }),
   }),
 });
 
@@ -48,5 +66,8 @@ export const {
   useSignupMutation,
   useGetUsersQuery,
   useLogoutMutation,
+  useUpdateUserRoleMutation, // Pour modifier le rôle
+  useDeleteUserMutation, // Pour supprimer l'utilisateur
 } = authApi;
+
 export default authApi;
