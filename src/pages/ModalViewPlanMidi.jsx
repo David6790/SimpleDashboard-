@@ -41,7 +41,7 @@ const tableIdMapping = {
   26: 26,
 };
 
-const ModalViewPlan = ({ date, period, onClose }) => {
+const ModalViewPlanMidi = ({ date, period, onClose }) => {
   const [occupiedTables, setOccupiedTables] = useState([]);
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
@@ -49,10 +49,10 @@ const ModalViewPlan = ({ date, period, onClose }) => {
   const [selectedTables, setSelectedTables] = useState([]);
   const [selectedResId, setselectedResId] = useState(null);
   const [isCreating, setIsCreating] = useState(false); // Nouveau mode création
-  const [selectedReservationId, setSelectedReservationId] = useState(null); // Ajoute cet état
+  const [selectedReservationId, setSelectedReservationId] = useState(null);
 
-  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false); // État pour le modal d'erreur
-  const [errorMessage, setErrorMessage] = useState(""); // État pour le message d'erreur
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const dispatch = useDispatch();
 
   const { data: allocations } = useGetAllocationsQuery({
@@ -60,17 +60,12 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     period,
   });
 
-  console.log(date);
+  const { data: reservations, refetch: refetchReservations } =
+    useGetReservationsByDateAndPeriodQuery({
+      date,
+      period,
+    });
 
-  const {
-    data: reservations,
-    refetch: refetchReservations, // Ajoute la méthode refetch
-  } = useGetReservationsByDateAndPeriodQuery({
-    date,
-    period,
-  });
-
-  console.log(reservations);
   const [changeAllocation, { isLoading }] = useChangeAllocationMutation();
   const [createAllocation, { isLoading: isCreatingLoading }] =
     useCreateAllocationMutation();
@@ -79,6 +74,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     document.body.classList.add("no-scroll");
 
     if (allocations) {
+      console.log(allocations);
       const occupied = allocations.reduce((acc, allocation) => {
         const tableName = allocation.table.name;
         if (!acc[tableName]) {
@@ -89,16 +85,18 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           clientNom: allocation.reservation.clientName,
           timeResa: allocation.reservation.timeResa,
           numberOfGuest: allocation.reservation.numberOfGuest,
-          freeTable21: allocation.reservation.freeTable21,
+          freeTable1330: allocation.reservation.freeTable1330, // Modification ici pour le midi
+          freeTable21: allocation.reservation.freeTable21, // Modification ici pour le midi
           comment: allocation.reservation.comment,
           clienttelephone: allocation.reservation.clientTelephone,
-          isAfter21hReservation: allocation.reservation.timeResa >= "21:00:00",
+          isAfter1330Reservation: allocation.reservation.timeResa >= "13:30:00",
           tableId: allocation.table.id,
           reservationId: allocation.reservationId,
         });
 
         return acc;
       }, {});
+
       setOccupiedTables(occupied);
     }
     return () => {
@@ -114,10 +112,10 @@ const ModalViewPlan = ({ date, period, onClose }) => {
       isOccupied(table) &&
       occupiedTables[table].some(
         (reservation) =>
-          (reservation.freeTable21 === "O" &&
+          (reservation.freeTable1330 === "O" &&
             new Date(`1970-01-01T${reservation.timeResa}`) <
-              new Date(`1970-01-01T21:00:00`)) ||
-          reservation.isAfter21hReservation
+              new Date(`1970-01-01T13:30:00`)) ||
+          reservation.isAfter1330Reservation
       );
 
     return `table border-2 shadow-md flex flex-col justify-between text-xs h-12 rounded-md ${
@@ -176,7 +174,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
       setErrorMessage(
         error.data?.error || "Erreur lors du déplacement de l'allocation."
       );
-      setIsErrorModalOpen(true); // Ouvre le modal d'erreur
+      setIsErrorModalOpen(true);
     }
   };
 
@@ -188,7 +186,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     try {
       await createAllocation({
         reservationId: selectedReservation.id,
-        tableId: selectedTableIds, // Correction ici : utiliser "tableId"
+        tableId: selectedTableIds,
         date: date,
         period: period,
       }).unwrap();
@@ -197,13 +195,12 @@ const ModalViewPlan = ({ date, period, onClose }) => {
       setSelectedTables([]);
       setSelectedReservation(null);
 
-      // Invalide le cache des réservations pour forcer un refetch
       dispatch(reservationsApi.util.invalidateTags(["Reservations"]));
     } catch (error) {
       setErrorMessage(
         error.data?.error || "Erreur lors de la création de l'allocation."
       );
-      setIsErrorModalOpen(true); // Ouvre le modal d'erreur
+      setIsErrorModalOpen(true);
     }
   };
 
@@ -241,7 +238,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
             </div>
           )}
           <div className="text-center w-full mt-0.5">
-            {getFreeTable21Info(table)}
+            {getFreeTable1330Info(table)}
           </div>
         </>
       );
@@ -251,40 +248,40 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     );
   };
 
-  const getFreeTable21Info = (table) => {
+  // Ajouter une gommette verte pour les tables disponibles à 13h30
+  const getFreeTable1330Info = (table) => {
     const occupiedReservations = occupiedTables[table];
 
     if (
       occupiedReservations &&
       occupiedReservations.some(
         (reservation) =>
-          (reservation.isAfter21hReservation ||
-            reservation.timeResa === "21:00") && // Inclure les réservations à exactement 21h00
-          occupiedReservations.length === 1 // Il n'y a qu'une seule réservation pour cette table
-      )
-    ) {
-      return (
-        <div className="text-xs text-white font-bold bg-blue-600 rounded-md py-0.5 px-1 inline-block">
-          Dispo 19h
-        </div>
-      );
-    }
-
-    if (
-      occupiedReservations &&
-      occupiedReservations.some(
-        (reservation, index) =>
-          reservation.freeTable21 === "O" &&
-          index === 0 &&
+          (reservation.isAfter1330Reservation ||
+            reservation.timeResa === "13:30") &&
           occupiedReservations.length === 1
       )
     ) {
       return (
-        <div className="text-xs text-white font-bold bg-green-600 rounded-md py-0.5 px-1 inline-block">
-          Libre à 21h
+        <div className="text-[10px] text-white font-bold bg-blue-600 rounded-md py-0.5 px-1 inline-block">
+          Dispo avant 12h
         </div>
       );
     }
+
+    // Ajouter ici la condition pour la gommette verte
+    if (
+      occupiedReservations &&
+      occupiedReservations.some(
+        (reservation) => reservation.freeTable1330 === "O"
+      )
+    ) {
+      return (
+        <div className="text-[10px] text-white font-bold bg-green-600 rounded-md py-0.5 px-1 inline-block">
+          Libre à 13h30
+        </div>
+      );
+    }
+
     return null;
   };
 
@@ -372,7 +369,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
             ""
           ) : (
             <h1 className="text-base font-semibold text-gray-600 text-left mb-2 border-b border-gray-300 pb-1">
-              Réservations à placer
+              Réservations à placer bla bla
             </h1>
           )}
           <div className="flex flex-wrap gap-2 justify-start">
@@ -386,14 +383,14 @@ const ModalViewPlan = ({ date, period, onClose }) => {
                   key={reservation.id}
                   className={`p-1 w-17 rounded-lg shadow-md text-center cursor-pointer border-2 ${
                     reservation.id === selectedReservationId
-                      ? "border-blue-500" // Bordure bleue pour la réservation sélectionnée
-                      : "border-gray-300" // Bordure grise par défaut
+                      ? "border-blue-500"
+                      : "border-gray-300"
                   } ${
-                    reservation.freeTable21 === "O"
+                    reservation.freeTable1330 === "O"
                       ? "bg-green-200"
                       : "bg-pink-200"
                   }`}
-                  onClick={() => handleCreateMode(reservation)} // Active le mode création et sélectionne la carte
+                  onClick={() => handleCreateMode(reservation)}
                 >
                   <h3 className="text-xs font-bold truncate">
                     {`${reservation.client.prenom} ${reservation.client.name}`}
@@ -572,7 +569,6 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           </button>
         </div>
 
-        {/* Reservation Details Modal */}
         {isReservationModalOpen && (
           <ReservationDetailModal
             reservation={selectedReservation}
@@ -581,7 +577,6 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           />
         )}
 
-        {/* Error Modal */}
         <ErrorModal
           isOpen={isErrorModalOpen}
           errorMessage={errorMessage}
@@ -592,4 +587,4 @@ const ModalViewPlan = ({ date, period, onClose }) => {
   );
 };
 
-export default ModalViewPlan;
+export default ModalViewPlanMidi;

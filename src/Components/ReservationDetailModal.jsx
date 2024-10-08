@@ -12,6 +12,8 @@ const ReservationDetailModal = ({ reservation, onClose, onMove }) => {
   const freeTable21Style =
     reservation.freeTable21 === "O" ? "bg-yellow-300" : "bg-red-300";
 
+  console.log(reservation);
+
   const handleMoveClick = () => {
     if (onMove && reservation.reservationId) {
       onMove(reservation.reservationId); // Renvoie uniquement le reservationId

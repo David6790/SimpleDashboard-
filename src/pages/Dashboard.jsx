@@ -10,6 +10,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import ModalViewPlan from "./ModalViewPlan";
+import ModalViewPlanMidi from "./ModalViewPlanMidi";
 import { Switch } from "@headlessui/react";
 
 const Dashboard = () => {
@@ -54,7 +55,7 @@ const Dashboard = () => {
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);
   };
-
+  console.log(formattedDate);
   const filteredReservations = reservations
     ? reservations.filter((reservation) => {
         const reservationTime = parseInt(
@@ -208,6 +209,11 @@ const Dashboard = () => {
             <ModalViewPlan
               date={formattedDate}
               period={modalPeriod}
+              onClose={handleCloseModal}
+            />
+            <ModalViewPlanMidi
+              date={formattedDate}
+              period="midi"
               onClose={handleCloseModal}
             />
           </div>
