@@ -22,6 +22,7 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
   const navigate = useNavigate();
   const [cancelReservation] = useCancelReservationMutation();
   const user = useSelector((state) => state.user.username);
+  console.log(reservation);
 
   const handleEditReservation = () => {
     navigate("/reservation-update", { state: { reservation } });
