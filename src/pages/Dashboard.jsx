@@ -17,8 +17,8 @@ const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalPeriod, setModalPeriod] = useState("");
+  const [isModalMidiOpen, setIsModalMidiOpen] = useState(false); // Pour le modal Midi
+  const [isModalSoirOpen, setIsModalSoirOpen] = useState(false); // Pour le modal Soir
   const [filter, setFilter] = useState("all");
   const formattedDate = format(selectedDate, "yyyy-MM-dd");
 
@@ -43,19 +43,28 @@ const Dashboard = () => {
     }
   }, [location, navigate]);
 
-  const handleOpenModal = (period) => {
-    setModalPeriod(period);
-    setIsModalOpen(true);
+  // Gérer l'ouverture des modals séparément
+  const handleOpenMidiModal = () => {
+    setIsModalMidiOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleOpenSoirModal = () => {
+    setIsModalSoirOpen(true);
+  };
+
+  // Gérer la fermeture des modals séparément
+  const handleCloseMidiModal = () => {
+    setIsModalMidiOpen(false);
+  };
+
+  const handleCloseSoirModal = () => {
+    setIsModalSoirOpen(false);
   };
 
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);
   };
-  console.log(formattedDate);
+
   const filteredReservations = reservations
     ? reservations.filter((reservation) => {
         const reservationTime = parseInt(
@@ -89,15 +98,15 @@ const Dashboard = () => {
               />
               <button
                 type="button"
-                onClick={() => handleOpenModal("midi")}
-                className="mt-2 block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+                onClick={handleOpenMidiModal} // Ouvrir le modal pour midi
+                className="mt-2 block rounded-md bg-green-500 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
               >
                 Voir plan Midi
               </button>
               <button
                 type="button"
-                onClick={() => handleOpenModal("soir")}
-                className="mt-2 block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                onClick={handleOpenSoirModal} // Ouvrir le modal pour soir
+                className="mt-2 block rounded-md bg-blue-500 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
               >
                 Voir plan Soir
               </button>
@@ -197,24 +206,37 @@ const Dashboard = () => {
         refreshReservations={refreshReservations}
       />
 
-      {isModalOpen && (
+      {isModalMidiOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-md shadow-lg">
             <button
               className="absolute top-2 right-2 text-gray-700 hover:text-gray-900"
-              onClick={handleCloseModal}
+              onClick={handleCloseMidiModal}
+            >
+              X
+            </button>
+            <ModalViewPlanMidi
+              date={formattedDate}
+              period="midi"
+              onClose={handleCloseMidiModal}
+            />
+          </div>
+        </div>
+      )}
+
+      {isModalSoirOpen && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-md shadow-lg">
+            <button
+              className="absolute top-2 right-2 text-gray-700 hover:text-gray-900"
+              onClick={handleCloseSoirModal}
             >
               X
             </button>
             <ModalViewPlan
               date={formattedDate}
-              period={modalPeriod}
-              onClose={handleCloseModal}
-            />
-            <ModalViewPlanMidi
-              date={formattedDate}
-              period="midi"
-              onClose={handleCloseModal}
+              period="soir"
+              onClose={handleCloseSoirModal}
             />
           </div>
         </div>

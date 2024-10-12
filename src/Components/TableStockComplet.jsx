@@ -69,7 +69,7 @@ export default function TableReservations() {
       console.error("Failed to refuse reservation:", error);
     }
   };
-
+  // eslint-disable-next-line
   const handleBackClick = () => {
     setShowConfirmationOptions(null);
   };
@@ -168,70 +168,83 @@ export default function TableReservations() {
                     </button>
                   </td>
                   <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                    {reservation.status === "C" ? (
+                    {reservation.notifications === "Nouveau commentaire" ? (
+                      // Affiche uniquement le bouton "Ouvrir la GIR" si notification est "Nouveau commentaire"
                       <button
-                        className="px-4 py-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
+                        className="ml-4 px-4 py-2 rounded-md text-sm font-medium bg-purple-50 text-purple-700 hover:bg-purple-100"
                         onClick={(e) => {
                           e.stopPropagation();
-                          gestionResa(reservation.status, reservation);
+                          // Logique pour ouvrir la GIR
+                          console.log(
+                            "Ouvrir la GIR pour la réservation",
+                            reservation.id
+                          );
+                          // Appelle la fonction pour ouvrir la GIR
                         }}
                       >
-                        Modifier
+                        Ouvrir la GIR
                       </button>
-                    ) : reservation.status === "P" ||
-                      reservation.status === "M" ? (
-                      showConfirmationOptions === reservation.id ? (
-                        <>
+                    ) : (
+                      // Sinon, afficher les boutons Confirmer et Refuser ou Modifier selon le statut
+                      <>
+                        {reservation.status === "C" ? (
                           <button
-                            className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
+                            className="px-4 py-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleFinalConfirmation(reservation.id);
+                              gestionResa(reservation.status, reservation);
                             }}
                           >
-                            Par Email
+                            Modifier
                           </button>
-                          <button
-                            className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                          >
-                            Par Mail & SMS
-                          </button>
-                          <button
-                            className="px-4 py-2 rounded-md text-sm font-medium bg-gray-50 text-gray-700 hover:bg-gray-100"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleBackClick();
-                            }}
-                          >
-                            Retour
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-green-50 text-green-700 hover:bg-green-100"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleConfirmClick(reservation);
-                            }}
-                          >
-                            Confirmer
-                          </button>
-                          <button
-                            className="px-4 py-2 rounded-md text-sm font-medium bg-red-50 text-red-700 hover:bg-red-100"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRejectClick(reservation.id);
-                            }}
-                          >
-                            Refuser
-                          </button>
-                        </>
-                      )
-                    ) : null}
+                        ) : reservation.status === "P" ||
+                          reservation.status === "M" ? (
+                          showConfirmationOptions === reservation.id ? (
+                            <>
+                              <button
+                                className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleFinalConfirmation(reservation.id);
+                                }}
+                              >
+                                Par Email
+                              </button>
+                              <button
+                                className="px-4 py-2 rounded-md text-sm font-medium bg-red-50 text-red-700 hover:bg-red-100"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRejectClick(reservation.id);
+                                }}
+                              >
+                                Refuser
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-green-50 text-green-700 hover:bg-green-100"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleConfirmClick(reservation);
+                                }}
+                              >
+                                Confirmer
+                              </button>
+                              <button
+                                className="px-4 py-2 rounded-md text-sm font-medium bg-red-50 text-red-700 hover:bg-red-100"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRejectClick(reservation.id);
+                                }}
+                              >
+                                Refuser
+                              </button>
+                            </>
+                          )
+                        ) : null}
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}

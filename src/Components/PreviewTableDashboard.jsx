@@ -2,7 +2,7 @@ import { useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import Pagination from "./Pagination";
 import ReservationSlideOver from "./ReservationSlideOver";
-import Modal from "react-modal";
+
 import ModalViewPlan from "../pages/ModalViewPlan";
 import ModalViewPlanMidi from "../pages/ModalViewPlanMidi";
 import { getStatusStyles } from "../Outils/statusStyle";
