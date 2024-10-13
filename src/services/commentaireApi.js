@@ -22,7 +22,7 @@ export const commentaireApi = createApi({
         method: "POST", // Méthode HTTP
         body: newCommentaire, // Corps de la requête
       }),
-      invalidatesTags: ["Commentaires"], // Invalider le cache des commentaires pour rafraîchir la liste
+      invalidatesTags: ["Commentaires", "Reservations", "Toggle"], // Invalider le cache des commentaires pour rafraîchir la liste
     }),
   }),
 });

@@ -60,6 +60,8 @@ export default function Layout({ children }) {
   const { data: notificationStatus } = useGetNotificationToggleQuery();
   const [notificationCount, setNotificationCount] = useState(0);
 
+  console.log("notif >" + notificationCount);
+
   useEffect(() => {
     if (notificationStatus && notificationStatus.count !== undefined) {
       setNotificationCount(notificationStatus.count);

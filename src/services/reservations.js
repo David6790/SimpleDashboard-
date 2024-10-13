@@ -31,6 +31,12 @@ export const reservationsApi = createApi({
       keepUnusedDataFor: 1440,
       providesTags: ["Reservations"],
     }),
+    // Ajout de la nouvelle méthode pour récupérer les réservations avec commentaire client
+    getReservationsWithClientComments: builder.query({
+      query: () => "Reservations/client-comments",
+      keepUnusedDataFor: 1440,
+      providesTags: ["Reservations"],
+    }),
     createReservation: builder.mutation({
       query: (newReservation) => ({
         url: "Reservations",
@@ -103,7 +109,9 @@ export const {
   useGetReservationByIdQuery,
   useValidateDoubleConfirmationMutation,
   useGetUntreatedReservationsQuery,
-  useGetReservationsByDateAndPeriodQuery, // Exportation du hook pour cette méthode
+  useGetReservationsByDateAndPeriodQuery,
+  // Exportation du hook pour récupérer les réservations avec commentaire client
+  useGetReservationsWithClientCommentsQuery,
 } = reservationsApi;
 
 export default reservationsApi;

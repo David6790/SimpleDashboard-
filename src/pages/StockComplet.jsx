@@ -6,9 +6,10 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import { NavLink } from "react-router-dom";
 import TableStockComplet from "../Components/TableStockComplet";
+import TableResaCommentaireAttente from "../Components/TableResaCommentaireAttente";
 
 const StockComplet = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null);
 
   return (
     <Layout>
@@ -26,7 +27,10 @@ const StockComplet = () => {
               className="mt-2 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
             <p className="mt-2 text-sm text-gray-700">
-              Liste des réservations du : {format(selectedDate, "dd/MM/yyyy")}
+              Liste des réservations du :{" "}
+              {selectedDate
+                ? format(selectedDate, "dd/MM/yyyy")
+                : "Veuillez sélectionner une date"}
             </p>
           </div>
           <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
@@ -40,7 +44,8 @@ const StockComplet = () => {
             </NavLink>
           </div>
         </div>
-        <TableStockComplet />
+        <TableStockComplet date={selectedDate} />
+        <TableResaCommentaireAttente date={selectedDate} />
       </div>
     </Layout>
   );
