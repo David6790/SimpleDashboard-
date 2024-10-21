@@ -41,8 +41,8 @@ const navigation = [
     current: false,
   },
   {
-    name: "Documents",
-    href: "/avenir3",
+    name: "Test",
+    href: "/resa-externe",
     icon: DocumentDuplicateIcon,
     current: false,
   },

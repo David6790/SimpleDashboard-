@@ -17,6 +17,7 @@ import GestionInteractiveResa from "../pages/GestionInteractiveResa";
 import UpdateResaFormClient from "../Components/UpdateResaFormClient";
 import GirStaff from "../pages/GirStaff";
 import UserList from "../pages/UserList";
+import ResaExternesClients from "../pages/ResaExternesClients";
 
 const Routeur = () => {
   const dispatch = useDispatch();
@@ -99,6 +100,7 @@ const Routeur = () => {
         />
         <Route path="/gir-staff/:reservationId" element={<GirStaff />} />
         <Route path="/modif-resa-client" element={<UpdateResaFormClient />} />
+        <Route path="/resa-externe" element={<ResaExternesClients />} />
       </Routes>
     </BrowserRouter>
   );

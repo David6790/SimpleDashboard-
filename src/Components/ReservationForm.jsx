@@ -179,6 +179,7 @@ export default function ReservationForm() {
         occupationStatusSoirOnBook: occStatusDinner,
         OccupationStatusMidiOnBook: occStatusLunch,
         createdBy: user.username,
+        origin: "OPC",
       };
 
       await createReservation(reservation).unwrap();
