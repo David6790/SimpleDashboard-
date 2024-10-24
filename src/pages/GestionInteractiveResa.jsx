@@ -95,7 +95,7 @@ export default function GestionInteractiveResa() {
     error: reservationError,
     isLoading: reservationLoading,
   } = useGetReservationByIdQuery(reservationId); // Appel à l'API avec l'ID
-
+  console.log(reservationData);
   const {
     data: hecData,
     error: hecError,
@@ -279,11 +279,16 @@ export default function GestionInteractiveResa() {
                           Info complémentaire
                         </dt>
                         <dd className="mt-1 text-sm text-gray-900">
-                          {reservationData.freeTable21 === "O"
+                          {reservationData.freeTable21 === "O" &&
+                          reservationData.timeResa >= "18:00:00"
                             ? "Il est convenu avec le restaurant que la table doit être libérée pour 21h."
+                            : reservationData.freeTable1330 === "O" &&
+                              reservationData.timeResa < "15:00:00"
+                            ? "Il est convenu avec le restaurant que la table doit être libérée pour 13h30."
                             : "Aucune information complémentaire."}
                         </dd>
                       </div>
+
                       {reservationData.doubleConfirmation === "O" && (
                         <div className="sm:col-span-2">
                           <dt className="text-sm font-medium text-gray-500">
