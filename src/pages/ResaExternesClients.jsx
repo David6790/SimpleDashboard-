@@ -5,8 +5,6 @@ import { format } from "date-fns";
 import { parsePhoneNumberFromString } from "libphonenumber-js"; // Importation du parser
 //import TimeSlotSelector from "./TimeSlotSelector";
 import TimeSlotSelector from "../Components/TimeSlotSelector";
-//import OccStatusDisplay from "./OccStatusDisplay";
-import OccStatusDisplay from "../Components/OccStatusDisplay";
 //import ValidationMessage from "./ValidationMessage";
 import ValidationMessage from "../Components/ValidationMessage";
 import { useCreateReservationMutation } from "../services/reservations";
@@ -21,6 +19,8 @@ import { useSelector } from "react-redux";
 //import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
 import ErrorModal from "../Components/ErrorModal";
 import SectionHeading from "../Components/SectionHeading";
+import ConfirmationModal from "../Components/ConfirmationModal ";
+import OccStatusDisplayClient from "../Components/OccStatusDisplayClient";
 
 export default function ResaExternesClients() {
   const navigate = useNavigate();
@@ -35,6 +35,7 @@ export default function ResaExternesClients() {
   const [comment, setComment] = useState("");
   const [errors, setErrors] = useState({});
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
+  // eslint-disable-next-line
   const [submitMessage, setSubmitMessage] = useState(""); // Message à afficher après la soumission
   const [reservationDetails, setReservationDetails] = useState(null); // État pour les détails de la réservation
 
@@ -44,6 +45,10 @@ export default function ResaExternesClients() {
   // Ajout des nouveaux états pour le statut du midi et du dîner
   const [occStatusLunch, setOccStatusLunch] = useState("");
   const [occStatusDinner, setOccStatusDinner] = useState("");
+
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState("");
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const { refetch: refetchToggle } = useGetNotificationToggleQuery(); // Refetch pour le toggle
 
@@ -140,9 +145,54 @@ export default function ResaExternesClients() {
     }
   };
 
+  const submitReservation = async () => {
+    try {
+      const reservation = {
+        dateResa: startDate,
+        timeResa: selectedTimeSlot,
+        numberOfGuest: numberOfGuests.toString(),
+        comment: comment,
+        clientName: name,
+        clientPrenom: prenom,
+        clientTelephone: phone,
+        clientEmail: email,
+        occupationStatusSoirOnBook: occStatusDinner,
+        OccupationStatusMidiOnBook: occStatusLunch,
+        createdBy: user.username,
+      };
+      await createReservation(reservation).unwrap();
+      setReservationDetails(reservation);
+      resetForm(); // Réinitialise les champs du formulaire
+      await refetchToggle();
+    } catch (error) {
+      setErrorMessage(
+        error?.data?.error ||
+          "Erreur lors de la réservation. Veuillez réessayer."
+      );
+      setIsErrorModalOpen(true);
+    }
+  };
+
+  // Réinitialiser le formulaire
+  const resetForm = () => {
+    setStartDate(format(new Date(), "yyyy-MM-dd"));
+    setPhone("");
+    setEmail("");
+    setName("");
+    setPrenom("");
+    setNumberOfGuests("");
+    setComment("");
+    setSelectedTimeSlot("");
+    setErrors({});
+    setOccStatusLunch("");
+    setOccStatusDinner("");
+  };
+
   // Fonction de soumission du formulaire
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    // Validation des champs du formulaire
     const formErrors = {
       email:
         email && !validateEmail(email)
@@ -171,47 +221,31 @@ export default function ResaExternesClients() {
       return;
     }
 
-    try {
-      const reservation = {
-        dateResa: startDate,
-        timeResa: selectedTimeSlot,
-        numberOfGuest: numberOfGuests.toString(),
-        comment: comment,
-        clientName: name,
-        clientPrenom: prenom,
-        clientTelephone: phone,
-        clientEmail: email,
-        occupationStatusSoirOnBook: occStatusDinner,
-        OccupationStatusMidiOnBook: occStatusLunch,
-        createdBy: user.username,
-      };
-
-      await createReservation(reservation).unwrap();
-
-      setReservationDetails(reservation);
-
-      // Réinitialiser le formulaire après la soumission réussie
-      setStartDate(format(new Date(), "yyyy-MM-dd"));
-      setPhone("");
-      setEmail("");
-      setName("");
-      setPrenom("");
-      setNumberOfGuests("");
-      setComment("");
-      setSelectedTimeSlot("");
-      setErrors({});
-      setOccStatusLunch("");
-      setOccStatusDinner("");
-
-      await refetchToggle();
-    } catch (error) {
-      console.log(error);
-      // Capture de l'erreur et ouverture du modal
-      setErrorMessage(
-        error?.data?.error ||
-          "Erreur lors de la réservation. Veuillez réessayer."
+    // Conditions pour afficher le modal de confirmation
+    if (
+      selectedTimeSlot === "19:00" &&
+      (occStatusDinner === "FreeTable21" ||
+        occStatusDinner === "Service2Complet")
+    ) {
+      setConfirmationMessage(
+        "En raison de la forte demande, nous souhaitons vous offrir une expérience agréable tout en permettant à d'autres clients de profiter de notre service. Pour cela, nous vous remercions de libérer la table à 21h. Acceptez-vous cette disposition ?"
       );
-      setIsErrorModalOpen(true);
+
+      setConfirmAction(() => submitReservation);
+      setIsConfirmationModalOpen(true);
+    } else if (
+      parseInt(selectedTimeSlot) <= 12 &&
+      occStatusLunch === "MidiDoubleService"
+    ) {
+      setConfirmationMessage(
+        "En raison de la forte demande, nous souhaitons vous offrir une expérience agréable tout en permettant à d'autres clients de profiter de notre service. Pour cela, nous vous remercions de libérer la table à 13h30. Acceptez-vous cette disposition ?"
+      );
+
+      setConfirmAction(() => submitReservation);
+      setIsConfirmationModalOpen(true);
+    } else {
+      // Si aucune condition de modal n'est remplie, soumettre directement
+      submitReservation();
     }
   };
 
@@ -220,6 +254,9 @@ export default function ResaExternesClients() {
       navigate(`/?redirect=true&date=${reservationDetails.dateResa}`);
     }
   };
+
+  console.log(occStatusDinner);
+  console.log(occStatusLunch);
 
   return (
     <div className=" mx-5">
@@ -233,12 +270,12 @@ export default function ResaExternesClients() {
             <h2 className="text-base font-semibold leading-7 text-gray-900">
               Informations du service Déjeuner
             </h2>
-            <OccStatusDisplay status={occStatusLunch} />{" "}
+            <OccStatusDisplayClient status={occStatusLunch} />{" "}
             {/* Afficher le statut du midi */}
             <h2 className="mt-8 text-base font-semibold leading-7 text-gray-900">
               Informations du service Dîner
             </h2>
-            <OccStatusDisplay status={occStatusDinner} />{" "}
+            <OccStatusDisplayClient status={occStatusDinner} />{" "}
             {/* Afficher le statut du soir */}
             {submitMessage && <ValidationMessage message={submitMessage} />}
             {reservationDetails && (
@@ -487,6 +524,19 @@ export default function ResaExternesClients() {
             </div>
           </form>
         </div>
+        {/* Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={isConfirmationModalOpen}
+          message={confirmationMessage}
+          onConfirm={() => {
+            confirmAction();
+            setIsConfirmationModalOpen(false);
+          }}
+          onCancel={() => {
+            resetForm();
+            setIsConfirmationModalOpen(false);
+          }}
+        />
 
         {/* Error Modal */}
         <ErrorModal

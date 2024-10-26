@@ -1,9 +1,9 @@
 const OccStatusMessagesClient = {
   RAS: "Cher(e) client(e), nous sommes ravis de vous informer que nous disposons de larges disponibilités. Nous serons heureux de vous accueillir à l'heure de votre choix, sans restrictions particulières.",
   FreeTable21:
-    "En raison d'une forte affluence ce soir, nous vous informons que pour les réservations à 19h, la table devra être libérée à 21h afin de pouvoir accueillir d'autres invités. Vous aurez deux heures complètes pour profiter de notre service dans les meilleures conditions.",
+    "Cher(e) client(e), en raison d'une forte affluence ce soir, nous vous informons que pour les réservations à 19h, la table devra être libérée à 21h afin de pouvoir accueillir d'autres invités. Vous disposerez ainsi de deux heures pour profiter pleinement de notre service. Merci de votre compréhension.",
   Service2Complet:
-    "Notre second service, à partir de 21h, est entièrement réservé ce soir. Nous vous proposons donc de réserver pour 19h, avec une libération de la table à 21h. Nous vous remercions de votre compréhension et restons à votre disposition pour tout renseignement.",
+    "Cher(e) client(e), notre second service, à partir de 21h, est déjà complet ce soir. Nous vous proposons de réserver pour 19h, avec une libération de la table à 21h pour assurer l'accueil de tous nos invités. Merci de votre compréhension et de votre coopération.",
   Service1Complet:
     "Le premier service de la soirée, jusqu'à 21h, est complet. Nous serons ravis de vous accueillir à partir de 21h pour le second service. Merci de votre compréhension.",
   Complet:
