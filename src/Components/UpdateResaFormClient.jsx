@@ -172,7 +172,6 @@ export default function UpdateResaFormClient() {
         clientTelephone: phone,
         clientEmail: email,
         updatedBy: "Client",
-        origin: "Client",
       };
 
       const response = await updateReservation({

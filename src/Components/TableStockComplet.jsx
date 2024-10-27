@@ -6,6 +6,7 @@ import {
 } from "../services/reservations";
 import { useGetNotificationToggleQuery } from "../services/toggleApi"; // Import du hook pour le toggle
 import ReservationSlideOver from "./ReservationSlideOver";
+import RequestProcessingModal from "./RequestProcessingModal";
 
 export default function TableReservations({ date }) {
   const {
@@ -29,8 +30,8 @@ export default function TableReservations({ date }) {
 
   const [validateReservation] = useValidateReservationMutation();
   const [refuseReservation] = useRefuseReservationMutation();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Utilisation d'un effet pour filtrer les réservations en fonction de la date sélectionnée
   useEffect(() => {
     if (reservations) {
       if (date) {
@@ -43,11 +44,10 @@ export default function TableReservations({ date }) {
         });
         setFilteredReservations(filtered);
       } else {
-        // Si aucune date n'est sélectionnée, afficher toutes les réservations
         setFilteredReservations(reservations);
       }
     }
-  }, [date, reservations]); // Réagir aux changements de date ou de réservations
+  }, [date, reservations]);
 
   if (isLoading) return <div>Loading...</div>;
   if (error)
@@ -73,8 +73,6 @@ export default function TableReservations({ date }) {
     try {
       await validateReservation(id).unwrap(); // Validation de la réservation
       setShowConfirmationOptions(null);
-
-      // Refetch les données de notification après la validation
       await refetchToggle(); // Rafraîchir l'état du toggle
     } catch (error) {
       console.error("Failed to update reservation status:", error);
@@ -99,6 +97,16 @@ export default function TableReservations({ date }) {
     if (status === "C") {
       openSlideOver(reservation);
     }
+  };
+
+  const openRequestProcessingModal = (reservation) => {
+    setSelectedReservation(reservation);
+    setIsModalOpen(true);
+  };
+
+  const closeRequestProcessingModal = () => {
+    setIsModalOpen(false);
+    setSelectedReservation(null);
   };
 
   return (
@@ -217,8 +225,7 @@ export default function TableReservations({ date }) {
                           >
                             Modifier
                           </button>
-                        ) : reservation.status === "P" ||
-                          reservation.status === "M" ? (
+                        ) : reservation.status === "P" ? (
                           showConfirmationOptions === reservation.id ? (
                             <>
                               <button
@@ -262,6 +269,16 @@ export default function TableReservations({ date }) {
                               </button>
                             </>
                           )
+                        ) : reservation.status === "M" ? (
+                          <button
+                            className="px-4 py-2 rounded-md text-sm font-medium bg-orange-50 text-orange-700 hover:bg-orange-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openRequestProcessingModal(reservation);
+                            }}
+                          >
+                            Traiter la demande
+                          </button>
                         ) : null}
                       </>
                     )}
@@ -275,6 +292,11 @@ export default function TableReservations({ date }) {
         isOpen={isSlideOverOpen}
         onClose={closeSlideOver}
         reservation={selectedReservation}
+      />
+      <RequestProcessingModal
+        reservation={selectedReservation}
+        isOpen={isModalOpen}
+        onClose={closeRequestProcessingModal}
       />
     </div>
   );

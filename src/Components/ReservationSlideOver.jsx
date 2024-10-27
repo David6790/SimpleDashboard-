@@ -22,7 +22,6 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
   const navigate = useNavigate();
   const [cancelReservation] = useCancelReservationMutation();
   const user = useSelector((state) => state.user.username);
-  console.log(reservation);
 
   const handleEditReservation = () => {
     navigate("/reservation-update", { state: { reservation } });
@@ -217,12 +216,14 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                             ""
                           ) : (
                             <div className="bg-gray-50 p-4 rounded-lg shadow flex flex-col gap-5">
-                              <button
-                                onClick={handleEditReservation}
-                                className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
-                              >
-                                Modifier la réservation
-                              </button>
+                              {reservation.status !== "M" && (
+                                <button
+                                  onClick={handleEditReservation}
+                                  className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
+                                >
+                                  Modifier la réservation
+                                </button>
+                              )}
                               <button
                                 onClick={handleGir}
                                 className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"

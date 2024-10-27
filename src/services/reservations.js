@@ -5,7 +5,7 @@ export const reservationsApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_API_URL,
   }),
-  tagTypes: ["Reservations", "HECStatuts"], // Ajout de "HECStatuts" ici
+  tagTypes: ["Reservations", "HECStatuts"],
   endpoints: (builder) => ({
     getReservations: builder.query({
       query: () => "Reservations",
@@ -24,14 +24,12 @@ export const reservationsApi = createApi({
       keepUnusedDataFor: 1440,
       providesTags: ["Reservations"],
     }),
-    // Nouvelle méthode getReservationsByDateAndPeriod
     getReservationsByDateAndPeriod: builder.query({
       query: ({ date, period }) =>
         `Reservations/byDateAndPeriod?date=${date}&period=${period}`,
       keepUnusedDataFor: 1440,
       providesTags: ["Reservations"],
     }),
-    // Ajout de la nouvelle méthode pour récupérer les réservations avec commentaire client
     getReservationsWithClientComments: builder.query({
       query: () => "Reservations/client-comments",
       keepUnusedDataFor: 1440,
@@ -43,7 +41,7 @@ export const reservationsApi = createApi({
         method: "POST",
         body: newReservation,
       }),
-      invalidatesTags: ["Reservations", "HECStatuts"], // Invalider "HECStatuts"
+      invalidatesTags: ["Reservations", "HECStatuts"],
     }),
     updateReservation: builder.mutation({
       query: ({ id, ...updatedReservation }) => ({
@@ -51,47 +49,58 @@ export const reservationsApi = createApi({
         method: "PUT",
         body: updatedReservation,
       }),
-      invalidatesTags: ["Reservations", "HECStatuts"], // Invalider "HECStatuts"
+      invalidatesTags: ["Reservations", "HECStatuts"],
     }),
     validateReservation: builder.mutation({
       query: (id) => ({
         url: `Reservations/${id}/validate`,
         method: "PATCH",
       }),
-      invalidatesTags: ["Reservations", "HECStatuts"], // Invalider "HECStatuts"
+      invalidatesTags: ["Reservations", "HECStatuts"],
     }),
     cancelReservation: builder.mutation({
       query: ({ id, user }) => ({
         url: `Reservations/${id}/cancel/${user}`,
         method: "PATCH",
       }),
-      invalidatesTags: ["Reservations", "HECStatuts"], // Invalider "HECStatuts"
+      invalidatesTags: ["Reservations", "HECStatuts"],
     }),
     refuseReservation: builder.mutation({
       query: ({ id, user }) => ({
         url: `Reservations/${id}/refuse/${user}`,
         method: "PATCH",
       }),
-      invalidatesTags: ["Reservations", "HECStatuts"], // Invalider "HECStatuts"
+      invalidatesTags: ["Reservations", "HECStatuts"],
     }),
     getReservationById: builder.query({
       query: (id) => `Reservations/${id}`,
       keepUnusedDataFor: 1440,
       providesTags: ["Reservations"],
     }),
-    // Ajout de validateDoubleConfirmation
     validateDoubleConfirmation: builder.mutation({
       query: (id) => ({
         url: `Reservations/${id}/validateDoubleConfirmation`,
         method: "PATCH",
       }),
-      invalidatesTags: ["Reservations", "HECStatuts"], // Invalider les deux tags
+      invalidatesTags: ["Reservations", "HECStatuts"],
     }),
-
     getUntreatedReservations: builder.query({
-      query: () => "Reservations/untreated", // Appel de la nouvelle route
-      keepUnusedDataFor: 1440, // Conserve les données pour 1440 minutes (24 heures)
-      providesTags: ["Reservations"], // Invalide automatiquement les réservations
+      query: () => "Reservations/untreated",
+      keepUnusedDataFor: 1440,
+      providesTags: ["Reservations"],
+    }),
+    getModificationRequestByOriginalReservationId: builder.query({
+      query: (originalReservationId) =>
+        `Reservations/modification-request/${originalReservationId}`,
+      keepUnusedDataFor: 1440,
+      providesTags: ["Reservations"],
+    }),
+    validateModification: builder.mutation({
+      query: (id) => ({
+        url: `Reservations/${id}/validate-modification`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Reservations", "HECStatuts"],
     }),
   }),
 });
@@ -110,8 +119,9 @@ export const {
   useValidateDoubleConfirmationMutation,
   useGetUntreatedReservationsQuery,
   useGetReservationsByDateAndPeriodQuery,
-  // Exportation du hook pour récupérer les réservations avec commentaire client
   useGetReservationsWithClientCommentsQuery,
+  useGetModificationRequestByOriginalReservationIdQuery,
+  useValidateModificationMutation, // Export du hook pour valider la modification
 } = reservationsApi;
 
 export default reservationsApi;

@@ -15,7 +15,7 @@ import {
 } from "../Components/ValidationSaisie";
 import { useGetNotificationToggleQuery } from "../services/toggleApi";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+
 //import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
 import ErrorModal from "../Components/ErrorModal";
 import SectionHeading from "../Components/SectionHeading";
@@ -51,8 +51,6 @@ export default function ResaExternesClients() {
   const [confirmAction, setConfirmAction] = useState(null);
 
   const { refetch: refetchToggle } = useGetNotificationToggleQuery(); // Refetch pour le toggle
-
-  const user = useSelector((state) => state.user);
 
   // Fonction pour gérer le changement de date
   const handleDateChange = (date) => {
@@ -158,7 +156,7 @@ export default function ResaExternesClients() {
         clientEmail: email,
         occupationStatusSoirOnBook: occStatusDinner,
         OccupationStatusMidiOnBook: occStatusLunch,
-        createdBy: user.username,
+        createdBy: "INTERNET",
       };
       await createReservation(reservation).unwrap();
       setReservationDetails(reservation);
@@ -184,8 +182,6 @@ export default function ResaExternesClients() {
     setComment("");
     setSelectedTimeSlot("");
     setErrors({});
-    setOccStatusLunch("");
-    setOccStatusDinner("");
   };
 
   // Fonction de soumission du formulaire
