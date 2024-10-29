@@ -102,6 +102,22 @@ export const reservationsApi = createApi({
       }),
       invalidatesTags: ["Reservations", "HECStatuts"],
     }),
+    // Nouvelle mutation pour refuser la modification
+    refuseModification: builder.mutation({
+      query: (id) => ({
+        url: `Reservations/${id}/refuse-modification`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Reservations", "HECStatuts"],
+    }),
+    // Nouvelle mutation pour annuler la réservation d'origine
+    cancelModification: builder.mutation({
+      query: (id) => ({
+        url: `Reservations/${id}/cancel-modification`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Reservations", "HECStatuts"],
+    }),
   }),
 });
 
@@ -122,6 +138,8 @@ export const {
   useGetReservationsWithClientCommentsQuery,
   useGetModificationRequestByOriginalReservationIdQuery,
   useValidateModificationMutation, // Export du hook pour valider la modification
+  useRefuseModificationMutation, // Export du hook pour refuser la modification
+  useCancelModificationMutation, // Export du hook pour annuler la modification
 } = reservationsApi;
 
 export default reservationsApi;

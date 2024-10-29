@@ -16,6 +16,7 @@ import { useGetNotificationToggleQuery } from "../services/toggleApi";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
+import ConfirmationModalStaff from "./ConfirmationModalStaff";
 
 export default function ReservationForm() {
   const navigate = useNavigate();
@@ -39,6 +40,10 @@ export default function ReservationForm() {
   // Ajout des nouveaux états pour le statut du midi et du dîner
   const [occStatusLunch, setOccStatusLunch] = useState("");
   const [occStatusDinner, setOccStatusDinner] = useState("");
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState("");
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { refetch: refetchToggle } = useGetNotificationToggleQuery(); // Refetch pour le toggle
 
@@ -135,9 +140,10 @@ export default function ReservationForm() {
     }
   };
 
-  // Fonction de soumission du formulaire
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsSubmitting(true);
+
     const formErrors = {
       email:
         email && !validateEmail(email)
@@ -163,9 +169,34 @@ export default function ReservationForm() {
 
     if (Object.values(formErrors).some((error) => error)) {
       setErrors(formErrors);
+      setIsSubmitting(false);
       return;
     }
 
+    if (
+      selectedTimeSlot === "19:00" &&
+      (occStatusDinner === "FreeTable21" ||
+        occStatusDinner === "Service2Complet")
+    ) {
+      setConfirmationMessage(
+        "En raison de la forte demande et pour garantir une expérience agréable à chaque client, avez-vous bien informé le client qu'il devra libérer la table à 21h pour permettre le service suivant ? Merci de votre confirmation."
+      );
+      setConfirmAction(() => submitReservation); // Enregistre l'action de soumission pour le modal
+      setIsConfirmationModalOpen(true); // Ouvre le modal de confirmation
+    } else if (
+      parseInt(selectedTimeSlot) <= 12 &&
+      occStatusLunch === "MidiDoubleService"
+    ) {
+      setConfirmationMessage(
+        "En raison de la forte demande et pour garantir une expérience agréable à chaque client, avez-vous bien informé le client qu'il devra libérer la table à 13h30 pour permettre le service suivant ? Merci de votre confirmation."
+      );
+      setConfirmAction(() => submitReservation);
+      setIsConfirmationModalOpen(true);
+    } else {
+      submitReservation();
+    }
+  };
+  const submitReservation = async () => {
     try {
       const reservation = {
         dateResa: startDate,
@@ -185,30 +216,33 @@ export default function ReservationForm() {
       await createReservation(reservation).unwrap();
 
       setReservationDetails(reservation);
-
-      // Réinitialiser le formulaire après la soumission réussie
-      setStartDate(format(new Date(), "yyyy-MM-dd"));
-      setPhone("");
-      setEmail("");
-      setName("");
-      setPrenom("");
-      setNumberOfGuests("");
-      setComment("");
-      setSelectedTimeSlot("");
-      setErrors({});
-      setOccStatusLunch("");
-      setOccStatusDinner("");
-
+      setSubmitMessage("Réservation effectuée avec succès !");
+      resetForm();
       await refetchToggle();
     } catch (error) {
-      console.log(error);
-      // Capture de l'erreur et ouverture du modal
       setErrorMessage(
         error?.data?.error ||
           "Erreur lors de la réservation. Veuillez réessayer."
       );
       setIsErrorModalOpen(true);
+      setIsSubmitting(false);
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const resetForm = () => {
+    setStartDate(format(new Date(), "yyyy-MM-dd"));
+    setPhone("");
+    setEmail("");
+    setName("");
+    setPrenom("");
+    setNumberOfGuests("");
+    setComment("");
+    setSelectedTimeSlot("");
+    setErrors({});
+    setOccStatusLunch("");
+    setOccStatusDinner("");
   };
 
   const handlePlaceTable = () => {
@@ -465,12 +499,18 @@ export default function ReservationForm() {
                 Annuler
               </button>
             </NavLink>
-            <button
-              type="submit"
-              className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-            >
-              Enregistrer
-            </button>
+            {isSubmitting ? (
+              <button className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                En cours...
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              >
+                Enregistrer
+              </button>
+            )}
           </div>
         </form>
       </div>
@@ -480,6 +520,18 @@ export default function ReservationForm() {
         isOpen={isErrorModalOpen}
         errorMessage={errorMessage}
         onClose={() => setIsErrorModalOpen(false)}
+      />
+      <ConfirmationModalStaff
+        isOpen={isConfirmationModalOpen}
+        message={confirmationMessage}
+        onConfirm={() => {
+          confirmAction();
+          setIsConfirmationModalOpen(false);
+        }}
+        onCancel={() => {
+          resetForm();
+          setIsConfirmationModalOpen(false);
+        }}
       />
     </div>
   );

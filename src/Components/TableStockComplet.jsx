@@ -4,33 +4,33 @@ import {
   useValidateReservationMutation,
   useRefuseReservationMutation,
 } from "../services/reservations";
-import { useGetNotificationToggleQuery } from "../services/toggleApi"; // Import du hook pour le toggle
+import { useGetNotificationToggleQuery } from "../services/toggleApi";
 import ReservationSlideOver from "./ReservationSlideOver";
 import RequestProcessingModal from "./RequestProcessingModal";
+import ConfirmationModal from "./ConfirmationModal"; // Nouveau modal de confirmation
 
 export default function TableReservations({ date }) {
   const {
     data: reservations,
     error,
     isLoading,
-    refetch: refetchReservations, // Refetch pour les réservations
+    refetch: refetchReservations,
   } = useGetUntreatedReservationsQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
 
-  const {
-    refetch: refetchToggle, // Refetch pour le toggle
-  } = useGetNotificationToggleQuery(); // Appel de l'API toggle
+  const { refetch: refetchToggle } = useGetNotificationToggleQuery();
 
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [showConfirmationOptions, setShowConfirmationOptions] = useState(null);
-
   const [filteredReservations, setFilteredReservations] = useState([]);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false); // État pour le modal de confirmation
 
   const [validateReservation] = useValidateReservationMutation();
   const [refuseReservation] = useRefuseReservationMutation();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   useEffect(() => {
     if (reservations) {
@@ -71,31 +71,35 @@ export default function TableReservations({ date }) {
 
   const handleFinalConfirmation = async (id) => {
     try {
+      setIsConfirming(true);
       await validateReservation(id).unwrap(); // Validation de la réservation
       setShowConfirmationOptions(null);
       await refetchToggle(); // Rafraîchir l'état du toggle
+      setIsConfirming(false);
     } catch (error) {
       console.error("Failed to update reservation status:", error);
     }
   };
 
-  const handleRejectClick = async (id) => {
+  const handleRejectClick = (reservation) => {
+    setSelectedReservation(reservation);
+    setIsConfirmationModalOpen(true); // Ouvre le modal de confirmation
+  };
+
+  const confirmRejectReservation = async () => {
     try {
-      await refuseReservation({ id, user: "current_user" }).unwrap();
+      setIsConfirming(true);
+      await refuseReservation({
+        id: selectedReservation.id,
+        user: "current_user",
+      }).unwrap();
+      setIsConfirmationModalOpen(false);
       setShowConfirmationOptions(null);
       refetchReservations(); // Rafraîchir les réservations après le refus
+      await refetchToggle();
     } catch (error) {
       console.error("Failed to refuse reservation:", error);
-    }
-  };
-
-  const handleBackClick = () => {
-    setShowConfirmationOptions(null);
-  };
-
-  const gestionResa = (status, reservation) => {
-    if (status === "C") {
-      openSlideOver(reservation);
+      setIsConfirming(false);
     }
   };
 
@@ -200,94 +204,75 @@ export default function TableReservations({ date }) {
                     </button>
                   </td>
                   <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                    {reservation.notifications === "Nouveau commentaire" ? (
-                      <button
-                        className="ml-4 px-4 py-2 rounded-md text-sm font-medium bg-purple-50 text-purple-700 hover:bg-purple-100"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          console.log(
-                            "Ouvrir la GIR pour la réservation",
-                            reservation.id
-                          );
-                        }}
-                      >
-                        Ouvrir la GIR
-                      </button>
-                    ) : (
-                      <>
-                        {reservation.status === "C" ? (
+                    {reservation.status === "P" ? (
+                      showConfirmationOptions === reservation.id ? (
+                        <>
+                          {" "}
+                          {isConfirming ? (
+                            <button className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">
+                              En cours...
+                            </button>
+                          ) : (
+                            <button
+                              className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleFinalConfirmation(reservation.id);
+                              }}
+                            >
+                              Par Email
+                            </button>
+                          )}
                           <button
                             className="px-4 py-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
                             onClick={(e) => {
                               e.stopPropagation();
-                              gestionResa(reservation.status, reservation);
+                              console.log("Envoi par SMS à venir");
                             }}
                           >
-                            Modifier
+                            Par Email et SMS
                           </button>
-                        ) : reservation.status === "P" ? (
-                          showConfirmationOptions === reservation.id ? (
-                            <>
-                              <button
-                                className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleFinalConfirmation(reservation.id);
-                                }}
-                              >
-                                Par Email
-                              </button>
-                              <button
-                                className="px-4 py-2 rounded-md text-sm font-medium bg-red-50 text-red-700 hover:bg-red-100"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRejectClick(reservation.id);
-                                }}
-                              >
-                                Refuser
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <button
-                                className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-green-50 text-green-700 hover:bg-green-100"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleConfirmClick(reservation);
-                                }}
-                              >
-                                Confirmer
-                              </button>
-                              <button
-                                className="px-4 py-2 rounded-md text-sm font-medium bg-red-50 text-red-700 hover:bg-red-100"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRejectClick(reservation.id);
-                                }}
-                              >
-                                Refuser
-                              </button>
-                            </>
-                          )
-                        ) : reservation.status === "M" ? (
+                        </>
+                      ) : (
+                        <>
                           <button
-                            className="px-4 py-2 rounded-md text-sm font-medium bg-orange-50 text-orange-700 hover:bg-orange-100"
+                            className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-green-50 text-green-700 hover:bg-green-100"
                             onClick={(e) => {
                               e.stopPropagation();
-                              openRequestProcessingModal(reservation);
+                              handleConfirmClick(reservation);
                             }}
                           >
-                            Traiter la demande
+                            Confirmer
                           </button>
-                        ) : null}
-                      </>
-                    )}
+                          <button
+                            className="px-4 py-2 rounded-md text-sm font-medium bg-red-50 text-red-700 hover:bg-red-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRejectClick(reservation);
+                            }}
+                          >
+                            Refuser
+                          </button>
+                        </>
+                      )
+                    ) : reservation.status === "M" ? (
+                      <button
+                        className="px-4 py-2 rounded-md text-sm font-medium bg-orange-50 text-orange-700 hover:bg-orange-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openRequestProcessingModal(reservation);
+                        }}
+                      >
+                        Traiter la demande
+                      </button>
+                    ) : null}
                   </td>
                 </tr>
               ))}
           </tbody>
         </table>
       </div>
+
       <ReservationSlideOver
         isOpen={isSlideOverOpen}
         onClose={closeSlideOver}
@@ -297,6 +282,12 @@ export default function TableReservations({ date }) {
         reservation={selectedReservation}
         isOpen={isModalOpen}
         onClose={closeRequestProcessingModal}
+      />
+      <ConfirmationModal
+        isOpen={isConfirmationModalOpen}
+        onConfirm={confirmRejectReservation}
+        onClose={() => setIsConfirmationModalOpen(false)}
+        message="Êtes-vous sûr de vouloir refuser la réservation ?"
       />
     </div>
   );

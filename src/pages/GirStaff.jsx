@@ -10,6 +10,7 @@ import { useAddCommentaireMutation } from "../services/commentaireApi";
 import Layout from "../Layouts/Layout";
 import SectionHeading from "../Components/SectionHeading";
 import { useAddHECStatutMutation } from "../services/hecApi";
+import { useGetNotificationToggleQuery } from "../services/toggleApi";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -52,6 +53,8 @@ export default function GirStaff() {
 
   // État pour stocker le message du commentaire
   const [commentMessage, setCommentMessage] = useState("");
+  const { refetch: refetchToggle } = useGetNotificationToggleQuery();
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,6 +65,7 @@ export default function GirStaff() {
     }
 
     try {
+      setIsConfirming(true);
       const newComment = {
         message: commentMessage,
         auteur: "SYSTEM", // Concaténer nom et prénom
@@ -70,11 +74,13 @@ export default function GirStaff() {
 
       // Appel à l'API pour poster le commentaire
       await addCommentaire({ newCommentaire: newComment, origin: "SYSTEM" });
-
+      setIsConfirming(false);
       // Réinitialiser le champ de commentaire après l'envoi
       setCommentMessage("");
+      await refetchToggle();
     } catch (error) {
       console.error("Erreur lors de l'envoi du commentaire :", error);
+      setIsConfirming(false);
     }
   };
 
@@ -368,13 +374,19 @@ export default function GirStaff() {
                             />
                           </div>
                           <div className="mt-3 flex items-center justify-between">
-                            <button
-                              type="submit"
-                              onClick={handleSubmit}
-                              className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                            >
-                              Répondre
-                            </button>
+                            {isConfirming ? (
+                              <button className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                                En cours...
+                              </button>
+                            ) : (
+                              <button
+                                type="submit"
+                                onClick={handleSubmit}
+                                className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                              >
+                                Répondre
+                              </button>
+                            )}
                           </div>
                         </form>
                       </div>

@@ -12,6 +12,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import SectionHeading from "./SectionHeading";
 import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
 import OccStatusDisplayClient from "./OccStatusDisplayClient";
+import ConfirmationModal from "./ConfirmationModal ";
+import SuccessConfirmationModal from "./SuccessConfirmationModal";
 
 export default function UpdateResaFormClient() {
   const navigate = useNavigate();
@@ -37,13 +39,20 @@ export default function UpdateResaFormClient() {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [occStatusLunch, setOccStatusLunch] = useState(resa.occStatusMidi); // OccStatus Midi
   const [occStatusDinner, setOccStatusDinner] = useState(resa.occStatusDiner); // OccStatus Diner
+  // eslint-disable-next-line
   const [submitMessage, setSubmitMessage] = useState("");
   const [reservationDetails, setReservationDetails] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false); // État pour gérer le bouton de soumission
+  // eslint-disable-next-line
   const [countdown, setCountdown] = useState(5); // État pour le compteur
 
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false); // État pour contrôler la visibilité du modal d'erreur
   const [errorMessage, setErrorMessage] = useState(""); // État pour stocker le message d'erreur
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState("");
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Hook pour obtenir et rafraîchir les allocations
   const { refetch } = useGetAllocationsQuery({
@@ -138,6 +147,8 @@ export default function UpdateResaFormClient() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsSubmitting(true);
+
     const formErrors = {
       numberOfGuests: validateNumberOfPeople(numberOfGuests)
         ? ""
@@ -153,16 +164,44 @@ export default function UpdateResaFormClient() {
 
     if (Object.values(formErrors).some((error) => error)) {
       setErrors(formErrors);
+      setIsSubmitting(false);
       return;
     }
 
+    // Conditions pour afficher le modal de confirmation
+    if (
+      selectedTimeSlot === "19:00" &&
+      (occStatusDinner === "FreeTable21" ||
+        occStatusDinner === "Service2Complet")
+    ) {
+      setConfirmationMessage(
+        "En raison de la forte demande, nous souhaitons vous offrir une expérience agréable tout en permettant à d'autres clients de profiter de notre service. Pour cela, nous vous remercions de libérer la table à 21h. Acceptez-vous cette disposition ?"
+      );
+      setConfirmAction(() => submitReservationUpdate);
+      setIsConfirmationModalOpen(true);
+    } else if (
+      parseInt(selectedTimeSlot) <= 12 &&
+      occStatusLunch === "MidiDoubleService"
+    ) {
+      setConfirmationMessage(
+        "En raison de la forte demande, nous souhaitons vous offrir une expérience agréable tout en permettant à d'autres clients de profiter de notre service. Pour cela, nous vous remercions de libérer la table à 13h30. Acceptez-vous cette disposition ?"
+      );
+      setConfirmAction(() => submitReservationUpdate);
+      setIsConfirmationModalOpen(true);
+    } else {
+      // Si aucune condition de modal n'est remplie, soumettre directement
+      submitReservationUpdate();
+    }
+  };
+
+  const submitReservationUpdate = async () => {
     try {
       const updatedReservation = {
         dateResa: startDate,
         timeResa: selectedTimeSlot,
         numberOfGuest: numberOfGuests.toString(),
         comment: comment,
-        occupationStatusSoirOnBook: occStatusDinner, // Assure que le bon statut est utilisé
+        occupationStatusSoirOnBook: occStatusDinner,
         occupationStatusMidiOnBook: occStatusLunch,
         createdBy: resa.createdBy,
         freeTable21: resa.freeTable21,
@@ -179,28 +218,19 @@ export default function UpdateResaFormClient() {
         ...updatedReservation,
       }).unwrap();
 
-      // Forcer le rechargement des allocations après la mise à jour
       refetch();
 
       setReservationDetails(response);
-      setSubmitMessage("Réservation mise à jour avec succès !");
-      setIsSubmitted(true); // Désactivez le bouton de soumission
-
-      const countdownInterval = setInterval(() => {
-        setCountdown((prevCountdown) => prevCountdown - 1);
-      }, 1000);
-
-      setTimeout(() => {
-        clearInterval(countdownInterval);
-        navigate(`/gir/${reservationId}`);
-      }, 5000);
+      setIsSubmitted(true);
+      setIsSuccessModalOpen(true);
+      setIsSubmitting(false); // Ouvre le modal de succès
     } catch (error) {
-      console.error(error);
       setErrorMessage(
         error?.data?.error ||
           "Erreur lors de la mise à jour de la réservation. Veuillez réessayer."
       );
-      setIsErrorModalOpen(true); // Ouvre le modal d'erreur
+      setIsSubmitting(false);
+      setIsErrorModalOpen(true);
     }
   };
 
@@ -451,13 +481,19 @@ export default function UpdateResaFormClient() {
               >
                 Annuler
               </button>
-              <button
-                type="submit"
-                className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                disabled={isSubmitted} // Désactivez le bouton après soumission
-              >
-                Enregistrer
-              </button>
+              {isSubmitting ? (
+                <button className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                  En Cours...
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  disabled={isSubmitted} // Désactivez le bouton après soumission
+                >
+                  Enregistrer
+                </button>
+              )}
             </div>
           </form>
         </div>
@@ -468,6 +504,23 @@ export default function UpdateResaFormClient() {
         isOpen={isErrorModalOpen}
         errorMessage={errorMessage}
         onClose={() => setIsErrorModalOpen(false)}
+      />
+      <ConfirmationModal
+        isOpen={isConfirmationModalOpen}
+        message={confirmationMessage}
+        onConfirm={() => {
+          confirmAction();
+          setIsConfirmationModalOpen(false);
+        }}
+        onCancel={() => setIsConfirmationModalOpen(false)}
+      />
+      <SuccessConfirmationModal
+        isOpen={isSuccessModalOpen}
+        reservationDetails={reservationDetails}
+        onClose={() => {
+          setIsSuccessModalOpen(false);
+          navigate(`/gir/${reservationId}`); // Redirection seulement en cliquant "OK, fermer"
+        }}
       />
     </div>
   );

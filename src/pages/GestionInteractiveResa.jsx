@@ -48,6 +48,7 @@ export default function GestionInteractiveResa() {
   const navigate = useNavigate(); // Utiliser useNavigate pour redirection
   const [addCommentaire] = useAddCommentaireMutation();
   const [validateDoubleConfirmation] = useValidateDoubleConfirmationMutation(); // Hook pour la mutation
+  const [isConfirming, setIsConfirming] = useState(false);
 
   // État pour stocker le message du commentaire
   const [commentMessage, setCommentMessage] = useState("");
@@ -61,6 +62,7 @@ export default function GestionInteractiveResa() {
     }
 
     try {
+      setIsConfirming(true);
       // Préparer les données du commentaire
       const newComment = {
         message: commentMessage,
@@ -70,11 +72,12 @@ export default function GestionInteractiveResa() {
 
       // Appel à l'API pour poster le commentaire
       await addCommentaire({ newCommentaire: newComment, origin: null });
-
+      setIsConfirming(false);
       // Réinitialiser le champ de commentaire après l'envoi
       setCommentMessage("");
     } catch (error) {
       console.error("Erreur lors de l'envoi du commentaire :", error);
+      setIsConfirming(false);
     }
   };
 
@@ -393,13 +396,22 @@ export default function GestionInteractiveResa() {
                             />
                           </div>
                           <div className="mt-3 flex items-center justify-between">
-                            <button
-                              type="submit"
-                              onClick={handleSubmit}
-                              className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                            >
-                              Envoyer
-                            </button>
+                            {isConfirming ? (
+                              <button
+                                type="submit"
+                                className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                              >
+                                En Cours...
+                              </button>
+                            ) : (
+                              <button
+                                type="submit"
+                                onClick={handleSubmit}
+                                className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                              >
+                                Envoyer
+                              </button>
+                            )}
                           </div>
                         </form>
                       </div>

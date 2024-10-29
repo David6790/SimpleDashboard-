@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import {
   useGetModificationRequestByOriginalReservationIdQuery,
   useValidateModificationMutation,
+  useRefuseModificationMutation,
+  useCancelModificationMutation,
 } from "../services/reservations";
 import { useGetNotificationToggleQuery } from "../services/toggleApi";
 
@@ -18,11 +20,11 @@ export default function RequestProcessingModal({
     reservation ? reservation.id : null
   );
 
-  const {
-    refetch: refetchToggle, // Refetch pour le toggle
-  } = useGetNotificationToggleQuery();
+  const { refetch: refetchToggle } = useGetNotificationToggleQuery();
 
   const [validateModification] = useValidateModificationMutation();
+  const [refuseModification] = useRefuseModificationMutation(); // Hook pour refuser la modification
+  const [cancelModification] = useCancelModificationMutation(); // Hook pour annuler la réservation
   const [showAlternativeButtons, setShowAlternativeButtons] = useState(false);
 
   useEffect(() => {
@@ -44,17 +46,37 @@ export default function RequestProcessingModal({
       modificationRequest.freeTable21 === "O");
 
   const handleClose = () => {
-    setShowAlternativeButtons(false); // Réinitialise l'état
-    onClose(); // Appelle la fonction onClose du parent
+    setShowAlternativeButtons(false);
+    onClose();
   };
 
   const handleConfirmModification = async () => {
     try {
       await validateModification(reservation.id).unwrap();
       handleClose();
-      refetchToggle(); // Ferme le modal après le succès
+      refetchToggle();
     } catch (error) {
       console.error("Erreur lors de la validation de la modification:", error);
+    }
+  };
+
+  const handleRefuseModification = async () => {
+    try {
+      await refuseModification(reservation.id).unwrap();
+      handleClose();
+      refetchToggle();
+    } catch (error) {
+      console.error("Erreur lors du refus de la modification:", error);
+    }
+  };
+
+  const handleCancelModification = async () => {
+    try {
+      await cancelModification(reservation.id).unwrap();
+      handleClose();
+      refetchToggle();
+    } catch (error) {
+      console.error("Erreur lors de l'annulation de la réservation:", error);
     }
   };
 
@@ -75,7 +97,6 @@ export default function RequestProcessingModal({
           Réservation de {reservation.client.name} {reservation.client.prenom}
         </h2>
 
-        {/* Section de la réservation actuelle */}
         <div className="border border-gray-300 rounded-lg p-4 mb-6">
           <h3 className="text-xl font-semibold text-gray-700 mb-4">
             Réservation actuelle
@@ -112,7 +133,6 @@ export default function RequestProcessingModal({
           </div>
         </div>
 
-        {/* Section de la demande de modification */}
         {modificationRequest && (
           <div className="border border-gray-300 rounded-lg p-4 mb-6">
             <h3 className="text-xl font-semibold text-gray-700 mb-4">
@@ -159,17 +179,13 @@ export default function RequestProcessingModal({
           {showAlternativeButtons ? (
             <>
               <button
-                onClick={() => {
-                  /* Code pour conserver la réservation initiale */
-                }}
+                onClick={handleRefuseModification} // Brancher au hook pour refuser la modification
                 className="px-4 py-2 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition"
               >
                 Conserver la réservation initiale
               </button>
               <button
-                onClick={() => {
-                  /* Code pour annuler la réservation */
-                }}
+                onClick={handleCancelModification} // Brancher au hook pour annuler la réservation
                 className="px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition"
               >
                 Annuler la réservation

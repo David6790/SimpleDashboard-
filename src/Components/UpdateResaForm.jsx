@@ -14,6 +14,7 @@ import Layout from "../Layouts/Layout";
 import { useSelector } from "react-redux";
 import SectionHeading from "./SectionHeading";
 import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
+import ConfirmationModalStaff from "./ConfirmationModalStaff";
 
 export default function UpdateResaForm() {
   const navigate = useNavigate();
@@ -45,6 +46,9 @@ export default function UpdateResaForm() {
 
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false); // État pour contrôler la visibilité du modal d'erreur
   const [errorMessage, setErrorMessage] = useState(""); // État pour stocker le message d'erreur
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState("");
+  const [confirmAction, setConfirmAction] = useState(null);
 
   // Hook pour obtenir et rafraîchir les allocations
   const { refetch } = useGetAllocationsQuery({
@@ -171,6 +175,31 @@ export default function UpdateResaForm() {
       return;
     }
 
+    if (
+      selectedTimeSlot === "19:00" &&
+      (occStatusDinner === "FreeTable21" ||
+        occStatusDinner === "Service2Complet")
+    ) {
+      setConfirmationMessage(
+        "En raison de la forte demande et pour garantir une expérience agréable à chaque client, avez-vous bien informé le client qu'il devra libérer la table à 21h pour permettre le service suivant ? Merci de votre confirmation."
+      );
+      setConfirmAction(() => submitReservation);
+      setIsConfirmationModalOpen(true);
+    } else if (
+      parseInt(selectedTimeSlot) <= 12 &&
+      occStatusLunch === "MidiDoubleService"
+    ) {
+      setConfirmationMessage(
+        "En raison de la forte demande et pour garantir une expérience agréable à chaque client, avez-vous bien informé le client qu'il devra libérer la table à 13h30 pour permettre le service suivant ? Merci de votre confirmation."
+      );
+      setConfirmAction(() => submitReservation);
+      setIsConfirmationModalOpen(true);
+    } else {
+      submitReservation();
+    }
+  };
+
+  const submitReservation = async () => {
     try {
       const updatedReservation = {
         dateResa: startDate,
@@ -195,26 +224,12 @@ export default function UpdateResaForm() {
         ...updatedReservation,
       }).unwrap();
 
-      // Forcer le rechargement des allocations après la mise à jour
       refetch();
 
       setReservationDetails(response);
       setSubmitMessage("Réservation mise à jour avec succès !");
-      setIsSubmitted(true); // Désactivez le bouton de soumission
+      setIsSubmitted(true);
 
-      // Réinitialiser les champs du formulaire
-      setStartDate("");
-      setPhone("");
-      setEmail("");
-      setName("");
-      setPrenom("");
-      setNumberOfGuests("");
-      setComment("");
-      setSelectedTimeSlot("");
-      setOccStatusLunch("");
-      setOccStatusDinner("");
-
-      // Redirige après 5 secondes si rien ne se passe
       const countdownInterval = setInterval(() => {
         setCountdown((prevCountdown) => prevCountdown - 1);
       }, 1000);
@@ -229,8 +244,22 @@ export default function UpdateResaForm() {
         error?.data?.error ||
           "Erreur lors de la mise à jour de la réservation. Veuillez réessayer."
       );
-      setIsErrorModalOpen(true); // Ouvre le modal d'erreur
+      setIsErrorModalOpen(true);
     }
+  };
+  const resetForm = () => {
+    setStartDate(format(new Date(), "yyyy-MM-dd"));
+    setPhone("");
+    setEmail("");
+    setName("");
+    setPrenom("");
+    setNumberOfGuests("");
+    setComment("");
+    setSelectedTimeSlot("");
+    setErrors({});
+    setOccStatusLunch("");
+    setOccStatusDinner("");
+    setSubmitMessage("");
   };
 
   const handlePlaceTable = () => {
@@ -510,6 +539,19 @@ export default function UpdateResaForm() {
         isOpen={isErrorModalOpen}
         errorMessage={errorMessage}
         onClose={() => setIsErrorModalOpen(false)}
+      />
+
+      <ConfirmationModalStaff
+        isOpen={isConfirmationModalOpen}
+        message={confirmationMessage}
+        onConfirm={() => {
+          confirmAction();
+          setIsConfirmationModalOpen(false);
+        }}
+        onCancel={() => {
+          resetForm(); // Appel de resetForm lors de l'annulation
+          setIsConfirmationModalOpen(false);
+        }}
       />
     </Layout>
   );
