@@ -21,7 +21,7 @@ import ErrorModal from "../Components/ErrorModal";
 import SectionHeading from "../Components/SectionHeading";
 import ConfirmationModal from "../Components/ConfirmationModal ";
 import OccStatusDisplayClient from "../Components/OccStatusDisplayClient";
-import SuccessConfirmationModal from "../Components/SuccessConfirmationModal";
+
 import SucessConfirmationModalCreation from "../Components/SucessConfirmationModalCreation";
 
 export default function ResaExternesClients() {
@@ -568,7 +568,11 @@ export default function ResaExternesClients() {
           reservationDetails={reservationDetails}
           onClose={() => {
             setIsSuccessModalOpen(false);
-            navigate(-1); // Retourner à la page précédente
+            if (window.history.length > 1) {
+              navigate(-1); // Retourne à la page précédente s'il y en a une
+            } else {
+              window.location.href = "https://il-girasole-strasbourg.com/"; // Redirige vers l'URL spécifiée
+            }
           }}
         />
       </div>
