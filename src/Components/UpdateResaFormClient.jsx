@@ -508,12 +508,16 @@ export default function UpdateResaFormClient() {
       <ConfirmationModal
         isOpen={isConfirmationModalOpen}
         message={confirmationMessage}
-        onConfirm={() => {
-          confirmAction();
+        onConfirm={async () => {
+          await confirmAction(); // Assurez-vous que confirmAction est une fonction asynchrone
           setIsConfirmationModalOpen(false);
         }}
-        onCancel={() => setIsConfirmationModalOpen(false)}
+        onCancel={() => {
+          setIsConfirmationModalOpen(false);
+          navigate(-1);
+        }}
       />
+
       <SuccessConfirmationModal
         isOpen={isSuccessModalOpen}
         reservationDetails={reservationDetails}

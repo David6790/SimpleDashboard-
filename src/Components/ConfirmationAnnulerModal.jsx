@@ -1,10 +1,11 @@
 import React from "react";
 
-export default function ConfirmationModal({
+export default function ConfirmationAnnulerModal({
   isOpen,
   onConfirm,
   onClose,
   message,
+  isSubmitting, // Nouvelle prop
 }) {
   if (!isOpen) return null;
 
@@ -29,14 +30,20 @@ export default function ConfirmationModal({
           <button
             onClick={onClose}
             className="px-4 py-2 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition"
+            disabled={isSubmitting} // Désactiver pendant la soumission
           >
             Annuler
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition"
+            className={`px-4 py-2 font-semibold rounded-lg transition ${
+              isSubmitting
+                ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                : "bg-red-500 text-white hover:bg-red-600"
+            }`}
+            disabled={isSubmitting} // Désactiver pendant la soumission
           >
-            OUI, refuser
+            {isSubmitting ? "En cours..." : "OUI, refuser"}
           </button>
         </div>
       </div>

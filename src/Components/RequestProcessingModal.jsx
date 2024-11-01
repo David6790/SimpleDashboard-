@@ -23,9 +23,10 @@ export default function RequestProcessingModal({
   const { refetch: refetchToggle } = useGetNotificationToggleQuery();
 
   const [validateModification] = useValidateModificationMutation();
-  const [refuseModification] = useRefuseModificationMutation(); // Hook pour refuser la modification
-  const [cancelModification] = useCancelModificationMutation(); // Hook pour annuler la réservation
+  const [refuseModification] = useRefuseModificationMutation();
+  const [cancelModification] = useCancelModificationMutation();
   const [showAlternativeButtons, setShowAlternativeButtons] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // Nouvel état pour le traitement en cours
 
   useEffect(() => {
     if (modificationRequest) {
@@ -38,13 +39,6 @@ export default function RequestProcessingModal({
 
   if (!isOpen || !reservation) return null;
 
-  const hasFreeTableInfo =
-    reservation.freeTable1330 === "O" || reservation.freeTable21 === "O";
-  const hasModificationFreeTableInfo =
-    modificationRequest &&
-    (modificationRequest.freeTable1330 === "O" ||
-      modificationRequest.freeTable21 === "O");
-
   const handleClose = () => {
     setShowAlternativeButtons(false);
     onClose();
@@ -52,31 +46,40 @@ export default function RequestProcessingModal({
 
   const handleConfirmModification = async () => {
     try {
+      setIsProcessing(true); // Activer l'état de traitement
       await validateModification(reservation.id).unwrap();
       handleClose();
       refetchToggle();
     } catch (error) {
       console.error("Erreur lors de la validation de la modification:", error);
+    } finally {
+      setIsProcessing(false); // Désactiver l'état de traitement
     }
   };
 
   const handleRefuseModification = async () => {
     try {
+      setIsProcessing(true); // Activer l'état de traitement
       await refuseModification(reservation.id).unwrap();
       handleClose();
       refetchToggle();
     } catch (error) {
       console.error("Erreur lors du refus de la modification:", error);
+    } finally {
+      setIsProcessing(false); // Désactiver l'état de traitement
     }
   };
 
   const handleCancelModification = async () => {
     try {
+      setIsProcessing(true); // Activer l'état de traitement
       await cancelModification(reservation.id).unwrap();
       handleClose();
       refetchToggle();
     } catch (error) {
       console.error("Erreur lors de l'annulation de la réservation:", error);
+    } finally {
+      setIsProcessing(false); // Désactiver l'état de traitement
     }
   };
 
@@ -179,16 +182,20 @@ export default function RequestProcessingModal({
           {showAlternativeButtons ? (
             <>
               <button
-                onClick={handleRefuseModification} // Brancher au hook pour refuser la modification
+                onClick={handleRefuseModification}
                 className="px-4 py-2 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition"
+                disabled={isProcessing}
               >
-                Conserver la réservation initiale
+                {isProcessing
+                  ? "En cours..."
+                  : "Conserver la réservation initiale"}
               </button>
               <button
-                onClick={handleCancelModification} // Brancher au hook pour annuler la réservation
+                onClick={handleCancelModification}
                 className="px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition"
+                disabled={isProcessing}
               >
-                Annuler la réservation
+                {isProcessing ? "En cours..." : "Annuler la réservation"}
               </button>
             </>
           ) : (
@@ -196,12 +203,14 @@ export default function RequestProcessingModal({
               <button
                 onClick={handleConfirmModification}
                 className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition"
+                disabled={isProcessing}
               >
-                Confirmer
+                {isProcessing ? "En cours..." : "Confirmer"}
               </button>
               <button
                 onClick={() => setShowAlternativeButtons(true)}
                 className="px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition"
+                disabled={isProcessing}
               >
                 Refuser
               </button>

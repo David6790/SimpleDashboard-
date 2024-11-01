@@ -7,7 +7,8 @@ import {
 import { useGetNotificationToggleQuery } from "../services/toggleApi";
 import ReservationSlideOver from "./ReservationSlideOver";
 import RequestProcessingModal from "./RequestProcessingModal";
-import ConfirmationModal from "./ConfirmationModal"; // Nouveau modal de confirmation
+
+import ConfirmationAnnulerModal from "./ConfirmationAnnulerModal";
 
 export default function TableReservations({ date }) {
   const {
@@ -25,12 +26,14 @@ export default function TableReservations({ date }) {
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [showConfirmationOptions, setShowConfirmationOptions] = useState(null);
   const [filteredReservations, setFilteredReservations] = useState([]);
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false); // État pour le modal de confirmation
+  const [isConfirmationModalOpen, setIsConfirmationAnnulationModalOpen] =
+    useState(false); // État pour le modal de confirmation
 
   const [validateReservation] = useValidateReservationMutation();
   const [refuseReservation] = useRefuseReservationMutation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (reservations) {
@@ -65,6 +68,10 @@ export default function TableReservations({ date }) {
     setSelectedReservation(null);
   };
 
+  const handleBackClick = () => {
+    setShowConfirmationOptions(null);
+  };
+
   const handleConfirmClick = (reservation) => {
     setShowConfirmationOptions(reservation.id);
   };
@@ -83,22 +90,26 @@ export default function TableReservations({ date }) {
 
   const handleRejectClick = (reservation) => {
     setSelectedReservation(reservation);
-    setIsConfirmationModalOpen(true); // Ouvre le modal de confirmation
+    setIsConfirmationAnnulationModalOpen(true); // Ouvre le modal de confirmation
   };
 
   const confirmRejectReservation = async () => {
     try {
+      setIsSubmitting(true);
       setIsConfirming(true);
       await refuseReservation({
         id: selectedReservation.id,
         user: "current_user",
       }).unwrap();
-      setIsConfirmationModalOpen(false);
+      setIsConfirmationAnnulationModalOpen(false);
       setShowConfirmationOptions(null);
       refetchReservations(); // Rafraîchir les réservations après le refus
       await refetchToggle();
     } catch (error) {
       console.error("Failed to refuse reservation:", error);
+      setIsConfirming(false);
+    } finally {
+      setIsSubmitting(false); // Fin de la soumission
       setIsConfirming(false);
     }
   };
@@ -207,31 +218,41 @@ export default function TableReservations({ date }) {
                     {reservation.status === "P" ? (
                       showConfirmationOptions === reservation.id ? (
                         <>
-                          {" "}
                           {isConfirming ? (
                             <button className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">
                               En cours...
                             </button>
                           ) : (
-                            <button
-                              className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleFinalConfirmation(reservation.id);
-                              }}
-                            >
-                              Par Email
-                            </button>
+                            <>
+                              <button
+                                className="px-4 py-2 mr-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleFinalConfirmation(reservation.id);
+                                }}
+                              >
+                                Par Email
+                              </button>
+                              <button
+                                className="px-4 py-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  console.log("Envoi par SMS à venir");
+                                }}
+                              >
+                                Par Email et SMS
+                              </button>
+                              <button
+                                className="px-4 py-2 ml-2 rounded-md text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleBackClick(); // Appel du retour pour réinitialiser l'état
+                                }}
+                              >
+                                Retour
+                              </button>
+                            </>
                           )}
-                          <button
-                            className="px-4 py-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              console.log("Envoi par SMS à venir");
-                            }}
-                          >
-                            Par Email et SMS
-                          </button>
                         </>
                       ) : (
                         <>
@@ -283,11 +304,12 @@ export default function TableReservations({ date }) {
         isOpen={isModalOpen}
         onClose={closeRequestProcessingModal}
       />
-      <ConfirmationModal
+      <ConfirmationAnnulerModal
         isOpen={isConfirmationModalOpen}
         onConfirm={confirmRejectReservation}
-        onClose={() => setIsConfirmationModalOpen(false)}
+        onClose={() => setIsConfirmationAnnulationModalOpen(false)}
         message="Êtes-vous sûr de vouloir refuser la réservation ?"
+        isSubmitting={isSubmitting} // Passer isSubmitting comme prop
       />
     </div>
   );

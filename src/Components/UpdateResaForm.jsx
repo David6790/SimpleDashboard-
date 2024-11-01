@@ -49,6 +49,7 @@ export default function UpdateResaForm() {
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState("");
   const [confirmAction, setConfirmAction] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Hook pour obtenir et rafraîchir les allocations
   const { refetch } = useGetAllocationsQuery({
@@ -200,6 +201,7 @@ export default function UpdateResaForm() {
   };
 
   const submitReservation = async () => {
+    setIsSubmitting(true);
     try {
       const updatedReservation = {
         dateResa: startDate,
@@ -229,7 +231,7 @@ export default function UpdateResaForm() {
       setReservationDetails(response);
       setSubmitMessage("Réservation mise à jour avec succès !");
       setIsSubmitted(true);
-
+      resetForm();
       const countdownInterval = setInterval(() => {
         setCountdown((prevCountdown) => prevCountdown - 1);
       }, 1000);
@@ -245,6 +247,8 @@ export default function UpdateResaForm() {
           "Erreur lors de la mise à jour de la réservation. Veuillez réessayer."
       );
       setIsErrorModalOpen(true);
+    } finally {
+      setIsSubmitting(false);
     }
   };
   const resetForm = () => {
@@ -525,9 +529,9 @@ export default function UpdateResaForm() {
               <button
                 type="submit"
                 className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                disabled={isSubmitted} // Désactivez le bouton après soumission
+                disabled={isSubmitted || isSubmitting}
               >
-                Enregistrer
+                {isSubmitting ? "En cours..." : "Enregistrer"}
               </button>
             </div>
           </form>
@@ -540,12 +544,11 @@ export default function UpdateResaForm() {
         errorMessage={errorMessage}
         onClose={() => setIsErrorModalOpen(false)}
       />
-
       <ConfirmationModalStaff
         isOpen={isConfirmationModalOpen}
         message={confirmationMessage}
-        onConfirm={() => {
-          confirmAction();
+        onConfirm={async () => {
+          await confirmAction();
           setIsConfirmationModalOpen(false);
         }}
         onCancel={() => {

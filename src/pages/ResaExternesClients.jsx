@@ -21,6 +21,8 @@ import ErrorModal from "../Components/ErrorModal";
 import SectionHeading from "../Components/SectionHeading";
 import ConfirmationModal from "../Components/ConfirmationModal ";
 import OccStatusDisplayClient from "../Components/OccStatusDisplayClient";
+import SuccessConfirmationModal from "../Components/SuccessConfirmationModal";
+import SucessConfirmationModalCreation from "../Components/SucessConfirmationModalCreation";
 
 export default function ResaExternesClients() {
   const navigate = useNavigate();
@@ -49,6 +51,8 @@ export default function ResaExternesClients() {
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState("");
   const [confirmAction, setConfirmAction] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   const { refetch: refetchToggle } = useGetNotificationToggleQuery(); // Refetch pour le toggle
 
@@ -158,16 +162,27 @@ export default function ResaExternesClients() {
         OccupationStatusMidiOnBook: occStatusLunch,
         createdBy: "INTERNET",
       };
-      await createReservation(reservation).unwrap();
-      setReservationDetails(reservation);
+
+      // Appel de l'API et récupération de la réponse
+      const response = await createReservation(reservation).unwrap();
+
+      // Affichage de la réponse dans la console
+      console.log(response);
+
+      // Mise à jour de l'état avec les détails de la réservation retournés par l'API
+      setReservationDetails(response);
+
       resetForm(); // Réinitialise les champs du formulaire
       await refetchToggle();
+      setIsSubmitting(false); // Désactiver l'état de soumission
+      setIsSuccessModalOpen(true);
     } catch (error) {
       setErrorMessage(
         error?.data?.error ||
           "Erreur lors de la réservation. Veuillez réessayer."
       );
       setIsErrorModalOpen(true);
+      setIsSubmitting(false);
     }
   };
 
@@ -216,6 +231,7 @@ export default function ResaExternesClients() {
       setErrors(formErrors);
       return;
     }
+    setIsSubmitting(true);
 
     // Conditions pour afficher le modal de confirmation
     if (
@@ -241,7 +257,8 @@ export default function ResaExternesClients() {
       setIsConfirmationModalOpen(true);
     } else {
       // Si aucune condition de modal n'est remplie, soumettre directement
-      submitReservation();
+      await submitReservation();
+      setIsSubmitting(false);
     }
   };
 
@@ -513,9 +530,14 @@ export default function ResaExternesClients() {
               </NavLink>
               <button
                 type="submit"
-                className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                className={`rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm ${
+                  isSubmitting
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-indigo-600 hover:bg-indigo-500"
+                }`}
+                disabled={isSubmitting}
               >
-                Enregistrer
+                {isSubmitting ? "En cours..." : "Enregistrer"}
               </button>
             </div>
           </form>
@@ -524,13 +546,14 @@ export default function ResaExternesClients() {
         <ConfirmationModal
           isOpen={isConfirmationModalOpen}
           message={confirmationMessage}
-          onConfirm={() => {
-            confirmAction();
-            setIsConfirmationModalOpen(false);
+          onConfirm={async () => {
+            await confirmAction();
           }}
           onCancel={() => {
-            resetForm();
             setIsConfirmationModalOpen(false);
+            setIsSubmitting(false); // Réactiver le bouton "Enregistrer" du formulaire principal
+            resetForm();
+            navigate(-1);
           }}
         />
 
@@ -539,6 +562,14 @@ export default function ResaExternesClients() {
           isOpen={isErrorModalOpen}
           errorMessage={errorMessage}
           onClose={() => setIsErrorModalOpen(false)}
+        />
+        <SucessConfirmationModalCreation
+          isOpen={isSuccessModalOpen}
+          reservationDetails={reservationDetails}
+          onClose={() => {
+            setIsSuccessModalOpen(false);
+            navigate(-1); // Retourner à la page précédente
+          }}
         />
       </div>
     </div>
