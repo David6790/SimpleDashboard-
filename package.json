@@ -24,6 +24,7 @@
     "jspdf": "^2.5.2",
     "libphonenumber-js": "^1.11.9",
     "react": "^18.3.1",
+    "react-app-rewired": "^2.2.1",
     "react-archer": "^4.4.0",
     "react-datepicker": "^6.9.0",
     "react-dom": "^18.3.1",
@@ -36,9 +37,9 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
