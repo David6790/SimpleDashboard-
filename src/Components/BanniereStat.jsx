@@ -62,3 +62,4 @@ export default function BanniereStat({ reservations, selectedDate }) {
     </div>
   );
 }
+//test
