@@ -44,7 +44,9 @@ export default function PreviewTableDashboard({
 
   const closeSlideOver = () => {
     setIsSlideOverOpen(false);
-    setSelectedReservation(null);
+    setTimeout(() => {
+      setSelectedReservation(null);
+    }, 0); // Retarde la réinitialisation de selectedReservation à null
   };
 
   const handlePlaceTableClick = (reservation, e) => {

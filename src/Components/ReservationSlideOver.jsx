@@ -1,10 +1,11 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useCancelReservationMutation } from "../services/reservations";
 import { getStatusText } from "../Outils/conversionTextStatus";
+import ConfirmationAnnulerModal from "./ConfirmationAnnulerModal";
 
 function formatTimestamp(dateString) {
   const options = {
@@ -19,6 +20,8 @@ function formatTimestamp(dateString) {
 }
 
 function ReservationSlideOver({ isOpen, onClose, reservation }) {
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const [cancelReservation] = useCancelReservationMutation();
   const user = useSelector((state) => state.user.username);
@@ -27,12 +30,25 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
     navigate("/reservation-update", { state: { reservation } });
   };
 
-  const cancelResa = async (i, u) => {
+  const openConfirmationModal = () => {
+    setIsConfirmationOpen(true);
+  };
+
+  const closeConfirmationModal = () => {
+    setIsConfirmationOpen(false);
+  };
+
+  const confirmCancelResa = async () => {
+    setIsSubmitting(true);
+    console.log(reservation);
     try {
-      await cancelReservation({ id: i, user: u }).unwrap();
-      onClose();
+      await cancelReservation({ id: reservation.id, user: user }).unwrap();
     } catch (error) {
       console.log(error);
+    } finally {
+      setIsSubmitting(false);
+      closeConfirmationModal();
+      onClose();
     }
   };
 
@@ -233,9 +249,7 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                               {isAdmin.role === "ADMIN" ? (
                                 <button
                                   className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
-                                  onClick={() =>
-                                    cancelResa(reservation.id, user)
-                                  }
+                                  onClick={openConfirmationModal}
                                 >
                                   Annuler la réservation
                                 </button>
@@ -254,6 +268,13 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
               </Transition.Child>
             </div>
           </div>
+          <ConfirmationAnnulerModal
+            isOpen={isConfirmationOpen}
+            onConfirm={confirmCancelResa}
+            onClose={closeConfirmationModal}
+            message="Êtes-vous sûr de vouloir annuler cette réservation ?"
+            isSubmitting={isSubmitting}
+          />
         </div>
       </Dialog>
     </Transition.Root>
