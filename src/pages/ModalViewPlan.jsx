@@ -11,6 +11,7 @@ import ReservationDetailModal from "../Components/ReservationDetailModal";
 import ErrorModal from "../Components/ErrorModal"; // Import du modal d'erreur
 import { useDispatch } from "react-redux";
 import { reservationsApi } from "../services/reservations";
+import jsPDF from "jspdf";
 
 const tableIdMapping = {
   1: 1,
@@ -54,6 +55,29 @@ const ModalViewPlan = ({ date, period, onClose }) => {
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false); // État pour le modal d'erreur
   const [errorMessage, setErrorMessage] = useState(""); // État pour le message d'erreur
   const dispatch = useDispatch();
+
+  const downloadPDF = () => {
+    const planElement = document.getElementById("plan-de-salle");
+
+    if (planElement) {
+      // Utilisation de jsPDF pour une page unique
+      const pdf = new jsPDF("landscape", "pt", "a4"); // Format paysage, page A4
+
+      pdf.html(planElement, {
+        callback: function (pdf) {
+          pdf.save("plan-de-salle.pdf");
+        },
+        x: 10, // Positionnement du contenu dans le PDF
+        y: 10,
+        html2canvas: {
+          scale: 0.5, // Réduction de l’échelle pour compacter le contenu sur une page
+          useCORS: true,
+          scrollY: -window.scrollY, // Corrige les scrolls si nécessaire
+        },
+        width: 800, // Largeur fixée, ajustée à la taille de la page A4
+      });
+    }
+  };
 
   const { data: allocations } = useGetAllocationsQuery({
     date,
@@ -306,6 +330,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
       <div
         className="bg-white p-4 rounded-lg shadow-xl relative max-h-[95%] min-w-[90%] overflow-auto m-2"
         onClick={(e) => e.stopPropagation()}
+        id="plan-de-salle"
       >
         {isEditing ? (
           <div className="text-lg font-bold text-center mb-2 text-gray-700">
@@ -408,7 +433,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           </div>
         </div>
 
-        <div className="w-full h-full overflow-auto px-2">
+        <div className="w-full h-full  px-2">
           <div className="pt-2 flex flex-row justify-between min-w-[900px]">
             <div className="flex flex-row w-1/4 justify-start gap-2">
               {["7", "8"].map((table) => (
@@ -566,6 +591,12 @@ const ModalViewPlan = ({ date, period, onClose }) => {
         <div className="flex justify-center mt-2">
           <button
             className="bg-blue-500 text-white px-4 py-1 rounded-md shadow-sm hover:bg-blue-600 transition duration-200"
+            onClick={downloadPDF} // Lien vers la fonction de téléchargement
+          >
+            Télécharger le plan en PDF (Bêta)
+          </button>
+          <button
+            className="bg-blue-500 text-white px-4 py-1 rounded-md shadow-sm hover:bg-blue-600 transition duration-200 ml-2"
             onClick={onClose}
           >
             Fermer
