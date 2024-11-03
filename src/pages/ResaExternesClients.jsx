@@ -14,7 +14,7 @@ import {
   validateDate,
 } from "../Components/ValidationSaisie";
 import { useGetNotificationToggleQuery } from "../services/toggleApi";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 //import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
 import ErrorModal from "../Components/ErrorModal";
@@ -268,8 +268,9 @@ export default function ResaExternesClients() {
     }
   };
 
-  console.log(occStatusDinner);
-  console.log(occStatusLunch);
+  const handleCancel = () => {
+    window.location.href = "https://il-girasole-strasbourg.com/"; // URL de la page externe
+  };
 
   return (
     <div className=" mx-5">
@@ -520,14 +521,14 @@ export default function ResaExternesClients() {
               </div>
             </div>
             <div className="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
-              <NavLink to={"/"}>
-                <button
-                  type="button"
-                  className="text-sm font-semibold leading-6 text-gray-900"
-                >
-                  Annuler
-                </button>
-              </NavLink>
+              <button
+                type="button"
+                className="text-sm font-semibold leading-6 text-gray-900"
+                onClick={handleCancel}
+              >
+                Annuler
+              </button>
+
               <button
                 type="submit"
                 className={`rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm ${
