@@ -40,6 +40,7 @@ const tableIdMapping = {
   24: 24,
   25: 25,
   26: 26,
+  "3-BIS": 27,
 };
 
 const ModalViewPlan = ({ date, period, onClose }) => {
@@ -568,6 +569,20 @@ const ModalViewPlan = ({ date, period, onClose }) => {
                   <div className="text-xs mt-0.5">{table}</div>
                 </div>
               ))}
+            </div>
+          </div>
+          <div className="pt-2 flex flex-row justify-between min-w-[900px]">
+            <div className="flex flex-row w-full justify-start">
+              <div
+                key="3-BIS"
+                className="relative flex flex-col items-center"
+                onClick={() => handleTableClick("3-BIS")}
+              >
+                <div id="3-BIS" className={getTableClass("3-BIS")}>
+                  {getOccupiedTableInfo("3-BIS")}
+                </div>
+                <div className="text-xs mt-0.5">3-BIS</div>
+              </div>
             </div>
           </div>
           <div className="pt-2 flex flex-row justify-between min-w-[900px]">
