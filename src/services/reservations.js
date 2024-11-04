@@ -118,6 +118,13 @@ export const reservationsApi = createApi({
       }),
       invalidatesTags: ["Reservations", "HECStatuts"],
     }),
+    cancelNoShowReservation: builder.mutation({
+      query: ({ id, user }) => ({
+        url: `Reservations/${id}/cancel-noshow/${user}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Reservations", "HECStatuts"],
+    }),
   }),
 });
 
@@ -140,6 +147,7 @@ export const {
   useValidateModificationMutation, // Export du hook pour valider la modification
   useRefuseModificationMutation, // Export du hook pour refuser la modification
   useCancelModificationMutation, // Export du hook pour annuler la modification
+  useCancelNoShowReservationMutation,
 } = reservationsApi;
 
 export default reservationsApi;
