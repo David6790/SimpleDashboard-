@@ -40,13 +40,12 @@ const navigation = [
     icon: UsersIcon,
     current: false,
   },
-  {
-    name: "Test",
-    href: "/resa-externe",
-    icon: DocumentDuplicateIcon,
-    current: false,
-  },
-  { name: "Reports", href: "/avenir4", icon: ChartPieIcon, current: false },
+  // {
+  //   name: "Test",
+  //   href: "/resa-externe",
+  //   icon: DocumentDuplicateIcon,
+  //   current: false,
+  // },
 ];
 
 function classNames(...classes) {
