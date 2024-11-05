@@ -4,7 +4,10 @@ import {
   useChangeAllocationMutation,
   useCreateAllocationMutation,
 } from "../services/allocationsApi";
-import { useGetReservationsByDateAndPeriodQuery } from "../services/reservations";
+import {
+  useGetReservationsByDateAndPeriodQuery,
+  useCreateSpontaneousReservationMutation,
+} from "../services/reservations";
 import { format } from "date-fns";
 import fr from "date-fns/locale/fr";
 import ReservationDetailModal from "../Components/ReservationDetailModal";
@@ -79,6 +82,9 @@ const ModalViewPlan = ({ date, period, onClose }) => {
       });
     }
   };
+
+  const [createSpontaneousReservation] =
+    useCreateSpontaneousReservationMutation();
 
   const { data: allocations } = useGetAllocationsQuery({
     date,
@@ -178,6 +184,20 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     setIsCreating(true);
     setSelectedReservation(reservation);
     setSelectedReservationId(reservation.id);
+  };
+
+  const handleCreateSpontaneousReservation = async () => {
+    try {
+      const response = await createSpontaneousReservation().unwrap();
+      console.log("Réservation de Présentation Spontanée créée:", response);
+      refetchReservations(); // Rechargement des réservations pour inclure la nouvelle réservation
+    } catch (error) {
+      setErrorMessage(
+        error.data?.error ||
+          "Erreur lors de la création de la réservation de client de passage."
+      );
+      setIsErrorModalOpen(true);
+    }
   };
 
   const handleConfirmMove = async () => {
@@ -397,9 +417,17 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           {reservations?.length === 0 ? (
             ""
           ) : (
-            <h1 className="text-base font-semibold text-gray-600 text-left mb-2 border-b border-gray-300 pb-1">
-              Réservations à placer
-            </h1>
+            <div className="flex justify-between items-center mb-2 border-b border-gray-300 pb-1">
+              <h1 className="text-base font-semibold text-gray-600 text-left">
+                Réservations à placer
+              </h1>
+              <button
+                className="bg-green-500 text-white px-4 py-1 rounded-md shadow-sm hover:bg-green-600 transition duration-200"
+                onClick={handleCreateSpontaneousReservation}
+              >
+                Créer client de passage
+              </button>
+            </div>
           )}
           <div className="flex flex-wrap gap-2 justify-start">
             {reservations?.length === 0 ? (

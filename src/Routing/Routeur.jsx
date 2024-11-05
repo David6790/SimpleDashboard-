@@ -40,6 +40,15 @@ const Routeur = () => {
     <BrowserRouter>
       <Routes>
         <Route
+          path="/admin-stockComplet"
+          element={
+            <RoleProtectedRoute
+              element={StockComplet}
+              allowedRoles={["ADMIN"]}
+            />
+          }
+        />
+        <Route
           path="/"
           element={user ? <Dashboard /> : <Navigate to="/sign-in" />}
         />
@@ -82,15 +91,6 @@ const Routeur = () => {
           }
         />
 
-        <Route
-          path="/admin-stockComplet"
-          element={
-            <RoleProtectedRoute
-              element={StockComplet}
-              allowedRoles={["ADMIN"]}
-            />
-          }
-        />
         {/* Ajouter la route pour la page Access Denied */}
         <Route path="/access-denied" element={<AccessDeniedPage />} />
         <Route path="/plansalle" element={<PlanDeSalle />} />

@@ -126,6 +126,13 @@ export const reservationsApi = createApi({
       }),
       invalidatesTags: ["Reservations", "HECStatuts"],
     }),
+    createSpontaneousReservation: builder.mutation({
+      query: () => ({
+        url: "Reservations/spontaneous",
+        method: "POST",
+      }),
+      invalidatesTags: ["Reservations", "HECStatuts"],
+    }),
   }),
 });
 
@@ -149,6 +156,7 @@ export const {
   useRefuseModificationMutation, // Export du hook pour refuser la modification
   useCancelModificationMutation, // Export du hook pour annuler la modification
   useCancelNoShowReservationMutation,
+  useCreateSpontaneousReservationMutation,
 } = reservationsApi;
 
 export default reservationsApi;
