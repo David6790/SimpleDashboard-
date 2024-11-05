@@ -7,11 +7,7 @@ import TimeSlotSelector from "./TimeSlotSelector";
 import OccStatusDisplay from "./OccStatusDisplay";
 import ValidationMessage from "./ValidationMessage";
 import { useCreateReservationMutation } from "../services/reservations";
-import {
-  validateEmail,
-  validateNumberOfPeople,
-  validateDate,
-} from "./ValidationSaisie";
+import { validateNumberOfPeople, validateDate } from "./ValidationSaisie";
 import { useGetNotificationToggleQuery } from "../services/toggleApi";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -66,9 +62,6 @@ export default function ReservationForm() {
   const handleEmailChange = (event) => {
     const { value } = event.target;
     setEmail(value);
-    const error =
-      value && !validateEmail(value) ? "L'adresse email n'est pas valide." : "";
-    setErrors((prev) => ({ ...prev, email: error }));
   };
 
   const handleNumberOfGuestsChange = (event) => {
@@ -118,8 +111,6 @@ export default function ReservationForm() {
   const handlePrenomChange = (event) => {
     const { value } = event.target;
     setPrenom(value);
-    const error = value.trim() === "" ? "Le prénom ne peut pas être vide." : "";
-    setErrors((prev) => ({ ...prev, prenom: error }));
   };
 
   // Gérer le changement de créneau horaire
@@ -145,10 +136,6 @@ export default function ReservationForm() {
     setIsSubmitting(true);
 
     const formErrors = {
-      email:
-        email && !validateEmail(email)
-          ? "L'adresse email n'est pas valide."
-          : "",
       numberOfGuests: validateNumberOfPeople(numberOfGuests)
         ? ""
         : "Le nombre de personnes doit être un entier positif et non nul.",
@@ -160,7 +147,7 @@ export default function ReservationForm() {
         ? ""
         : "La date doit être aujourd'hui ou dans le futur.",
       name: name.trim() === "" ? "Le nom ne peut pas être vide." : "",
-      prenom: prenom.trim() === "" ? "Le prénom ne peut pas être vide." : "",
+
       timeSlot:
         selectedTimeSlot === ""
           ? "Le créneau horaire ne peut pas être vide."
@@ -373,7 +360,6 @@ export default function ReservationForm() {
                 <div className="mt-2">
                   <input
                     type="text"
-                    required
                     name="last-name"
                     id="last-name"
                     value={prenom}
