@@ -16,23 +16,6 @@ const StockComplet = () => {
       <SectionHeading title={"Réservations à traiter"} />
       <div className="px-4 sm:px-6 lg:px-8 mt-10">
         <div className="sm:flex sm:items-center">
-          <div className="sm:flex-auto">
-            <label className="block text-sm font-medium leading-6 text-gray-900">
-              Date :
-            </label>
-            <DatePicker
-              selected={selectedDate}
-              onChange={(date) => setSelectedDate(date)}
-              dateFormat="dd/MM/yyyy"
-              className="mt-2 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-            <p className="mt-2 text-sm text-gray-700">
-              Liste des réservations du :{" "}
-              {selectedDate
-                ? format(selectedDate, "dd/MM/yyyy")
-                : "Veuillez sélectionner une date"}
-            </p>
-          </div>
           <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
             <NavLink to={"/reservation-page"}>
               <button

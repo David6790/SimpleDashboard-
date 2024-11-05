@@ -12,6 +12,8 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import ModalViewPlan from "./ModalViewPlan";
 import ModalViewPlanMidi from "./ModalViewPlanMidi";
 import { Switch } from "@headlessui/react";
+import { registerLocale } from "react-datepicker";
+import fr from "date-fns/locale/fr";
 
 const Dashboard = () => {
   const location = useLocation();
@@ -21,6 +23,7 @@ const Dashboard = () => {
   const [isModalSoirOpen, setIsModalSoirOpen] = useState(false); // Pour le modal Soir
   const [filter, setFilter] = useState("all");
   const formattedDate = format(selectedDate, "yyyy-MM-dd");
+  registerLocale("fr", fr);
 
   const {
     data: reservations,
@@ -94,6 +97,7 @@ const Dashboard = () => {
                 selected={selectedDate}
                 onChange={(date) => setSelectedDate(date)}
                 dateFormat="dd/MM/yyyy"
+                locale="fr"
                 className="mt-2 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
               <button

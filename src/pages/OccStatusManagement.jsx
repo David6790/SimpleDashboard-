@@ -30,6 +30,8 @@ import {
 } from "../services/occupationStatusApi";
 import ErrorModal from "../Components/ErrorModal";
 import SuccessModal from "../Components/SuccessModal"; // Import du modal de succès
+import { registerLocale } from "react-datepicker";
+import fr from "date-fns/locale/fr";
 
 const occStatusTrigram = {
   FreeTable21: "F21",
@@ -78,6 +80,8 @@ const formatDate = (date) => date.toLocaleDateString("en-CA");
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
+
+registerLocale("fr", fr);
 
 export default function Example() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -280,6 +284,7 @@ export default function Example() {
                 dateFormat="yyyy-MM-dd"
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 placeholderText="Sélectionner une date"
+                locale="fr"
               />
               <span
                 className="ml-5 text-sm font-medium text-gray-700 underline cursor-pointer"

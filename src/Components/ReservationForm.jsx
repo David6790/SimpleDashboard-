@@ -13,10 +13,13 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
 import ConfirmationModalStaff from "./ConfirmationModalStaff";
+import { registerLocale } from "react-datepicker";
+import fr from "date-fns/locale/fr";
 
 export default function ReservationForm() {
   const navigate = useNavigate();
   const [createReservation] = useCreateReservationMutation();
+  registerLocale("fr", fr);
 
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [phone, setPhone] = useState("");
@@ -322,6 +325,7 @@ export default function ReservationForm() {
                 scrollableMonthYearDropdown
                 className="block w-full px-3 py-2 mt-1 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 required
+                locale="fr"
               />
               {errors.date && <div style={{ color: "red" }}>{errors.date}</div>}
             </div>
