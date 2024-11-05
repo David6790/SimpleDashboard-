@@ -76,15 +76,35 @@ export default function TableReservations({ date }) {
     setShowConfirmationOptions(reservation.id);
   };
 
-  const handleFinalConfirmation = async (id) => {
+  const handleFinalConfirmation = async (id, isSms = false) => {
     try {
       setIsConfirming(true);
-      await validateReservation(id).unwrap(); // Validation de la réservation
+
+      // Utilisation de validateReservationWithCompat pour compatibilité
+      await validateReservation({ id, isSms }).unwrap();
+
       setShowConfirmationOptions(null);
       await refetchToggle(); // Rafraîchir l'état du toggle
       setIsConfirming(false);
     } catch (error) {
       console.error("Failed to update reservation status:", error);
+      setIsConfirming(false); // Assurez-vous que isConfirming est remis à false même en cas d'erreur
+    }
+  };
+
+  const handleConfirmationSMS = async (id, isSms = true) => {
+    try {
+      setIsConfirming(true);
+
+      // Utilisation de validateReservationWithCompat pour compatibilité
+      await validateReservation({ id, isSms }).unwrap();
+
+      setShowConfirmationOptions(null);
+      await refetchToggle(); // Rafraîchir l'état du toggle
+      setIsConfirming(false);
+    } catch (error) {
+      console.error("Failed to update reservation status:", error);
+      setIsConfirming(false); // Assurez-vous que isConfirming est remis à false même en cas d'erreur
     }
   };
 
@@ -237,7 +257,7 @@ export default function TableReservations({ date }) {
                                 className="px-4 py-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  console.log("Envoi par SMS à venir");
+                                  handleConfirmationSMS(reservation.id);
                                 }}
                               >
                                 Par Email et SMS

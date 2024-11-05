@@ -52,12 +52,13 @@ export const reservationsApi = createApi({
       invalidatesTags: ["Reservations", "HECStatuts"],
     }),
     validateReservation: builder.mutation({
-      query: (id) => ({
-        url: `Reservations/${id}/validate`,
+      query: ({ id, isSms = false }) => ({
+        url: `Reservations/${id}/validate?isSms=${isSms}`,
         method: "PATCH",
       }),
       invalidatesTags: ["Reservations", "HECStatuts"],
     }),
+
     cancelReservation: builder.mutation({
       query: ({ id, user }) => ({
         url: `Reservations/${id}/cancel/${user}`,
