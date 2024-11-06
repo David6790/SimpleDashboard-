@@ -371,7 +371,10 @@ const ModalViewPlanMidi = ({ date, period, onClose }) => {
     locale: fr,
   });
   const shouldShowCreateSpontaneousButton = (date) => {
-    const currentDate = new Date();
+    const currentDate = new Date().toLocaleString("fr-FR", {
+      timeZone: "Europe/Paris",
+    });
+
     console.log("currentDate >" + currentDate);
     console.log("current hour >" + currentDate.getHours());
 
