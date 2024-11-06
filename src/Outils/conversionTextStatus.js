@@ -10,6 +10,8 @@ export const getStatusText = (status) => {
       return "Refusée";
     case "M":
       return "Modification à valider";
+    case "D":
+      return "Table libérée";
     default:
       return "Unknown";
   }

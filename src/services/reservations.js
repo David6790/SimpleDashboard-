@@ -133,6 +133,20 @@ export const reservationsApi = createApi({
       }),
       invalidatesTags: ["Reservations", "HECStatuts"],
     }),
+    setHasArrived: builder.mutation({
+      query: ({ id, hasArrived }) => ({
+        url: `Reservations/${id}/has-arrived?hasArrived=${hasArrived}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Reservations"],
+    }),
+    setDepartClient: builder.mutation({
+      query: (id) => ({
+        url: `Reservations/depart/${id}`,
+        method: "PUT",
+      }),
+      invalidatesTags: ["Reservations", "Allocations"],
+    }),
   }),
 });
 
@@ -157,6 +171,8 @@ export const {
   useCancelModificationMutation, // Export du hook pour annuler la modification
   useCancelNoShowReservationMutation,
   useCreateSpontaneousReservationMutation,
+  useSetHasArrivedMutation,
+  useSetDepartClientMutation,
 } = reservationsApi;
 
 export default reservationsApi;

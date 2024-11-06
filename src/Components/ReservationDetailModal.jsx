@@ -1,22 +1,45 @@
-import React from "react";
-import { useDeleteAllocationsByReservationMutation } from "../services/allocationsApi";
-import { reservationsApi } from "../services/reservations"; // Import du hook de mutation
+import React, { useState } from "react";
+import {
+  useDeleteAllocationsByReservationMutation,
+  useGetAllocationsQuery,
+} from "../services/allocationsApi";
+import {
+  useSetHasArrivedMutation,
+  useSetDepartClientMutation, // Import du hook pour marquer le départ
+  reservationsApi,
+} from "../services/reservations";
 import { useDispatch } from "react-redux";
+import ErrorModal from "./ErrorModal";
 
-const ReservationDetailModal = ({ reservation, onClose, onMove }) => {
+const ReservationDetailModal = ({
+  reservation,
+  onClose,
+  onMove,
+  date,
+  period,
+}) => {
   const [deleteAllocation] = useDeleteAllocationsByReservationMutation();
+  const [setHasArrived] = useSetHasArrivedMutation();
+  const [setDepartClient] = useSetDepartClientMutation(); // Utiliser le hook pour le départ
   const dispatch = useDispatch();
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false); // État pour le modal de confirmation
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const { data: allocations, refetch: refetchAllocations } =
+    useGetAllocationsQuery({
+      date,
+      period,
+    });
 
   if (!reservation) return null;
 
   const freeTable21Style =
     reservation.freeTable21 === "O" ? "bg-yellow-300" : "bg-red-300";
 
-  console.log(reservation);
-
   const handleMoveClick = () => {
     if (onMove && reservation.reservationId) {
-      onMove(reservation.reservationId); // Renvoie uniquement le reservationId
+      onMove(reservation.reservationId);
     }
   };
 
@@ -25,11 +48,42 @@ const ReservationDetailModal = ({ reservation, onClose, onMove }) => {
       await deleteAllocation(reservation.reservationId).unwrap();
       onClose();
       dispatch(reservationsApi.util.invalidateTags(["Reservations"]));
-      // Ferme le modal après suppression
     } catch (error) {
       console.error("Erreur lors de la suppression de l'allocation:", error);
     }
   };
+
+  const handleArrivalStatusChange = async () => {
+    try {
+      await setHasArrived({
+        id: reservation.reservationId,
+        hasArrived: !reservation.hasArrived,
+      }).unwrap();
+      await refetchAllocations();
+      onClose();
+    } catch (error) {
+      console.error(
+        "Erreur lors de la mise à jour du statut d'arrivée:",
+        error
+      );
+    }
+  };
+
+  const handleDepartClient = async () => {
+    try {
+      await setDepartClient(reservation.reservationId).unwrap();
+      onClose();
+      await refetchAllocations();
+    } catch (error) {
+      setErrorMessage(error.data?.message || "Une erreur est survenue.");
+      setIsErrorModalOpen(true);
+    }
+  };
+
+  const openConfirmModal = () => setIsConfirmModalOpen(true);
+  const closeConfirmModal = () => setIsConfirmModalOpen(false);
+
+  const closeErrorModal = () => setIsErrorModalOpen(false);
 
   return (
     <div
@@ -38,7 +92,7 @@ const ReservationDetailModal = ({ reservation, onClose, onMove }) => {
     >
       <div
         className="bg-white p-6 rounded-md shadow-lg relative max-h-[95%] max-w-[95%] overflow-auto m-4"
-        onClick={(e) => e.stopPropagation()} // Empêche la fermeture en cliquant sur le contenu
+        onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-xl font-semibold mb-4">
           Détails de la réservation
@@ -78,18 +132,70 @@ const ReservationDetailModal = ({ reservation, onClose, onMove }) => {
           </button>
           <button
             className="bg-yellow-500 text-white px-4 py-2 rounded"
-            onClick={handleMoveClick} // Appel de la fonction pour activer le mode édition avec le reservationId
+            onClick={handleMoveClick}
           >
             Déplacer
           </button>
           <button
-            className="bg-red-500 text-white px-4 py-2 rounded" // Bouton pour retirer du plan
+            className="bg-red-500 text-white px-4 py-2 rounded"
             onClick={handleDeleteAllocation}
           >
             Retirer du plan
           </button>
+          <button
+            className={`${
+              !reservation.hasArrived ? "bg-green-500" : "bg-gray-500"
+            } text-white px-4 py-2 rounded`}
+            onClick={handleArrivalStatusChange}
+          >
+            {reservation.hasArrived ? "Oups, me suis trompé" : "Marquer arrivé"}
+          </button>
+          {reservation.hasArrived && (
+            <button
+              className="bg-orange-500 text-white px-4 py-2 rounded"
+              onClick={openConfirmModal}
+            >
+              Départ Client
+            </button>
+          )}
         </div>
+        {isConfirmModalOpen && (
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+            <div className="bg-white p-4 rounded-md shadow-lg max-w-sm w-full m-4">
+              <h3 className="text-lg font-semibold mb-4">
+                Confirmation du départ
+              </h3>
+              <p>
+                Êtes-vous sûr de vouloir marquer la réservation comme libérée ?
+                Les clients ont bien quitté la table ? Cette action est
+                irréversible.
+              </p>
+              <div className="flex justify-end space-x-4 mt-4">
+                <button
+                  className="bg-gray-500 text-white px-4 py-2 rounded"
+                  onClick={closeConfirmModal}
+                >
+                  Non
+                </button>
+                <button
+                  className="bg-red-500 text-white px-4 py-2 rounded"
+                  onClick={() => {
+                    handleDepartClient();
+                    closeConfirmModal();
+                  }}
+                >
+                  Oui
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+      <ErrorModal
+        isOpen={isErrorModalOpen}
+        errorMessage={errorMessage}
+        onClose={() => setIsErrorModalOpen(false)}
+      />
     </div>
   );
 };

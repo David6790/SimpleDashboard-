@@ -8,7 +8,7 @@ import {
   useGetReservationsByDateAndPeriodQuery,
   useCreateSpontaneousReservationMutation,
 } from "../services/reservations";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import fr from "date-fns/locale/fr";
 import ReservationDetailModal from "../Components/ReservationDetailModal";
 import ErrorModal from "../Components/ErrorModal"; // Import du modal d'erreur
@@ -126,6 +126,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           isAfter21hReservation: allocation.reservation.timeResa >= "21:00:00",
           tableId: allocation.table.id,
           reservationId: allocation.reservationId,
+          hasArrived: allocation.reservation.hasArrived, // Ajout de hasArrived ici
         });
 
         return acc;
@@ -141,23 +142,42 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     occupiedTables[table] && occupiedTables[table].length > 0;
 
   const getTableClass = (table) => {
-    const isPartiallyAvailable =
+    const tableReservations = occupiedTables[table];
+
+    // Vérifiez si au moins une réservation de la table a `hasArrived` à true
+    const isArrived =
+      tableReservations &&
+      tableReservations.some((reservation) => reservation.hasArrived);
+
+    // Vérifiez si la table a une réservation après 21h
+    const isAfter21h =
       isOccupied(table) &&
-      occupiedTables[table].some(
+      tableReservations.some(
         (reservation) =>
-          (reservation.freeTable21 === "O" &&
-            new Date(`1970-01-01T${reservation.timeResa}`) <
-              new Date(`1970-01-01T21:00:00`)) ||
-          reservation.isAfter21hReservation
+          new Date(`1970-01-01T${reservation.timeResa}`) >=
+          new Date(`1970-01-01T21:00:00`)
+      );
+
+    // Vérifiez si la table a une réservation avant 19h
+    const isBefore19h =
+      isOccupied(table) &&
+      tableReservations.some(
+        (reservation) =>
+          new Date(`1970-01-01T${reservation.timeResa}`) <
+          new Date(`1970-01-01T19:00:00`)
       );
 
     return `table border-2 shadow-md flex flex-col justify-between text-xs h-12 rounded-md ${
-      isSelected(table)
-        ? "bg-blue-500 text-white"
-        : isPartiallyAvailable
-        ? "bg-yellow-400"
+      isArrived
+        ? "bg-green-500 text-white" // Background vert si le client est arrivé
+        : isSelected(table)
+        ? "bg-blue-500 text-white border-blue-700 border-4" // Bordure bleue si sélectionnée
+        : isAfter21h
+        ? "bg-orange-500" // Orange pour les réservations après 21h
+        : isBefore19h
+        ? "bg-yellow-400" // Jaune pour les réservations avant 19h
         : isOccupied(table)
-        ? "bg-yellow-400"
+        ? "bg-yellow-400" // Jaune par défaut pour les autres réservations occupées
         : "border-gray-300 bg-white hover:shadow-md hover:border-gray-400 transition duration-200 ease-in-out"
     }`;
   };
@@ -258,33 +278,35 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     if (occupiedReservations && occupiedReservations.length > 0) {
       return (
         <>
-          {/* Première réservation avec style standard */}
-          <div
-            className="flex-1 flex items-center justify-center text-xs cursor-pointer bg-yellow-400 p-1 rounded-t"
-            onClick={() => {
-              if (!isEditing && !isCreating) {
-                setSelectedReservation(occupiedReservations[0]);
-                setIsReservationModalOpen(true);
-              }
-            }}
-          >
-            {`${occupiedReservations[0].clientPrenom} ${occupiedReservations[0].clientNom} ${occupiedReservations[0].numberOfGuest}p ${occupiedReservations[0].timeResa}`}
-          </div>
+          {occupiedReservations.map((reservation, index) => {
+            // Détermine la couleur de fond en fonction de l'heure de réservation et de `hasArrived`
+            let reservationClass = "bg-yellow-400"; // Par défaut jaune pour les réservations avant 19h
+            if (reservation.hasArrived) {
+              reservationClass = "bg-green-500 text-white"; // Vert si arrivé
+            } else if (
+              new Date(`1970-01-01T${reservation.timeResa}`) >=
+              new Date(`1970-01-01T21:00:00`)
+            ) {
+              reservationClass = "bg-orange-500"; // Orange si après 21h
+            }
 
-          {/* Deuxième réservation avec style légèrement différent */}
-          {occupiedReservations.length > 1 && (
-            <div
-              className="flex-1 flex items-center justify-center text-xs border-t border-white cursor-pointer bg-yellow-500 p-1 rounded-b"
-              onClick={() => {
-                if (!isEditing && !isCreating) {
-                  setSelectedReservation(occupiedReservations[1]);
-                  setIsReservationModalOpen(true);
-                }
-              }}
-            >
-              {`${occupiedReservations[1].clientPrenom} ${occupiedReservations[1].clientNom} ${occupiedReservations[1].numberOfGuest}p ${occupiedReservations[1].timeResa}`}
-            </div>
-          )}
+            return (
+              <div
+                key={index}
+                className={`flex-1 flex items-center justify-center text-xs cursor-pointer p-1 ${reservationClass} ${
+                  index === 0 ? "rounded-t" : "border-t border-white"
+                }`}
+                onClick={() => {
+                  if (!isEditing && !isCreating) {
+                    setSelectedReservation(reservation);
+                    setIsReservationModalOpen(true);
+                  }
+                }}
+              >
+                {`${reservation.clientPrenom} ${reservation.clientNom} ${reservation.numberOfGuest}p ${reservation.timeResa}`}
+              </div>
+            );
+          })}
           <div className="text-center w-full mt-0.5">
             {getFreeTable21Info(table)}
           </div>
@@ -342,6 +364,22 @@ const ModalViewPlan = ({ date, period, onClose }) => {
   const formattedDate = format(new Date(date), "EEEE dd MMMM yyyy", {
     locale: fr,
   });
+
+  const shouldShowCreateSpontaneousButton = (selectedDate) => {
+    const currentDate = new Date();
+
+    // Vérifie si la date sélectionnée est différente de la date du jour ou si l'heure actuelle est supérieure à 15h
+    if (
+      !isSameDay(currentDate, new Date(selectedDate)) ||
+      currentDate.getHours() >= 15
+    ) {
+      return false;
+    }
+
+    return true;
+  };
+
+  const showCreateSpontaneousButton = shouldShowCreateSpontaneousButton(date);
 
   return (
     <div
@@ -421,12 +459,14 @@ const ModalViewPlan = ({ date, period, onClose }) => {
               <h1 className="text-base font-semibold text-gray-600 text-left">
                 Réservations à placer
               </h1>
-              <button
-                className="bg-green-500 text-white px-4 py-1 rounded-md shadow-sm hover:bg-green-600 transition duration-200"
-                onClick={handleCreateSpontaneousReservation}
-              >
-                Créer client de passage
-              </button>
+              {showCreateSpontaneousButton && (
+                <button
+                  className="bg-green-500 text-white px-4 py-1 rounded-md shadow-sm hover:bg-green-600 transition duration-200"
+                  onClick={handleCreateSpontaneousReservation}
+                >
+                  Créer client de passage
+                </button>
+              )}
             </div>
           )}
           <div className="flex flex-wrap gap-2 justify-start">
@@ -660,6 +700,8 @@ const ModalViewPlan = ({ date, period, onClose }) => {
             reservation={selectedReservation}
             onClose={() => setIsReservationModalOpen(false)}
             onMove={handleMove}
+            date={date} // Passe date
+            period={period}
           />
         )}
 
