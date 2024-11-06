@@ -371,7 +371,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     // Vérifie si la date sélectionnée est différente de la date du jour ou si l'heure actuelle est supérieure à 15h
     if (
       !isSameDay(currentDate, new Date(selectedDate)) ||
-      currentDate.getHours() >= 15
+      currentDate.getHours() <= 15
     ) {
       return false;
     }
@@ -380,6 +380,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
   };
 
   const showCreateSpontaneousButton = shouldShowCreateSpontaneousButton(date);
+  console.log("showCreateSpontaneousButton >" + showCreateSpontaneousButton);
 
   return (
     <div
