@@ -431,8 +431,16 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           )}
           <div className="flex flex-wrap gap-2 justify-start">
             {reservations?.length === 0 ? (
-              <div className="w-full text-center text-lg font-bold text-green-600">
-                Toutes les réservations sont placées, bravo !!
+              <div className="w-full flex justify-between items-center">
+                <div className="text-lg font-bold text-green-600">
+                  Toutes les réservations sont placées, bravo !!
+                </div>
+                <button
+                  className="bg-green-500 text-white px-4 py-1 rounded-md shadow-sm hover:bg-green-600 transition duration-200"
+                  onClick={handleCreateSpontaneousReservation}
+                >
+                  Créer client de passage
+                </button>
               </div>
             ) : (
               reservations?.map((reservation) => (
