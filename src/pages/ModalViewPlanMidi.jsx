@@ -371,12 +371,10 @@ const ModalViewPlanMidi = ({ date, period, onClose }) => {
     locale: fr,
   });
   const shouldShowCreateSpontaneousButton = (date) => {
-    const currentDate = new Date().toLocaleString("fr-FR", {
-      timeZone: "Europe/Paris",
-    });
-
-    console.log("currentDate >" + currentDate);
-    console.log("current hour >" + currentDate.getHours());
+    // Crée une nouvelle date avec le fuseau horaire "Europe/Paris"
+    const currentDate = new Date(
+      new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" })
+    );
 
     // Vérifie si la date sélectionnée est différente de la date du jour ou si l'heure actuelle est supérieure à 15h
     if (
