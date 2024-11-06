@@ -365,26 +365,6 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     locale: fr,
   });
 
-  const shouldShowCreateSpontaneousButton = (date) => {
-    // Crée une nouvelle date avec le fuseau horaire "Europe/Paris"
-    const currentDate = new Date(
-      new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" })
-    );
-
-    // Vérifie si la date sélectionnée est différente de la date du jour ou si l'heure actuelle est supérieure à 15h
-    if (
-      !isSameDay(currentDate, new Date(date)) ||
-      currentDate.getHours() <= 15
-    ) {
-      return false;
-    }
-
-    return true;
-  };
-
-  const showCreateSpontaneousButton = shouldShowCreateSpontaneousButton(date);
-  console.log("showCreateSpontaneousButton >" + showCreateSpontaneousButton);
-
   return (
     <div
       className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50 modal-overlay"
@@ -463,14 +443,13 @@ const ModalViewPlan = ({ date, period, onClose }) => {
               <h1 className="text-base font-semibold text-gray-600 text-left">
                 Réservations à placer
               </h1>
-              {showCreateSpontaneousButton && (
-                <button
-                  className="bg-green-500 text-white px-4 py-1 rounded-md shadow-sm hover:bg-green-600 transition duration-200"
-                  onClick={handleCreateSpontaneousReservation}
-                >
-                  Créer client de passage
-                </button>
-              )}
+
+              <button
+                className="bg-green-500 text-white px-4 py-1 rounded-md shadow-sm hover:bg-green-600 transition duration-200"
+                onClick={handleCreateSpontaneousReservation}
+              >
+                Créer client de passage
+              </button>
             </div>
           )}
           <div className="flex flex-wrap gap-2 justify-start">

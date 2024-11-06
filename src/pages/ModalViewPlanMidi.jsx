@@ -370,25 +370,6 @@ const ModalViewPlanMidi = ({ date, period, onClose }) => {
   const formattedDate = format(new Date(date), "EEEE dd MMMM yyyy", {
     locale: fr,
   });
-  const shouldShowCreateSpontaneousButton = (date) => {
-    // Crée une nouvelle date avec le fuseau horaire "Europe/Paris"
-    const currentDate = new Date(
-      new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" })
-    );
-
-    // Vérifie si la date sélectionnée est différente de la date du jour ou si l'heure actuelle est supérieure à 15h
-    if (
-      !isSameDay(currentDate, new Date(date)) ||
-      currentDate.getHours() >= 15
-    ) {
-      return false;
-    }
-
-    return true;
-  };
-
-  // Affiche le bouton si la fonction retourne true
-  const showCreateSpontaneousButton = shouldShowCreateSpontaneousButton(date);
 
   return (
     <div
@@ -483,14 +464,13 @@ const ModalViewPlanMidi = ({ date, period, onClose }) => {
                 <div className="text-lg font-bold text-green-600">
                   Toutes les réservations sont placées, bravo !!
                 </div>
-                {showCreateSpontaneousButton && (
-                  <button
-                    className="bg-green-500 text-white px-4 py-1 rounded-md shadow-sm hover:bg-green-600 transition duration-200"
-                    onClick={handleCreateSpontaneousReservation}
-                  >
-                    Créer client de passage
-                  </button>
-                )}
+
+                <button
+                  className="bg-green-500 text-white px-4 py-1 rounded-md shadow-sm hover:bg-green-600 transition duration-200"
+                  onClick={handleCreateSpontaneousReservation}
+                >
+                  Créer client de passage
+                </button>
               </div>
             ) : (
               reservations?.map((reservation) => (
