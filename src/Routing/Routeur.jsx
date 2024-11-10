@@ -18,6 +18,8 @@ import UpdateResaFormClient from "../Components/UpdateResaFormClient";
 import GirStaff from "../pages/GirStaff";
 import UserList from "../pages/UserList";
 import ResaExternesClients from "../pages/ResaExternesClients";
+import PowerUserPage from "../pages/PowerUserPage";
+import PowerUpdateForm from "../Components/PowerUpdateForm";
 
 const Routeur = () => {
   const dispatch = useDispatch();
@@ -62,6 +64,10 @@ const Routeur = () => {
           element={<UserProtectedRoute element={UpdateResaForm} />}
         />
         <Route
+          path="/power-update"
+          element={<UserProtectedRoute element={PowerUpdateForm} />}
+        />
+        <Route
           path="/sign-in"
           element={user ? <Navigate to="/" /> : <SignIn />}
         />
@@ -80,6 +86,15 @@ const Routeur = () => {
           element={
             <RoleProtectedRoute
               element={OccStatusManagement}
+              allowedRoles={["ADMIN"]}
+            />
+          }
+        />
+        <Route
+          path="/power-user"
+          element={
+            <RoleProtectedRoute
+              element={PowerUserPage}
               allowedRoles={["ADMIN"]}
             />
           }

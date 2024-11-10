@@ -51,6 +51,14 @@ export const reservationsApi = createApi({
       }),
       invalidatesTags: ["Reservations", "HECStatuts"],
     }),
+    powerUpdateReservation: builder.mutation({
+      query: ({ id, ...updatedReservation }) => ({
+        url: `Reservations/PowerUser/${id}`,
+        method: "PUT",
+        body: updatedReservation,
+      }),
+      invalidatesTags: ["Reservations", "HECStatuts"],
+    }),
     validateReservation: builder.mutation({
       query: ({ id, isSms = false }) => ({
         url: `Reservations/${id}/validate?isSms=${isSms}`,
@@ -127,12 +135,14 @@ export const reservationsApi = createApi({
       invalidatesTags: ["Reservations", "HECStatuts"],
     }),
     createSpontaneousReservation: builder.mutation({
-      query: () => ({
+      query: ({ date, period }) => ({
         url: "Reservations/spontaneous",
         method: "POST",
+        body: { date, period }, // Envoi des paramètres au backend
       }),
       invalidatesTags: ["Reservations", "HECStatuts"],
     }),
+
     setHasArrived: builder.mutation({
       query: ({ id, hasArrived }) => ({
         url: `Reservations/${id}/has-arrived?hasArrived=${hasArrived}`,
@@ -140,12 +150,30 @@ export const reservationsApi = createApi({
       }),
       invalidatesTags: ["Reservations"],
     }),
+
     setDepartClient: builder.mutation({
       query: (id) => ({
         url: `Reservations/depart/${id}`,
         method: "PUT",
       }),
       invalidatesTags: ["Reservations", "Allocations"],
+    }),
+
+    powerUserCreateReservation: builder.mutation({
+      query: (newReservation) => ({
+        url: "Reservations/power-user",
+        method: "POST",
+        body: newReservation,
+      }),
+      invalidatesTags: ["Reservations", "HECStatuts"],
+    }),
+
+    lastMinuteChange: builder.mutation({
+      query: ({ id, newGuestCount }) => ({
+        url: `Reservations/${id}/last-minute-change?newGuestCount=${newGuestCount}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Reservations"],
     }),
   }),
 });
@@ -173,6 +201,9 @@ export const {
   useCreateSpontaneousReservationMutation,
   useSetHasArrivedMutation,
   useSetDepartClientMutation,
+  usePowerUserCreateReservationMutation,
+  usePowerUpdateReservationMutation,
+  useLastMinuteChangeMutation,
 } = reservationsApi;
 
 export default reservationsApi;

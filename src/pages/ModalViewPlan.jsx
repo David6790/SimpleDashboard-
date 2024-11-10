@@ -167,19 +167,28 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           new Date(`1970-01-01T19:00:00`)
       );
 
-    return `table border-2 shadow-md flex flex-col justify-between text-xs h-12 rounded-md ${
-      isArrived
-        ? "bg-green-500 text-white" // Background vert si le client est arrivé
-        : isSelected(table)
-        ? "bg-blue-500 text-white border-blue-700 border-4" // Bordure bleue si sélectionnée
-        : isAfter21h
-        ? "bg-orange-500" // Orange pour les réservations après 21h
-        : isBefore19h
-        ? "bg-yellow-400" // Jaune pour les réservations avant 19h
-        : isOccupied(table)
-        ? "bg-yellow-400" // Jaune par défaut pour les autres réservations occupées
-        : "border-gray-300 bg-white hover:shadow-md hover:border-gray-400 transition duration-200 ease-in-out"
-    }`;
+    // Classes de base
+    const baseClasses =
+      "table border-2 shadow-md flex flex-col justify-between text-xs h-12 rounded-md";
+
+    // Déterminez la classe de fond en fonction de l'état
+    let backgroundClass = "";
+    if (isArrived) {
+      backgroundClass = "bg-green-500 text-white"; // Background vert si le client est arrivé
+    } else if (isAfter21h) {
+      backgroundClass = "bg-orange-500"; // Orange pour les réservations après 21h
+    } else if (isBefore19h || isOccupied(table)) {
+      backgroundClass = "bg-yellow-400"; // Jaune pour les réservations avant 19h ou autres réservations occupées
+    } else {
+      backgroundClass =
+        "border-gray-300 bg-white hover:shadow-md hover:border-gray-400 transition duration-200 ease-in-out"; // Styles par défaut
+    }
+
+    // Appliquez la bordure bleue si la table est sélectionnée
+    const selectionClass = isSelected(table) ? "border-blue-700 border-4" : "";
+
+    // Retournez la combinaison de toutes les classes
+    return `${baseClasses} ${backgroundClass} ${selectionClass}`;
   };
 
   const isSelected = (table) => selectedTables.includes(table);
@@ -208,10 +217,21 @@ const ModalViewPlan = ({ date, period, onClose }) => {
 
   const handleCreateSpontaneousReservation = async () => {
     try {
-      const response = await createSpontaneousReservation().unwrap();
+      // Récupérer la date actuelle en format "yyyy-MM-dd"
+      const currentDate = format(new Date(date), "yyyy-MM-dd");
+
+      // Appeler la mutation avec les paramètres requis pour la période du soir
+      const response = await createSpontaneousReservation({
+        date: currentDate,
+        period: "soir",
+      }).unwrap();
+
       console.log("Réservation de Présentation Spontanée créée:", response);
-      refetchReservations(); // Rechargement des réservations pour inclure la nouvelle réservation
+
+      // Rafraîchir les réservations pour inclure la nouvelle réservation
+      refetchReservations();
     } catch (error) {
+      // Gestion de l'erreur et ouverture du modal d'erreur avec le message approprié
       setErrorMessage(
         error.data?.error ||
           "Erreur lors de la création de la réservation de client de passage."

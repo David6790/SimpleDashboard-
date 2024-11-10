@@ -3,13 +3,12 @@ import { Dialog, Transition } from "@headlessui/react";
 import {
   Bars3Icon,
   BookOpenIcon,
-  ChartPieIcon,
-  DocumentDuplicateIcon,
   HomeIcon,
   UsersIcon,
   XMarkIcon,
   CalendarDaysIcon,
   CircleStackIcon,
+  BoltIcon,
 } from "@heroicons/react/24/outline";
 import { NavLink } from "react-router-dom";
 import { useGetNotificationToggleQuery } from "../services/toggleApi"; // Import du hook API toggle
@@ -40,12 +39,12 @@ const navigation = [
     icon: UsersIcon,
     current: false,
   },
-  // {
-  //   name: "Test",
-  //   href: "/resa-externe",
-  //   icon: DocumentDuplicateIcon,
-  //   current: false,
-  // },
+  {
+    name: "Power User",
+    href: "/power-user",
+    icon: BoltIcon,
+    current: false,
+  },
 ];
 
 function classNames(...classes) {

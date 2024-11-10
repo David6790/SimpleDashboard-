@@ -31,6 +31,10 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
     navigate("/reservation-update", { state: { reservation } });
   };
 
+  const handleEditPowerReservation = () => {
+    navigate("/power-update", { state: { reservation } });
+  };
+
   const handleOpenConfirmationButtons = () => {
     setShowConfirmationButtons(true);
   };
@@ -228,7 +232,12 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
 
                           {reservation.status === "A" ||
                           reservation.status === "R" ? (
-                            ""
+                            <button
+                              onClick={handleGir}
+                              className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
+                            >
+                              Ouvrir la GIR
+                            </button>
                           ) : (
                             <div className="bg-gray-50 p-4 rounded-lg shadow flex flex-col gap-5">
                               {reservation.status !== "M" && (
@@ -239,6 +248,7 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                                   Modifier la réservation
                                 </button>
                               )}
+
                               <button
                                 onClick={handleGir}
                                 className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
@@ -276,6 +286,14 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                                       className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
                                     >
                                       Annuler la réservation
+                                    </button>
+                                  )}
+                                  {isAdmin.role === "ADMIN" && (
+                                    <button
+                                      onClick={handleEditPowerReservation}
+                                      className="w-full bg-indigo-600 text-white rounded-md py-2 text-center font-semibold hover:bg-indigo-700"
+                                    >
+                                      POWER MOD
                                     </button>
                                   )}
                                 </div>

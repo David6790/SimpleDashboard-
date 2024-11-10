@@ -5,7 +5,8 @@ import {
 } from "../services/allocationsApi";
 import {
   useSetHasArrivedMutation,
-  useSetDepartClientMutation, // Import du hook pour marquer le départ
+  useSetDepartClientMutation,
+  useLastMinuteChangeMutation,
   reservationsApi,
 } from "../services/reservations";
 import { useDispatch } from "react-redux";
@@ -20,11 +21,18 @@ const ReservationDetailModal = ({
 }) => {
   const [deleteAllocation] = useDeleteAllocationsByReservationMutation();
   const [setHasArrived] = useSetHasArrivedMutation();
-  const [setDepartClient] = useSetDepartClientMutation(); // Utiliser le hook pour le départ
+  const [setDepartClient] = useSetDepartClientMutation();
+  const [lastMinuteChange, { isLoading: isLastMinuteChangeLoading }] =
+    useLastMinuteChangeMutation();
   const dispatch = useDispatch();
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false); // État pour le modal de confirmation
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // État pour le mode "Last Minute Changes"
+  const [isLastMinuteChangeMode, setIsLastMinuteChangeMode] = useState(false);
+  const [newGuestCount, setNewGuestCount] = useState("");
+  const [inputError, setInputError] = useState("");
 
   const { data: allocations, refetch: refetchAllocations } =
     useGetAllocationsQuery({
@@ -36,6 +44,8 @@ const ReservationDetailModal = ({
 
   const freeTable21Style =
     reservation.freeTable21 === "O" ? "bg-yellow-300" : "bg-red-300";
+
+  // Méthodes définies en dehors du JSX
 
   const handleMoveClick = () => {
     if (onMove && reservation.reservationId) {
@@ -85,6 +95,35 @@ const ReservationDetailModal = ({
 
   const closeErrorModal = () => setIsErrorModalOpen(false);
 
+  const handleLastMinuteChangeClick = () => {
+    setIsLastMinuteChangeMode(true);
+  };
+
+  const handleLastMinuteChangeCancel = () => {
+    setIsLastMinuteChangeMode(false);
+    setInputError("");
+    setNewGuestCount("");
+  };
+
+  const handleLastMinuteChangeSubmit = async () => {
+    // Validation de l'entrée
+    if (!newGuestCount || isNaN(newGuestCount) || Number(newGuestCount) <= 0) {
+      setInputError("Veuillez entrer un nombre entier positif.");
+      return;
+    }
+    try {
+      await lastMinuteChange({
+        id: reservation.reservationId,
+        newGuestCount: newGuestCount,
+      }).unwrap();
+      // Après le changement réussi, fermer le modal et refetch les allocations
+      await refetchAllocations();
+      onClose();
+    } catch (error) {
+      setInputError(error.data?.message || "Une erreur est survenue.");
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50 modal-overlay"
@@ -123,42 +162,86 @@ const ReservationDetailModal = ({
             <strong>Commentaire:</strong> {reservation.comment || "Aucun"}
           </p>
         </div>
-        <div className="flex justify-center mt-6 space-x-4">
-          <button
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-            onClick={onClose}
-          >
-            Fermer
-          </button>
-          <button
-            className="bg-yellow-500 text-white px-4 py-2 rounded"
-            onClick={handleMoveClick}
-          >
-            Déplacer
-          </button>
-          <button
-            className="bg-red-500 text-white px-4 py-2 rounded"
-            onClick={handleDeleteAllocation}
-          >
-            Retirer du plan
-          </button>
-          <button
-            className={`${
-              !reservation.hasArrived ? "bg-green-500" : "bg-gray-500"
-            } text-white px-4 py-2 rounded`}
-            onClick={handleArrivalStatusChange}
-          >
-            {reservation.hasArrived ? "Oups, me suis trompé" : "Marquer arrivé"}
-          </button>
-          {reservation.hasArrived && (
+
+        {!isLastMinuteChangeMode ? (
+          // Boutons initiaux
+          <div className="flex justify-center mt-6 space-x-4">
             <button
-              className="bg-orange-500 text-white px-4 py-2 rounded"
-              onClick={openConfirmModal}
+              className="bg-blue-500 text-white px-4 py-2 rounded"
+              onClick={onClose}
             >
-              Départ Client
+              Fermer
             </button>
-          )}
-        </div>
+            <button
+              className="bg-yellow-500 text-white px-4 py-2 rounded"
+              onClick={handleMoveClick}
+            >
+              Déplacer
+            </button>
+            <button
+              className="bg-red-500 text-white px-4 py-2 rounded"
+              onClick={handleDeleteAllocation}
+            >
+              Retirer du plan
+            </button>
+            <button
+              className={`${
+                !reservation.hasArrived ? "bg-green-500" : "bg-gray-500"
+              } text-white px-4 py-2 rounded`}
+              onClick={handleArrivalStatusChange}
+            >
+              {reservation.hasArrived
+                ? "Oups, me suis trompé"
+                : "Marquer arrivé"}
+            </button>
+            {reservation.hasArrived && (
+              <button
+                className="bg-orange-500 text-white px-4 py-2 rounded"
+                onClick={openConfirmModal}
+              >
+                Départ Client
+              </button>
+            )}
+            {/* Bouton pour Last Minute Changes */}
+            <button
+              className="bg-purple-500 text-white px-4 py-2 rounded"
+              onClick={handleLastMinuteChangeClick}
+            >
+              Last Minute Changes
+            </button>
+          </div>
+        ) : (
+          // Formulaire pour Last Minute Changes
+          <div className="mt-6">
+            <label className="block mb-2">
+              Nouveau nombre de personnes:
+              <input
+                type="number"
+                className="border rounded w-full py-2 px-3 mt-1"
+                value={newGuestCount}
+                onChange={(e) => setNewGuestCount(e.target.value)}
+              />
+            </label>
+            {inputError && <p className="text-red-500 text-sm">{inputError}</p>}
+            <div className="flex justify-center mt-4 space-x-4">
+              <button
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+                onClick={handleLastMinuteChangeCancel}
+              >
+                Annuler
+              </button>
+              <button
+                className="bg-green-500 text-white px-4 py-2 rounded"
+                onClick={handleLastMinuteChangeSubmit}
+                disabled={isLastMinuteChangeLoading}
+              >
+                {isLastMinuteChangeLoading ? "EN COURS..." : "Soumettre"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de confirmation pour Départ Client */}
         {isConfirmModalOpen && (
           <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
             <div className="bg-white p-4 rounded-md shadow-lg max-w-sm w-full m-4">
@@ -191,10 +274,11 @@ const ReservationDetailModal = ({
           </div>
         )}
       </div>
+      {/* Modal d'erreur */}
       <ErrorModal
         isOpen={isErrorModalOpen}
         errorMessage={errorMessage}
-        onClose={() => setIsErrorModalOpen(false)}
+        onClose={closeErrorModal}
       />
     </div>
   );

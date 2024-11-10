@@ -83,6 +83,8 @@ const ModalViewPlanMidi = ({ date, period, onClose }) => {
     }
   };
 
+  console.log("date >" + date);
+
   const { data: allocations } = useGetAllocationsQuery({
     date,
     period,
@@ -138,10 +140,21 @@ const ModalViewPlanMidi = ({ date, period, onClose }) => {
 
   const handleCreateSpontaneousReservation = async () => {
     try {
-      const response = await createSpontaneousReservation().unwrap();
+      // Récupérer la date actuelle en format "yyyy-MM-dd"
+      const currentDate = format(new Date(date), "yyyy-MM-dd");
+
+      // Appeler la mutation avec les paramètres requis
+      const response = await createSpontaneousReservation({
+        date: currentDate,
+        period: "midi",
+      }).unwrap();
+
       console.log("Réservation de Présentation Spontanée créée:", response);
-      refetchReservations(); // Rechargement des réservations pour inclure la nouvelle réservation
+
+      // Rafraîchir les réservations pour inclure la nouvelle réservation
+      refetchReservations();
     } catch (error) {
+      // Gestion de l'erreur et ouverture du modal d'erreur avec le message approprié
       setErrorMessage(
         error.data?.error ||
           "Erreur lors de la création de la réservation de client de passage."
@@ -155,36 +168,49 @@ const ModalViewPlanMidi = ({ date, period, onClose }) => {
 
   const getTableClass = (table) => {
     const tableReservations = occupiedTables[table];
+
+    // Classes de base
+    const baseClasses =
+      "table border-2 shadow-md flex flex-col justify-between text-xs h-12 rounded-md";
+
     const isSelectedTable = isSelected(table); // Vérifie si la table est sélectionnée
 
-    // Si la table n'est pas occupée, elle reste blanche avec bordure bleue si sélectionnée
+    // Déterminer la classe de sélection
+    const selectionClass = isSelectedTable ? "border-blue-500 border-4" : "";
+
+    // Définir la classe de fond par défaut
+    let backgroundClass = "";
+
     if (!isOccupied(table)) {
-      return `table border-2 shadow-md flex flex-col justify-between text-xs h-12 rounded-md ${
-        isSelectedTable ? "border-blue-500 border-4" : "border-gray-300"
-      } bg-white hover:shadow-md hover:border-gray-400 transition duration-200 ease-in-out`;
+      backgroundClass =
+        "bg-white hover:shadow-md hover:border-gray-400 transition duration-200 ease-in-out";
+    } else {
+      // Vérifie si au moins une réservation de la table a `hasArrived` à true
+      const isArrived = tableReservations.some(
+        (reservation) => reservation.hasArrived
+      );
+
+      const isAfter1330 = tableReservations.some(
+        (reservation) =>
+          new Date(`1970-01-01T${reservation.timeResa}`) >=
+          new Date(`1970-01-01T13:30:00`)
+      );
+
+      // Déterminer la classe de fond pour les tables occupées
+      if (isArrived) {
+        backgroundClass = "bg-green-500 text-white"; // Vert si le client est arrivé
+      } else if (isAfter1330) {
+        backgroundClass = "bg-orange-500"; // Orange pour les créneaux après 13h30
+      } else {
+        backgroundClass = "bg-yellow-400"; // Jaune pour les créneaux avant 13h30
+      }
     }
 
-    // Vérifie si au moins une réservation de la table a `hasArrived` à true
-    const isArrived = tableReservations.some(
-      (reservation) => reservation.hasArrived
-    );
+    // Définir la classe de bordure par défaut pour les tables non occupées
+    const defaultBorderClass = !isOccupied(table) ? "border-gray-300" : "";
 
-    const isAfter1330 = tableReservations.some(
-      (reservation) =>
-        new Date(`1970-01-01T${reservation.timeResa}`) >=
-        new Date(`1970-01-01T13:30:00`)
-    );
-
-    // Classe CSS en fonction des conditions pour les tables occupées
-    return `table border-2 shadow-md flex flex-col justify-between text-xs h-12 rounded-md ${
-      isSelectedTable ? "border-blue-500 border-4" : ""
-    } ${
-      isArrived
-        ? "bg-green-500 text-white" // Vert si le client est arrivé
-        : isAfter1330
-        ? "bg-orange-500" // Orange pour les créneaux après 13h30
-        : "bg-yellow-400" // Jaune pour les créneaux avant 13h30
-    }`;
+    // Retourner la combinaison des classes
+    return `${baseClasses} ${backgroundClass} ${defaultBorderClass} ${selectionClass}`;
   };
 
   const isSelected = (table) => selectedTables.includes(table);
