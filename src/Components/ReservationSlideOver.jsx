@@ -2,12 +2,13 @@ import React, { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { useCancelNoShowReservationMutation } from "../services/reservations";
 import { getStatusText } from "../Outils/conversionTextStatus";
 import ModalNotesInternes from "./ModalNotesInternes";
 import { useAddNoteInterneMutation } from "../services/reservations";
+import allocationsApi from "../services/allocationsApi";
 
 function formatTimestamp(dateString) {
   const options = {
@@ -56,6 +57,10 @@ function ReservationSlideOver({
     setShowConfirmationButtons(false);
   };
 
+  const dispatch = useDispatch();
+  const period =
+    reservation && reservation.timeResa < "15:00:00" ? "midi" : "soir";
+  const date = reservation && reservation.dateResa;
   const handleAddNote = async () => {
     if (!noteContent.trim()) {
       alert("La note ne peut pas être vide.");
@@ -69,7 +74,14 @@ function ReservationSlideOver({
       }).unwrap();
 
       setIsAddingNote(false); // Fermer la zone de texte après succès
-      setNoteContent(""); // Réinitialiser le contenu
+      setNoteContent("");
+      dispatch(
+        allocationsApi.endpoints.getAllocations.initiate(
+          { date, period },
+          { forceRefetch: true }
+        )
+      );
+      // Réinitialiser le contenu
 
       // Rafraîchir les données de la réservation
       if (refreshReservations) {
