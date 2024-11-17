@@ -119,37 +119,24 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     useCreateAllocationMutation();
 
   useEffect(() => {
-    document.body.classList.add("no-scroll");
-
     if (allocations) {
-      console.log(allocations);
-
       const occupied = allocations.reduce((acc, allocation) => {
         const tableName = allocation.table.name;
-
-        // Initialise la table dans l'accumulateur si elle n'existe pas encore
         if (!acc[tableName]) {
           acc[tableName] = [];
         }
-
-        // Ajoute les propriétés de `reservation` via le spread operator
         acc[tableName].push({
-          ...allocation.reservation, // Toutes les propriétés de reservation
-          tableId: allocation.table.id, // Ajoute des propriétés spécifiques
-          reservationId: allocation.reservationId,
+          clientPrenom: allocation.reservation.clientPrenom,
+          clientNom: allocation.reservation.clientName,
+          timeResa: allocation.reservation.timeResa,
+          numberOfGuest: allocation.reservation.numberOfGuest,
+          freeTable21: allocation.reservation.freeTable21,
           isAfter21hReservation: allocation.reservation.timeResa >= "21:00:00",
         });
-
         return acc;
       }, {});
-
       setOccupiedTables(occupied);
-      console.log("Occupied Tables:", occupied);
     }
-
-    return () => {
-      document.body.classList.remove("no-scroll");
-    };
   }, [allocations]);
 
   const isOccupied = (table) =>
