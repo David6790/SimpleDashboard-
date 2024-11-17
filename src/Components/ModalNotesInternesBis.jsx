@@ -85,33 +85,6 @@ const ModalNotesInternesBis = ({ reservation, onClose, refetchData }) => {
                   Créé par : {note.createdBy || "Non spécifié"} -{" "}
                   {formatTimestamp(note.createdAt)}
                 </p>
-
-                {/* Bouton Supprimer */}
-                <div className="mt-2">
-                  {noteToDelete === note.id ? (
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleDeleteNote(note.id)}
-                        className="text-sm font-medium text-red-600 hover:text-red-800"
-                      >
-                        Confirmer Suppression
-                      </button>
-                      <button
-                        onClick={() => setNoteToDelete(null)}
-                        className="text-sm font-medium text-gray-600 hover:text-gray-800"
-                      >
-                        Annuler
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setNoteToDelete(note.id)}
-                      className="text-sm font-medium text-blue-600 hover:text-blue-800"
-                    >
-                      Supprimer
-                    </button>
-                  )}
-                </div>
               </div>
             ))}
           </div>
