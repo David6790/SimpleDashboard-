@@ -119,7 +119,10 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     useCreateAllocationMutation();
 
   useEffect(() => {
+    document.body.classList.add("no-scroll");
+
     if (allocations) {
+      console.log(allocations);
       const occupied = allocations.reduce((acc, allocation) => {
         const tableName = allocation.table.name;
         if (!acc[tableName]) {
@@ -130,13 +133,25 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           clientNom: allocation.reservation.clientName,
           timeResa: allocation.reservation.timeResa,
           numberOfGuest: allocation.reservation.numberOfGuest,
-          freeTable21: allocation.reservation.freeTable21,
-          isAfter21hReservation: allocation.reservation.timeResa >= "21:00:00",
+          freeTable1330: allocation.reservation.freeTable1330, // Modification ici pour le midi
+          freeTable21: allocation.reservation.freeTable21, // Modification ici pour le midi
+          comment: allocation.reservation.comment,
+          clienttelephone: allocation.reservation.clientTelephone,
+          isAfter1330Reservation: allocation.reservation.timeResa >= "13:30:00",
+          tableId: allocation.table.id,
+          reservationId: allocation.reservationId,
+          hasArrived: allocation.reservation.hasArrived,
+          notesInternes: allocation.reservation.notesInternes || [],
         });
+
         return acc;
       }, {});
+
       setOccupiedTables(occupied);
     }
+    return () => {
+      document.body.classList.remove("no-scroll");
+    };
   }, [allocations]);
 
   const isOccupied = (table) =>

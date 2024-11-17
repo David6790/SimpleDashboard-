@@ -45,6 +45,8 @@ const ReservationDetailModal = ({
 
   if (!reservation) return null;
 
+  console.log(reservation);
+
   const freeTable21Style =
     reservation.freeTable21 === "O" ? "bg-yellow-300" : "bg-red-300";
 
