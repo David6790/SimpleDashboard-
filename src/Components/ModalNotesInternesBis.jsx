@@ -29,8 +29,7 @@ const ModalNotesInternesBis = ({ reservation, onClose, refetchData }) => {
     try {
       await deleteNoteInterne(noteId).unwrap();
       setNoteToDelete(null); // Réinitialiser l'état
-      await refetchData(); // Rafraîchir les données
-      onClose();
+      onClose(); // Fermer le modal
     } catch (error) {
       console.error(
         "Erreur lors de la suppression de la note interne :",
