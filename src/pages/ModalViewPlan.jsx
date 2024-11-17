@@ -15,6 +15,7 @@ import ErrorModal from "../Components/ErrorModal"; // Import du modal d'erreur
 import { useDispatch } from "react-redux";
 import { reservationsApi } from "../services/reservations";
 import jsPDF from "jspdf";
+import ModalNotesInternes from "../Components/ModalNotesInternes";
 
 const tableIdMapping = {
   1: 1,
@@ -58,6 +59,10 @@ const ModalViewPlan = ({ date, period, onClose }) => {
 
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false); // État pour le modal d'erreur
   const [errorMessage, setErrorMessage] = useState(""); // État pour le message d'erreur
+
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false); // État pour gérer l'ouverture du modal
+  const [selectedReservationForNotes, setSelectedReservationForNotes] =
+    useState(null);
   const dispatch = useDispatch();
 
   const downloadPDF = () => {
@@ -91,8 +96,6 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     period,
   });
 
-  console.log(date);
-
   const {
     data: reservations,
     refetch: refetchReservations, // Ajoute la méthode refetch
@@ -101,6 +104,15 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     period,
   });
 
+  const handleOpenNotesModal = (reservation) => {
+    setSelectedReservationForNotes(reservation); // Définit la réservation pour le modal
+    setIsNotesModalOpen(true); // Ouvre le modal
+  };
+
+  const handleCloseNotesModal = () => {
+    setSelectedReservationForNotes(null); // Réinitialise la réservation
+    setIsNotesModalOpen(false); // Ferme le modal
+  };
   console.log(reservations);
   const [changeAllocation, { isLoading }] = useChangeAllocationMutation();
   const [createAllocation, { isLoading: isCreatingLoading }] =
@@ -110,29 +122,31 @@ const ModalViewPlan = ({ date, period, onClose }) => {
     document.body.classList.add("no-scroll");
 
     if (allocations) {
+      console.log(allocations);
+
       const occupied = allocations.reduce((acc, allocation) => {
         const tableName = allocation.table.name;
+
+        // Initialise la table dans l'accumulateur si elle n'existe pas encore
         if (!acc[tableName]) {
           acc[tableName] = [];
         }
+
+        // Ajoute les propriétés de `reservation` via le spread operator
         acc[tableName].push({
-          clientPrenom: allocation.reservation.clientPrenom,
-          clientNom: allocation.reservation.clientName,
-          timeResa: allocation.reservation.timeResa,
-          numberOfGuest: allocation.reservation.numberOfGuest,
-          freeTable21: allocation.reservation.freeTable21,
-          comment: allocation.reservation.comment,
-          clienttelephone: allocation.reservation.clientTelephone,
-          isAfter21hReservation: allocation.reservation.timeResa >= "21:00:00",
-          tableId: allocation.table.id,
+          ...allocation.reservation, // Toutes les propriétés de reservation
+          tableId: allocation.table.id, // Ajoute des propriétés spécifiques
           reservationId: allocation.reservationId,
-          hasArrived: allocation.reservation.hasArrived, // Ajout de hasArrived ici
+          isAfter21hReservation: allocation.reservation.timeResa >= "21:00:00",
         });
 
         return acc;
       }, {});
+
       setOccupiedTables(occupied);
+      console.log("Occupied Tables:", occupied);
     }
+
     return () => {
       document.body.classList.remove("no-scroll");
     };
@@ -299,8 +313,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
       return (
         <>
           {occupiedReservations.map((reservation, index) => {
-            // Détermine la couleur de fond en fonction de l'heure de réservation et de `hasArrived`
-            let reservationClass = "bg-yellow-400"; // Par défaut jaune pour les réservations avant 19h
+            let reservationClass = "bg-yellow-400"; // Par défaut jaune
             if (reservation.hasArrived) {
               reservationClass = "bg-green-500 text-white"; // Vert si arrivé
             } else if (
@@ -310,10 +323,16 @@ const ModalViewPlan = ({ date, period, onClose }) => {
               reservationClass = "bg-orange-500"; // Orange si après 21h
             }
 
+            // Ajouter la classe "blink" si `notesInternes` existe
+            const blinkClass =
+              reservation.notesInternes && reservation.notesInternes.length > 0
+                ? "blink"
+                : "";
+
             return (
               <div
                 key={index}
-                className={`flex-1 flex items-center justify-center text-xs cursor-pointer p-1 ${reservationClass} ${
+                className={`flex-1 flex items-center justify-center text-xs cursor-pointer p-1 ${reservationClass} ${blinkClass} ${
                   index === 0 ? "rounded-t" : "border-t border-white"
                 }`}
                 onClick={() => {
@@ -472,7 +491,7 @@ const ModalViewPlan = ({ date, period, onClose }) => {
               </button>
             </div>
           )}
-          <div className="flex flex-wrap gap-2 justify-start">
+          <div className="flex flex-wrap gap-2 justify-start items-end">
             {reservations?.length === 0 ? (
               <div className="w-full flex justify-between items-center">
                 <div className="text-lg font-bold text-green-600">
@@ -489,24 +508,41 @@ const ModalViewPlan = ({ date, period, onClose }) => {
               reservations?.map((reservation) => (
                 <div
                   key={reservation.id}
-                  className={`p-1 w-17 rounded-lg shadow-md text-center cursor-pointer border-2 ${
-                    reservation.id === selectedReservationId
-                      ? "border-blue-500" // Bordure bleue pour la réservation sélectionnée
-                      : "border-gray-300" // Bordure grise par défaut
-                  } ${
-                    reservation.freeTable21 === "O"
-                      ? "bg-green-200"
-                      : "bg-pink-200"
-                  }`}
-                  onClick={() => handleCreateMode(reservation)} // Active le mode création et sélectionne la carte
+                  className="flex flex-col items-center gap-1" // Flex container pour le bouton et la carte
                 >
-                  <h3 className="text-xs font-bold truncate">
-                    {`${reservation.client.prenom} ${reservation.client.name}`}
-                  </h3>
-                  <p className="text-[10px]">Heure : {reservation.timeResa}</p>
-                  <p className="text-[10px]">
-                    Pers : {reservation.numberOfGuest}
-                  </p>
+                  {/* Bouton Note Interne en dehors de la carte */}
+                  {reservation.notesInternes?.length > 0 && (
+                    <button
+                      className="bg-red-500 text-white px-2 py-1 rounded-md shadow-sm text-xs hover:bg-red-600 transition duration-200"
+                      onClick={() => handleOpenNotesModal(reservation)} // Ouvre le modal avec les notes
+                    >
+                      Note à lire
+                    </button>
+                  )}
+
+                  {/* Carte de réservation */}
+                  <div
+                    className={`p-1 w-17 rounded-lg shadow-md text-center cursor-pointer border-2 ${
+                      reservation.id === selectedReservationId
+                        ? "border-blue-500" // Bordure bleue pour la réservation sélectionnée
+                        : "border-gray-300" // Bordure grise par défaut
+                    } ${
+                      reservation.freeTable21 === "O"
+                        ? "bg-green-200"
+                        : "bg-pink-200"
+                    }`}
+                    onClick={() => handleCreateMode(reservation)} // Active le mode création et sélectionne la carte
+                  >
+                    <h3 className="text-xs font-bold truncate">
+                      {`${reservation.client.prenom} ${reservation.client.name}`}
+                    </h3>
+                    <p className="text-[10px]">
+                      Heure : {reservation.timeResa}
+                    </p>
+                    <p className="text-[10px]">
+                      Pers : {reservation.numberOfGuest}
+                    </p>
+                  </div>
                 </div>
               ))
             )}
@@ -715,6 +751,13 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           onClose={() => setIsErrorModalOpen(false)}
         />
       </div>
+      {/* Modal pour afficher les notes internes */}
+      {isNotesModalOpen && (
+        <ModalNotesInternes
+          reservation={selectedReservationForNotes}
+          onClose={handleCloseNotesModal}
+        />
+      )}
     </div>
   );
 };

@@ -6,6 +6,8 @@ import { useSelector } from "react-redux";
 
 import { useCancelNoShowReservationMutation } from "../services/reservations";
 import { getStatusText } from "../Outils/conversionTextStatus";
+import ModalNotesInternes from "./ModalNotesInternes";
+import { useAddNoteInterneMutation } from "../services/reservations";
 
 function formatTimestamp(dateString) {
   const options = {
@@ -19,13 +21,24 @@ function formatTimestamp(dateString) {
   return new Date(dateString).toLocaleDateString("fr-FR", options);
 }
 
-function ReservationSlideOver({ isOpen, onClose, reservation }) {
+function ReservationSlideOver({
+  isOpen,
+  onClose,
+  reservation,
+  refreshReservations,
+}) {
   const [showConfirmationButtons, setShowConfirmationButtons] = useState(false); // Nouvel état pour les boutons de confirmation
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+  const [isAddingNote, setIsAddingNote] = useState(false); // État pour afficher/cacher le formulaire de note
+  const [noteContent, setNoteContent] = useState(""); // Contenu de la note à ajouter
 
   const navigate = useNavigate();
   const [cancelReservation] = useCancelNoShowReservationMutation();
   const user = useSelector((state) => state.user.username);
+
+  const [addNoteInterne, { isLoading: isAddingNoteLoading }] =
+    useAddNoteInterneMutation();
 
   const handleEditReservation = () => {
     navigate("/reservation-update", { state: { reservation } });
@@ -41,6 +54,32 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
 
   const handleCloseConfirmationButtons = () => {
     setShowConfirmationButtons(false);
+  };
+
+  const handleAddNote = async () => {
+    if (!noteContent.trim()) {
+      alert("La note ne peut pas être vide.");
+      return;
+    }
+    try {
+      await addNoteInterne({
+        ResaId: reservation.id,
+        Note: noteContent,
+        CreatedBy: user || "Anonyme",
+      }).unwrap();
+
+      setIsAddingNote(false); // Fermer la zone de texte après succès
+      setNoteContent(""); // Réinitialiser le contenu
+
+      // Rafraîchir les données de la réservation
+      if (refreshReservations) {
+        refreshReservations();
+        onClose();
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'ajout de la note :", error);
+      alert("Une erreur est survenue lors de l'ajout de la note.");
+    }
   };
 
   const confirmCancelResa = async () => {
@@ -155,6 +194,57 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
                               <strong>Commentaire:</strong>{" "}
                               {reservation.comment || "N/A"}
                             </p>
+                            <div>
+                              <h3 className="text-sm text-gray-700 mt-1">
+                                <strong>Notes internes:</strong>
+                              </h3>
+
+                              {/* Si des notes existent, afficher le bouton "Voir" avec blink */}
+                              {reservation.notesInternes?.length > 0 ? (
+                                ""
+                              ) : (
+                                <p className="text-sm text-gray-700">
+                                  Pas de notes actuellement.
+                                </p>
+                              )}
+
+                              {/* Bouton pour ajouter une note */}
+                              <div className="mt-4">
+                                <button
+                                  onClick={() =>
+                                    setIsAddingNote((prev) => !prev)
+                                  }
+                                  className="bg-green-500 text-white text-xs px-2 py-1 rounded hover:bg-green-600 transition duration-200"
+                                >
+                                  {isAddingNote
+                                    ? "Annuler"
+                                    : "Ajouter une note"}
+                                </button>
+                              </div>
+
+                              {/* Formulaire d'ajout de note */}
+                              {isAddingNote && (
+                                <div className="mt-4">
+                                  <textarea
+                                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    rows="4"
+                                    value={noteContent}
+                                    onChange={(e) =>
+                                      setNoteContent(e.target.value)
+                                    }
+                                  />
+                                  <button
+                                    onClick={handleAddNote}
+                                    className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
+                                    disabled={isAddingNoteLoading}
+                                  >
+                                    {isAddingNoteLoading
+                                      ? "Ajout en cours..."
+                                      : "Confirmer"}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
 
                           <div className="bg-gray-50 p-4 rounded-lg shadow">
@@ -208,8 +298,12 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
 
                           <div className="bg-gray-50 p-4 rounded-lg shadow">
                             <h3 className="text-md font-medium text-indigo-600">
-                              Détails techniques
+                              a Détails techniques
                             </h3>
+                            <p className="text-sm text-gray-700">
+                              <strong>ID de la réservation:</strong>{" "}
+                              {reservation.id}
+                            </p>
                             <p className="text-sm text-gray-700">
                               <strong>Occupation Status:</strong>{" "}
                               {occupationStatus}
@@ -312,6 +406,14 @@ function ReservationSlideOver({ isOpen, onClose, reservation }) {
               </Transition.Child>
             </div>
           </div>
+          {/* ModalNotesInternes */}
+          {isNotesModalOpen && (
+            <ModalNotesInternes
+              reservation={reservation} // Passer la prop réservation
+              refetchData={refreshReservations}
+              onClose={() => setIsNotesModalOpen(false)} // Fermer le modal
+            />
+          )}
         </div>
       </Dialog>
     </Transition.Root>

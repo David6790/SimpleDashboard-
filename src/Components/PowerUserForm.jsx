@@ -153,19 +153,8 @@ export default function PowerUserForm() {
 
   const handleTimeSlotChange = (event) => {
     const selectedTime = event.target.value;
-    const currentDate = new Date();
-    const selectedDateTime = new Date(`${startDate}T${selectedTime}`);
 
-    if (selectedDateTime < currentDate) {
-      setErrors((prev) => ({
-        ...prev,
-        timeSlot: "Le créneau horaire ne peut pas être dans le passé.",
-      }));
-      setSelectedTimeSlot("");
-    } else {
-      setErrors((prev) => ({ ...prev, timeSlot: null }));
-      setSelectedTimeSlot(selectedTime);
-    }
+    setSelectedTimeSlot(selectedTime);
   };
 
   const handleSubmit = async (event) => {

@@ -10,6 +10,7 @@ import { getStatusText } from "../Outils/conversionTextStatus";
 import { useDeleteAllocationsByReservationMutation } from "../services/allocationsApi";
 import { reservationsApi } from "../services/reservations";
 import { useDispatch } from "react-redux";
+import ModalNotesInternes from "./ModalNotesInternes";
 
 export default function PreviewTableDashboard({
   reservations,
@@ -23,12 +24,13 @@ export default function PreviewTableDashboard({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalPeriod, setModalPeriod] = useState(""); // Pour gérer le type de modal (midi ou soir)
   const [confirmRemove, setConfirmRemove] = useState(null);
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
 
   const [deleteAllocation, { isLoading: isDeleting }] =
     useDeleteAllocationsByReservationMutation();
 
   const dispatch = useDispatch();
-
+  console.log(reservations);
   const itemsPerPage = 10;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -38,6 +40,7 @@ export default function PreviewTableDashboard({
   const totalItems = reservations ? reservations.length : 0;
 
   const openSlideOver = (reservation) => {
+    console.log(reservation);
     setSelectedReservation(reservation);
     setIsSlideOverOpen(true);
   };
@@ -88,6 +91,11 @@ export default function PreviewTableDashboard({
   const handleCancelRemove = (e) => {
     e.stopPropagation();
     setConfirmRemove(null);
+  };
+  const handleViewNotes = (reservation, e) => {
+    e.stopPropagation(); // Empêche l'ouverture du SlideOver
+    setSelectedReservation(reservation); // Définit la réservation concernée
+    setIsNotesModalOpen(true); // Ouvre le modal des notes internes
   };
 
   return (
@@ -150,6 +158,13 @@ export default function PreviewTableDashboard({
                 >
                   Placée
                 </th>
+                {/* Nouvelle colonne "Note Interne" */}
+                <th
+                  scope="col"
+                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                >
+                  Note Interne
+                </th>
                 <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
                   <span className="sr-only">Action</span>
                 </th>
@@ -207,12 +222,26 @@ export default function PreviewTableDashboard({
                       </span>
                     ) : null}
                   </td>
+                  {/* Contenu de la colonne "Note Interne" */}
+                  <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
+                    {reservation.notesInternes?.length > 0 ? (
+                      <button
+                        className="px-4 py-2 rounded-md text-sm font-medium bg-blue-500 text-white hover:bg-blue-600"
+                        onClick={(e) => handleViewNotes(reservation, e)}
+                      >
+                        Voir
+                      </button>
+                    ) : (
+                      <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                        NON
+                      </span>
+                    )}
+                  </td>
                   <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                     {reservation.status !== "A" &&
                       reservation.status !== "R" &&
                       reservation.status !== "P" &&
                       reservation.status !== "D" &&
-                      // Ne pas afficher le bouton si le statut est "P"
                       (confirmRemove === reservation.id ? (
                         <div className="flex justify-end space-x-2">
                           <button
@@ -248,6 +277,7 @@ export default function PreviewTableDashboard({
               ))}
             </tbody>
           </table>
+
           <Pagination
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
@@ -261,6 +291,7 @@ export default function PreviewTableDashboard({
         isOpen={isSlideOverOpen}
         onClose={closeSlideOver}
         reservation={selectedReservation}
+        refreshReservations={refreshReservations}
       />
 
       {selectedReservation && isModalOpen && modalPeriod === "midi" && (
@@ -276,6 +307,12 @@ export default function PreviewTableDashboard({
           date={selectedReservation.dateResa} // Utilisez la date du state
           period="soir"
           onClose={() => setIsModalOpen(false)}
+        />
+      )}
+      {isNotesModalOpen && (
+        <ModalNotesInternes
+          reservation={selectedReservation} // Passer la prop réservation
+          onClose={() => setIsNotesModalOpen(false)} // Fermer le modal
         />
       )}
     </div>

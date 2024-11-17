@@ -20,6 +20,8 @@ export default function TableReservations({ date }) {
     refetchOnMountOrArgChange: true,
   });
 
+  console.log(reservations);
+
   const { refetch: refetchToggle } = useGetNotificationToggleQuery();
 
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
@@ -318,6 +320,7 @@ export default function TableReservations({ date }) {
         isOpen={isSlideOverOpen}
         onClose={closeSlideOver}
         reservation={selectedReservation}
+        refetchReservation={refetchReservations}
       />
       <RequestProcessingModal
         reservation={selectedReservation}

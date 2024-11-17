@@ -175,6 +175,29 @@ export const reservationsApi = createApi({
       }),
       invalidatesTags: ["Reservations"],
     }),
+
+    addNoteInterne: builder.mutation({
+      query: (noteInterne) => ({
+        url: "Reservations/noteInternes/notes",
+        method: "POST",
+        body: noteInterne,
+      }),
+      invalidatesTags: ["Reservations", "NotesInternes"],
+    }),
+
+    // Endpoint pour récupérer les notes internes par ID de réservation
+    getNotesInternesByReservationId: builder.query({
+      query: (reservationId) => `Reservations/${reservationId}/noteInternes`,
+      providesTags: ["NotesInternes"],
+    }),
+
+    deleteNoteInterne: builder.mutation({
+      query: (noteId) => ({
+        url: `Reservations/noteInternes/${noteId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Reservations", "NotesInternes"],
+    }),
   }),
 });
 
@@ -204,6 +227,9 @@ export const {
   usePowerUserCreateReservationMutation,
   usePowerUpdateReservationMutation,
   useLastMinuteChangeMutation,
+  useAddNoteInterneMutation,
+  useGetNotesInternesByReservationIdQuery,
+  useDeleteNoteInterneMutation,
 } = reservationsApi;
 
 export default reservationsApi;

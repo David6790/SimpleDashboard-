@@ -11,6 +11,8 @@ import Layout from "../Layouts/Layout";
 import SectionHeading from "../Components/SectionHeading";
 import { useAddHECStatutMutation } from "../services/hecApi";
 import { useGetNotificationToggleQuery } from "../services/toggleApi";
+import CreateNoteInterneModal from "../Components/CreateNoteInterneModal";
+import { useAddNoteInterneMutation } from "../services/reservations";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -55,6 +57,31 @@ export default function GirStaff() {
   const [commentMessage, setCommentMessage] = useState("");
   const { refetch: refetchToggle } = useGetNotificationToggleQuery();
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+
+  const [addNoteInterne] = useAddNoteInterneMutation(); // Hook pour ajouter une note interne
+  const { refetch: refetchReservation } =
+    useGetReservationByIdQuery(reservationId); // Rafraîchir la réservation
+
+  const handleTransmitInternally = async (comment) => {
+    if (!comment.message.trim()) return; // Ne rien faire si le commentaire est vide
+
+    try {
+      await addNoteInterne({
+        ResaId: reservationId, // ID de la réservation
+        Note: `Merci de prendre en compte de cette demande du client :\n\n${comment.message}`, // Message formaté avec Markdown
+        CreatedBy: "Admin", // Remplacez par le nom réel de l'utilisateur si nécessaire
+      }).unwrap();
+
+      // Rafraîchir la réservation après succès
+      await refetchReservation();
+    } catch (error) {
+      console.error(
+        "Erreur lors de la transmission en interne :",
+        error.message
+      );
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -251,12 +278,30 @@ export default function GirStaff() {
                         <dt className="text-sm font-medium text-gray-500">
                           Commentaire
                         </dt>
-                        <dd className="mt-1 text-sm text-gray-900">
-                          {reservationData.comment
-                            ? reservationData.comment
-                            : "Aucun commentaire"}
+                        <dd className="mt-1 text-sm text-gray-900 flex items-center justify-between">
+                          {reservationData.comment ? (
+                            <>
+                              <span className="flex-1">
+                                {reservationData.comment}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleTransmitInternally({
+                                    message: reservationData.comment,
+                                  })
+                                }
+                                className="font-medium text-blue-500 hover:text-blue-700 ml-4"
+                              >
+                                Transmettre en Interne
+                              </button>
+                            </>
+                          ) : (
+                            "Aucun commentaire"
+                          )}
                         </dd>
                       </div>
+
                       <div className="sm:col-span-2">
                         <dt className="text-sm font-medium text-gray-500">
                           Info complémentaire
@@ -267,6 +312,47 @@ export default function GirStaff() {
                             : "Aucune information complémentaire."}
                         </dd>
                       </div>
+                      {/* Notes internes */}
+                      <div className="mt-8">
+                        <h3 className="text-lg font-medium text-gray-900">
+                          Notes internes
+                        </h3>
+                        {reservationData.notesInternes &&
+                        reservationData.notesInternes.length > 0 ? (
+                          <ul className="mt-4 space-y-4">
+                            {reservationData.notesInternes.map((note) => (
+                              <li
+                                key={note.id}
+                                className="bg-gray-100 px-4 py-3 rounded-lg shadow-sm"
+                              >
+                                <p className="text-sm text-gray-800 whitespace-pre-line">
+                                  {note.note}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-2">
+                                  <strong>Créé par:</strong>{" "}
+                                  {note.createdBy || "Inconnu"} -{" "}
+                                  {new Date(note.createdAt).toLocaleString(
+                                    "fr-FR",
+                                    {
+                                      weekday: "long",
+                                      year: "numeric",
+                                      month: "long",
+                                      day: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    }
+                                  )}
+                                </p>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-gray-500 mt-4">
+                            Aucune note interne disponible.
+                          </p>
+                        )}
+                      </div>
+
                       {reservationData.doubleConfirmation === "O" && (
                         <div className="sm:col-span-2">
                           <dt className="text-sm font-medium text-gray-500">
@@ -279,15 +365,13 @@ export default function GirStaff() {
                       )}
                     </dl>
                   </div>
-                  <div>
-                    <a
-                      className="block bg-gray-50 px-4 py-4 text-center text-sm font-medium text-blue-600 hover:text-blue-800 sm:rounded-b-lg w-full cursor-pointer"
-                      href="https://il-girasole-strasbourg.com/menu"
-                      target="_blank"
-                      rel="noreferrer"
+                  <div className="bg-gray-50 px-4 py-4 sm:rounded-b-lg text-center">
+                    <button
+                      className="text-sm font-medium text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      onClick={() => setIsNotesModalOpen(true)} // Ouvrir le modal
                     >
-                      Consulter la carte
-                    </a>
+                      Ajouter une note interne
+                    </button>
                   </div>
                 </div>
               </section>
@@ -334,10 +418,20 @@ export default function GirStaff() {
                                     {comment.message}
                                   </p>
                                 </div>
-                                <div className="mt-2 space-x-2 text-sm">
+                                <div className="mt-2 flex items-center space-x-2 text-sm">
                                   <span className="font-medium text-gray-500">
                                     {formatTimeAgo(comment.createdAt)}
                                   </span>
+                                  {comment.auteur !== "SYSTEM" && (
+                                    <button
+                                      onClick={() =>
+                                        handleTransmitInternally(comment)
+                                      } // Appeler la fonction
+                                      className="font-medium text-blue-500 hover:text-blue-700"
+                                    >
+                                      Transmettre en Interne
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -356,7 +450,7 @@ export default function GirStaff() {
                         />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <form action="#">
+                        <form>
                           <div>
                             <label htmlFor="comment" className="sr-only">
                               Commentaire
@@ -369,7 +463,7 @@ export default function GirStaff() {
                               value={commentMessage}
                               onChange={(e) =>
                                 setCommentMessage(e.target.value)
-                              } // Mise à jour de l'état du message
+                              }
                               className="block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
                             />
                           </div>
@@ -483,6 +577,13 @@ export default function GirStaff() {
               </div>
             </section>
           </div>
+          {/* Afficher le modal d'ajout de notes internes */}
+          {isNotesModalOpen && (
+            <CreateNoteInterneModal
+              reservation={reservationData} // Passer les données de réservation
+              onClose={() => setIsNotesModalOpen(false)} // Fermer le modal
+            />
+          )}
         </main>
       </div>
     </Layout>

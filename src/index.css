@@ -100,3 +100,19 @@
 body.no-scroll {
   overflow: hidden;
 }
+
+@keyframes blink {
+  0% {
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(255, 0, 0, 1); /* Flash rouge intense */
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0);
+  }
+}
+
+.blink {
+  animation: blink 1.5s infinite;
+}

@@ -12,6 +12,9 @@ import {
 import { useDispatch } from "react-redux";
 import ErrorModal from "./ErrorModal";
 
+import ModalNotesInternesBis from "./ModalNotesInternesBis";
+// Import du modal des notes internes
+
 const ReservationDetailModal = ({
   reservation,
   onClose,
@@ -29,7 +32,7 @@ const ReservationDetailModal = ({
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // État pour le mode "Last Minute Changes"
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false); // État pour ouvrir/fermer le modal des notes internes
   const [isLastMinuteChangeMode, setIsLastMinuteChangeMode] = useState(false);
   const [newGuestCount, setNewGuestCount] = useState("");
   const [inputError, setInputError] = useState("");
@@ -106,7 +109,6 @@ const ReservationDetailModal = ({
   };
 
   const handleLastMinuteChangeSubmit = async () => {
-    // Validation de l'entrée
     if (!newGuestCount || isNaN(newGuestCount) || Number(newGuestCount) <= 0) {
       setInputError("Veuillez entrer un nombre entier positif.");
       return;
@@ -116,7 +118,6 @@ const ReservationDetailModal = ({
         id: reservation.reservationId,
         newGuestCount: newGuestCount,
       }).unwrap();
-      // Après le changement réussi, fermer le modal et refetch les allocations
       await refetchAllocations();
       onClose();
     } catch (error) {
@@ -161,10 +162,20 @@ const ReservationDetailModal = ({
           <p>
             <strong>Commentaire:</strong> {reservation.comment || "Aucun"}
           </p>
+          {reservation.notesInternes?.length > 0 && (
+            <p className=" mt-5 mb-5">
+              <strong>Note interne:</strong>{" "}
+              <button
+                onClick={() => setIsNotesModalOpen(true)}
+                className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition duration-200 blink"
+              >
+                Lire Notes Internes
+              </button>
+            </p>
+          )}
         </div>
 
         {!isLastMinuteChangeMode ? (
-          // Boutons initiaux
           <div className="flex justify-center mt-6 space-x-4">
             <button
               className="bg-blue-500 text-white px-4 py-2 rounded"
@@ -202,7 +213,6 @@ const ReservationDetailModal = ({
                 Départ Client
               </button>
             )}
-            {/* Bouton pour Last Minute Changes */}
             <button
               className="bg-purple-500 text-white px-4 py-2 rounded"
               onClick={handleLastMinuteChangeClick}
@@ -211,7 +221,6 @@ const ReservationDetailModal = ({
             </button>
           </div>
         ) : (
-          // Formulaire pour Last Minute Changes
           <div className="mt-6">
             <label className="block mb-2">
               Nouveau nombre de personnes:
@@ -241,7 +250,6 @@ const ReservationDetailModal = ({
           </div>
         )}
 
-        {/* Modal de confirmation pour Départ Client */}
         {isConfirmModalOpen && (
           <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
             <div className="bg-white p-4 rounded-md shadow-lg max-w-sm w-full m-4">
@@ -274,7 +282,15 @@ const ReservationDetailModal = ({
           </div>
         )}
       </div>
-      {/* Modal d'erreur */}
+
+      {/* Modal des notes internes */}
+      {isNotesModalOpen && (
+        <ModalNotesInternesBis
+          reservation={reservation}
+          onClose={() => setIsNotesModalOpen(false)}
+        />
+      )}
+
       <ErrorModal
         isOpen={isErrorModalOpen}
         errorMessage={errorMessage}
