@@ -15,7 +15,7 @@ const PageStockCompletResa = () => {
     startDate: null,
     endDate: null,
     status: "",
-    clientSearch: "", // Nouveau champ pour la recherche sur nom ou prénom
+    clientSearch: "",
   });
 
   const [appliedFilters, setAppliedFilters] = useState({});
@@ -63,6 +63,46 @@ const PageStockCompletResa = () => {
 
     setAppliedFilters(formattedFilters);
   };
+
+  // Calcul des statistiques
+  const totalGuests = reservations
+    ? reservations.reduce(
+        (acc, reservation) => acc + (reservation.numberOfGuest || 0),
+        0
+      )
+    : 0;
+
+  const totalGuestsMidi = reservations
+    ? reservations
+        .filter(
+          (reservation) =>
+            reservation.timeResa && reservation.timeResa <= "14:00"
+        )
+        .reduce((acc, reservation) => acc + (reservation.numberOfGuest || 0), 0)
+    : 0;
+
+  const totalGuestsSoir = reservations
+    ? reservations
+        .filter(
+          (reservation) =>
+            reservation.timeResa && reservation.timeResa >= "19:00"
+        )
+        .reduce((acc, reservation) => acc + (reservation.numberOfGuest || 0), 0)
+    : 0;
+
+  const totalReservations = reservations ? reservations.length : 0;
+
+  // Pourcentages
+  const percentageMidi =
+    totalGuests > 0 ? ((totalGuestsMidi / totalGuests) * 100).toFixed(2) : 0;
+  const percentageSoir =
+    totalGuests > 0 ? ((totalGuestsSoir / totalGuests) * 100).toFixed(2) : 0;
+
+  // Nombre moyen de couverts par réservation
+  const averageGuests =
+    totalReservations > 0
+      ? (totalGuests / totalReservations).toFixed(2)
+      : "N/A";
 
   return (
     <Layout>
@@ -130,7 +170,7 @@ const PageStockCompletResa = () => {
                 name="clientSearch"
                 value={tempFilters.clientSearch}
                 onChange={handleInputChange}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="Rechercher un client"
               />
             </div>
@@ -146,6 +186,65 @@ const PageStockCompletResa = () => {
             </button>
           </div>
         </form>
+
+        {/* Div pour afficher les statistiques */}
+        {reservations && reservations.length > 0 && (
+          <div className="mt-5 mx-8 mb-10">
+            <h3 className="text-lg font-semibold leading-6 text-gray-900 mb-5">
+              Statistiques
+            </h3>
+            <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+              <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+                <dt className="truncate text-sm font-medium text-gray-500">
+                  Nombre de couverts à midi
+                </dt>
+                <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+                  {totalGuestsMidi}
+                </dd>
+              </div>
+              <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+                <dt className="truncate text-sm font-medium text-gray-500">
+                  Nombre de couverts le soir
+                </dt>
+                <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+                  {totalGuestsSoir}
+                </dd>
+              </div>
+              <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+                <dt className="truncate text-sm font-medium text-gray-500">
+                  Nombre de couverts total
+                </dt>
+                <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+                  {totalGuests}
+                </dd>
+              </div>
+              <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+                <dt className="truncate text-sm font-medium text-gray-500">
+                  Pourcentage des couverts à midi
+                </dt>
+                <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+                  {percentageMidi}%
+                </dd>
+              </div>
+              <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+                <dt className="truncate text-sm font-medium text-gray-500">
+                  Pourcentage des couverts le soir
+                </dt>
+                <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+                  {percentageSoir}%
+                </dd>
+              </div>
+              <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+                <dt className="truncate text-sm font-medium text-gray-500">
+                  Moyenne de couverts par réservation
+                </dt>
+                <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+                  {averageGuests}
+                </dd>
+              </div>
+            </dl>
+          </div>
+        )}
 
         {/* Composant de tableau */}
         {isLoading && <p>Chargement des réservations...</p>}
