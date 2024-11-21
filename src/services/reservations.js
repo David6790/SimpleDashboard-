@@ -211,6 +211,12 @@ export const reservationsApi = createApi({
       keepUnusedDataFor: 1440,
       providesTags: ["Reservations"],
     }),
+
+    getLatestReservations: builder.query({
+      query: (limit) => `Reservations/latest?limit=${limit}`, // URL pour l'API backend avec le paramètre limit
+      keepUnusedDataFor: 1440, // Conserver les données en cache pendant 24 heures
+      providesTags: ["Reservations"], // Tag pour invalider les caches si nécessaire
+    }),
   }),
 });
 
@@ -244,6 +250,7 @@ export const {
   useGetNotesInternesByReservationIdQuery,
   useDeleteNoteInterneMutation,
   useGetFilteredReservationsQuery,
+  useGetLatestReservationsQuery,
 } = reservationsApi;
 
 export default reservationsApi;
