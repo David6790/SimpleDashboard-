@@ -207,7 +207,7 @@ const Dashboard = () => {
         error={error}
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
-        refreshReservations={refreshReservations}
+        refreshReservations={refetch}
       />
 
       {isModalMidiOpen && (

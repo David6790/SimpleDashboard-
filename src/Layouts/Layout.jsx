@@ -28,6 +28,12 @@ const navigation = [
     current: false,
   },
   {
+    name: "Stock Complet",
+    href: "/stockResa",
+    icon: CalendarDaysIcon,
+    current: false,
+  },
+  {
     name: "Réservations à traiter",
     href: "/admin-stockComplet",
     icon: CircleStackIcon,

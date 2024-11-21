@@ -20,6 +20,7 @@ import UserList from "../pages/UserList";
 import ResaExternesClients from "../pages/ResaExternesClients";
 import PowerUserPage from "../pages/PowerUserPage";
 import PowerUpdateForm from "../Components/PowerUpdateForm";
+import PageStockCompletResa from "../pages/PageStockCompletResa";
 
 const Routeur = () => {
   const dispatch = useDispatch();
@@ -116,6 +117,7 @@ const Routeur = () => {
         <Route path="/gir-staff/:reservationId" element={<GirStaff />} />
         <Route path="/modif-resa-client" element={<UpdateResaFormClient />} />
         <Route path="/resa-externe" element={<ResaExternesClients />} />
+        <Route path="/stockResa" element={<PageStockCompletResa />} />
       </Routes>
     </BrowserRouter>
   );

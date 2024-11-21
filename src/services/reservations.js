@@ -198,6 +198,19 @@ export const reservationsApi = createApi({
       }),
       invalidatesTags: ["Reservations", "NotesInternes"],
     }),
+
+    getFilteredReservations: builder.query({
+      query: (filters) => {
+        // Convertit la DTO en paramètres de requête
+        const queryString = new URLSearchParams(filters).toString();
+        return {
+          url: `Reservations/search?${queryString}`, // Formate la requête GET avec les paramètres
+          method: "GET",
+        };
+      },
+      keepUnusedDataFor: 1440,
+      providesTags: ["Reservations"],
+    }),
   }),
 });
 
@@ -230,6 +243,7 @@ export const {
   useAddNoteInterneMutation,
   useGetNotesInternesByReservationIdQuery,
   useDeleteNoteInterneMutation,
+  useGetFilteredReservationsQuery,
 } = reservationsApi;
 
 export default reservationsApi;
