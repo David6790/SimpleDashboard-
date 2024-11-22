@@ -181,9 +181,18 @@ export default function PreviewTableDashboard({
                     {reservation.client.name + " " + reservation.client.prenom}
                     <dl className="font-normal lg:hidden">
                       <dt className="sr-only">Date</dt>
-                      <dd className="mt-1 truncate text-gray-700">
-                        {new Date(reservation.dateResa).toLocaleDateString()}
-                      </dd>
+                      <td className="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">
+                        {new Date(reservation.dateResa).toLocaleDateString(
+                          "fr-FR",
+                          {
+                            weekday: "short",
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          }
+                        )}
+                      </td>
+
                       <dt className="sr-only">Heure</dt>
                       <dd className="mt-1 truncate text-gray-500">
                         {reservation.timeResa.slice(0, -3)}
@@ -191,7 +200,15 @@ export default function PreviewTableDashboard({
                     </dl>
                   </td>
                   <td className="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                    {new Date(reservation.dateResa).toLocaleDateString()}
+                    {new Date(reservation.dateResa).toLocaleDateString(
+                      "fr-FR",
+                      {
+                        weekday: "short",
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      }
+                    )}
                   </td>
                   <td className="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">
                     {reservation.timeResa}
