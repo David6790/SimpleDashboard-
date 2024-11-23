@@ -64,17 +64,22 @@ const ModalViewPlanMidi = ({ date, period, onClose }) => {
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const dispatch = useDispatch();
-
   const downloadPDF = () => {
     const planElement = document.getElementById("plan-de-salle");
 
     if (planElement) {
+      // Formatage de la date et de la période
+      const formattedDate = format(new Date(date), "yyyy-MM-dd", {
+        locale: fr,
+      });
+      const fileName = `plan-de-salle-${formattedDate}-${period}.pdf`;
+
       // Utilisation de jsPDF pour une page unique
       const pdf = new jsPDF("landscape", "pt", "a4"); // Format paysage, page A4
 
       pdf.html(planElement, {
         callback: function (pdf) {
-          pdf.save("plan-de-salle.pdf");
+          pdf.save(fileName); // Utiliser le nom de fichier généré
         },
         x: 10, // Positionnement du contenu dans le PDF
         y: 10,
