@@ -211,7 +211,15 @@ export default function TableReservations({ date }) {
                     <dl className="font-normal lg:hidden">
                       <dt className="sr-only">Date</dt>
                       <dd className="mt-1 truncate text-gray-700">
-                        {new Date(reservation.dateResa).toLocaleDateString()}
+                        {new Date(reservation.dateResa).toLocaleDateString(
+                          "fr-FR",
+                          {
+                            weekday: "short",
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          }
+                        )}
                       </dd>
                       <dt className="sr-only">Heure</dt>
                       <dd className="mt-1 truncate text-gray-500">
@@ -220,7 +228,15 @@ export default function TableReservations({ date }) {
                     </dl>
                   </td>
                   <td className="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                    {new Date(reservation.dateResa).toLocaleDateString()}
+                    {new Date(reservation.dateResa).toLocaleDateString(
+                      "fr-FR",
+                      {
+                        weekday: "short",
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      }
+                    )}
                   </td>
                   <td className="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">
                     {reservation.timeResa}
