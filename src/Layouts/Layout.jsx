@@ -1,5 +1,9 @@
 import { Fragment, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
+import Cookies from "js-cookie";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { clearUser } from "../slices/userSlice";
 import {
   Bars3Icon,
   BookOpenIcon,
@@ -9,6 +13,8 @@ import {
   CalendarDaysIcon,
   CircleStackIcon,
   BoltIcon,
+  TableCellsIcon,
+  ChevronDoubleLeftIcon,
 } from "@heroicons/react/24/outline";
 import { NavLink } from "react-router-dom";
 import { useGetNotificationToggleQuery } from "../services/toggleApi"; // Import du hook API toggle
@@ -30,7 +36,7 @@ const navigation = [
   {
     name: "Stock Complet",
     href: "/stockResa",
-    icon: CalendarDaysIcon,
+    icon: TableCellsIcon,
     current: false,
   },
   {
@@ -74,6 +80,27 @@ export default function Layout({ children }) {
       setNotificationCount(0);
     }
   }, [notificationStatus]);
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    const signOut = () => {
+      // Supprimer les cookies contenant les informations utilisateur
+      Cookies.remove("token");
+      Cookies.remove("username");
+      Cookies.remove("email");
+      Cookies.remove("role");
+
+      // Réinitialiser l'état utilisateur dans Redux
+      dispatch(clearUser());
+
+      // Rediriger l'utilisateur vers la page de connexion
+      navigate("/sign-in");
+    };
+
+    signOut(); // Appeler directement signOut sans le renvoyer
+  };
 
   return (
     <>
@@ -133,8 +160,8 @@ export default function Layout({ children }) {
                         <span className=" text-xs ml-2"> Powered by MIO</span>
                       </div>
                     </div>
-                    <nav className="flex flex-1 flex-col">
-                      <ul className="flex flex-1 flex-col gap-y-7">
+                    <nav className="flex flex-1 flex-col justify-between">
+                      <ul className="flex flex-col gap-y-7">
                         <li>
                           <ul className="-mx-2 space-y-1">
                             {navigation.map((item) => (
@@ -171,6 +198,21 @@ export default function Layout({ children }) {
                           </ul>
                         </li>
                       </ul>
+                      {/* Bouton Sign Out en bas */}
+                      <ul className=" list-none">
+                        <li className="-mx-2 mb-40">
+                          <button
+                            onClick={handleSignOut}
+                            className="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-red-600"
+                          >
+                            <ChevronDoubleLeftIcon
+                              className="text-gray-400 group-hover:text-red-600 h-6 w-6 shrink-0"
+                              aria-hidden="true"
+                            />
+                            Sign Out
+                          </button>
+                        </li>
+                      </ul>
                     </nav>
                   </div>
                 </Dialog.Panel>
@@ -186,8 +228,8 @@ export default function Layout({ children }) {
               <h1 className=" text-3xl font-bold">SIMPLE</h1>
               <span className=" text-xs ml-2"> Powered by MIO</span>
             </div>
-            <nav className="flex flex-1 flex-col">
-              <ul className="flex flex-1 flex-col gap-y-7">
+            <nav className="flex flex-1 flex-col justify-between">
+              <ul className="flex flex-col gap-y-7">
                 <li>
                   <ul className="-mx-2 space-y-1">
                     {navigation.map((item) => (
@@ -209,9 +251,12 @@ export default function Layout({ children }) {
                           }
                         >
                           <item.icon
-                            className={
-                              "text-gray-400 group-hover:text-indigo-600 h-6 w-6 shrink-0"
-                            }
+                            className={classNames(
+                              item.current
+                                ? "text-indigo-600"
+                                : "text-gray-400 group-hover:text-indigo-600",
+                              "h-6 w-6 shrink-0"
+                            )}
                             aria-hidden="true"
                           />
                           {item.name}
@@ -219,6 +264,21 @@ export default function Layout({ children }) {
                       </li>
                     ))}
                   </ul>
+                </li>
+              </ul>
+              {/* Bouton Sign Out en bas */}
+              <ul className=" list-none">
+                <li className="-mx-2 mb-10">
+                  <button
+                    onClick={handleSignOut}
+                    className="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-red-600"
+                  >
+                    <ChevronDoubleLeftIcon
+                      className="text-gray-400 group-hover:text-red-600 h-6 w-6 shrink-0"
+                      aria-hidden="true"
+                    />
+                    Sign Out
+                  </button>
                 </li>
               </ul>
             </nav>
