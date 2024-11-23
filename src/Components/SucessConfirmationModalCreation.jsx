@@ -50,11 +50,11 @@ export default function SucessConfirmationModalCreation({
               </li>
               <li>
                 <span className="font-medium text-gray-800">Nom :</span>{" "}
-                {reservationDetails.client.prenom}
+                {reservationDetails.client.name}
               </li>
               <li>
                 <span className="font-medium text-gray-800">Prénom :</span>{" "}
-                {reservationDetails.client.name}
+                {reservationDetails.client.prenom}
               </li>
               <li>
                 <span className="font-medium text-gray-800">Téléphone :</span>{" "}

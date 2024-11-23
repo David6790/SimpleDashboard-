@@ -63,6 +63,8 @@ const ModalViewPlan = ({ date, period, onClose }) => {
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false); // État pour gérer l'ouverture du modal
   const [selectedReservationForNotes, setSelectedReservationForNotes] =
     useState(null);
+  const [isRefreshed, setIsRefreshed] = useState(false); // Gère la couleur du bouton
+
   const dispatch = useDispatch();
 
   const downloadPDF = () => {
@@ -97,10 +99,11 @@ const ModalViewPlan = ({ date, period, onClose }) => {
   const [createSpontaneousReservation] =
     useCreateSpontaneousReservationMutation();
 
-  const { data: allocations } = useGetAllocationsQuery({
-    date,
-    period,
-  });
+  const { data: allocations, refetch: refetchAllocations } =
+    useGetAllocationsQuery({
+      date,
+      period,
+    });
 
   const {
     data: reservations,
@@ -113,6 +116,24 @@ const ModalViewPlan = ({ date, period, onClose }) => {
   const handleOpenNotesModal = (reservation) => {
     setSelectedReservationForNotes(reservation); // Définit la réservation pour le modal
     setIsNotesModalOpen(true); // Ouvre le modal
+  };
+
+  const handleRefreshData = async () => {
+    try {
+      // Appel des fonctions de refetch
+      await refetchReservations(); // Rafraîchit les réservations
+      await refetchAllocations(); // Rafraîchit les allocations
+
+      console.log("Données rafraîchies : réservations et allocations !");
+      setIsRefreshed(true); // Passe le bouton en vert
+
+      // Revenir à la couleur bleue après 1 seconde
+      setTimeout(() => {
+        setIsRefreshed(false);
+      }, 1000);
+    } catch (error) {
+      console.error("Erreur lors du rafraîchissement des données :", error);
+    }
   };
 
   const handleCloseNotesModal = () => {
@@ -497,14 +518,32 @@ const ModalViewPlan = ({ date, period, onClose }) => {
               >
                 Créer client de passage
               </button>
+              <button
+                className={`px-4 py-1 rounded-md shadow-sm transition duration-200 ${
+                  isRefreshed
+                    ? "bg-green-500 text-white" // Vert si rafraîchi
+                    : "bg-blue-500 text-white hover:bg-blue-600" // Bleu sinon
+                }`}
+                onClick={handleRefreshData}
+              >
+                Raffraîchir
+              </button>
             </div>
           )}
           <div className="flex flex-wrap gap-2 justify-start items-end">
             {reservations?.length === 0 ? (
               <div className="w-full flex justify-between items-center">
-                <div className="text-lg font-bold text-green-600">
-                  Toutes les réservations sont placées, bravo !!
-                </div>
+                <button
+                  className={`px-4 py-1 rounded-md shadow-sm transition duration-200 ${
+                    isRefreshed
+                      ? "bg-green-500 text-white" // Vert si rafraîchi
+                      : "bg-blue-500 text-white hover:bg-blue-600" // Bleu sinon
+                  }`}
+                  onClick={handleRefreshData}
+                >
+                  Raffraîchir
+                </button>
+
                 <button
                   className="bg-green-500 text-white px-4 py-1 rounded-md shadow-sm hover:bg-green-600 transition duration-200"
                   onClick={handleCreateSpontaneousReservation}
