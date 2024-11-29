@@ -217,6 +217,16 @@ export const reservationsApi = createApi({
       keepUnusedDataFor: 1440, // Conserver les données en cache pendant 24 heures
       providesTags: ["Reservations"], // Tag pour invalider les caches si nécessaire
     }),
+
+    cancelClientReservation: builder.mutation({
+      query: ({ id, user, reason }) => ({
+        url: `Reservations/${id}/cancel-client?user=${user}&reason=${encodeURIComponent(
+          reason || ""
+        )}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Reservations", "HECStatuts"],
+    }),
   }),
 });
 
@@ -251,6 +261,7 @@ export const {
   useDeleteNoteInterneMutation,
   useGetFilteredReservationsQuery,
   useGetLatestReservationsQuery,
+  useCancelClientReservationMutation,
 } = reservationsApi;
 
 export default reservationsApi;

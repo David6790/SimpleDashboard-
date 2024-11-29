@@ -12,7 +12,11 @@ import SectionHeading from "../Components/SectionHeading";
 import { useAddHECStatutMutation } from "../services/hecApi";
 import { useGetNotificationToggleQuery } from "../services/toggleApi";
 import CreateNoteInterneModal from "../Components/CreateNoteInterneModal";
-import { useAddNoteInterneMutation } from "../services/reservations";
+import {
+  useAddNoteInterneMutation,
+  useCancelNoShowReservationMutation,
+} from "../services/reservations";
+import ConfirmationAnnulerModal from "../Components/ConfirmationAnnulerModal";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -58,6 +62,26 @@ export default function GirStaff() {
   const { refetch: refetchToggle } = useGetNotificationToggleQuery();
   const [isConfirming, setIsConfirming] = useState(false);
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+
+  const [isAnnulerModalOpen, setIsAnnulerModalOpen] = useState(false);
+  const [isSubmittingAnnuler, setIsSubmittingAnnuler] = useState(false);
+
+  const [cancelReservation] = useCancelNoShowReservationMutation();
+
+  const handleConfirmAnnulation = async () => {
+    try {
+      setIsSubmittingAnnuler(true);
+      await cancelReservation({ id: reservationId }).unwrap();
+
+      setIsAnnulerModalOpen(false);
+      await refetchReservation(); // Rafraîchir les données
+    } catch (error) {
+      console.error("Erreur lors de l'annulation :", error);
+      alert("Une erreur est survenue lors de l'annulation.");
+    } finally {
+      setIsSubmittingAnnuler(false);
+    }
+  };
 
   const [addNoteInterne] = useAddNoteInterneMutation(); // Hook pour ajouter une note interne
   const { refetch: refetchReservation } =
@@ -224,6 +248,16 @@ export default function GirStaff() {
               ) : (
                 ""
               )}
+              {reservationData.status !== "A" &&
+                reservationData.status !== "R" && (
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-red-700"
+                    onClick={() => setIsAnnulerModalOpen(true)}
+                  >
+                    Annuler la réservation
+                  </button>
+                )}
             </div>
           </div>
 
@@ -584,6 +618,13 @@ export default function GirStaff() {
               onClose={() => setIsNotesModalOpen(false)} // Fermer le modal
             />
           )}
+          <ConfirmationAnnulerModal
+            isOpen={isAnnulerModalOpen}
+            onConfirm={handleConfirmAnnulation}
+            onClose={() => setIsAnnulerModalOpen(false)}
+            message="Êtes-vous sûr de vouloir annuler cette réservation ?"
+            isSubmitting={isSubmittingAnnuler}
+          />
         </main>
       </div>
     </Layout>

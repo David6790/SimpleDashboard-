@@ -8,7 +8,11 @@ import { useGetCommentairesByReservationIdQuery } from "../services/commentaireA
 import logoG from "../images/logoG.png";
 import heart from "../images/heart.png";
 import { useAddCommentaireMutation } from "../services/commentaireApi";
-import { useValidateDoubleConfirmationMutation } from "../services/reservations";
+import {
+  useValidateDoubleConfirmationMutation,
+  useCancelClientReservationMutation,
+} from "../services/reservations";
+import ConfirmationAnnulationClientModal from "../Components/ConfirmationAnnulationClientModal";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -52,6 +56,29 @@ export default function GestionInteractiveResa() {
 
   // État pour stocker le message du commentaire
   const [commentMessage, setCommentMessage] = useState("");
+
+  const [isModalOpen, setIsModalOpen] = useState(false); // État pour gérer l'ouverture du modal
+  const [isSubmitting, setIsSubmitting] = useState(false); // État pour la soumission
+  const [annulationClient] = useCancelClientReservationMutation(); // Hook pour l'annulation
+  const [cancelReason, setCancelReason] = useState("");
+
+  const handleCancelReservation = async () => {
+    try {
+      setIsSubmitting(true);
+      await annulationClient({
+        id: reservationId,
+        user: "client",
+        reason: cancelReason, // Utilise la raison depuis l'état
+      }).unwrap();
+
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Erreur lors de l'annulation :", error);
+      alert("Une erreur est survenue lors de l'annulation.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -216,7 +243,16 @@ export default function GestionInteractiveResa() {
                 </button>
               ) : (
                 ""
-              )}
+              )}{" "}
+              {reservationData.status !== "A" &&
+                reservationData.status !== "R" && ( // Condition pour cacher le bouton si le statut est "A" ou "R"
+                  <button
+                    className="inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-red-700"
+                    onClick={() => setIsModalOpen(true)}
+                  >
+                    Annuler ma réservation
+                  </button>
+                )}
             </div>
           </div>
 
@@ -511,6 +547,15 @@ export default function GestionInteractiveResa() {
               </div>
             </section>
           </div>
+          <ConfirmationAnnulationClientModal
+            isOpen={isModalOpen}
+            onConfirm={handleCancelReservation}
+            onClose={() => setIsModalOpen(false)}
+            message="Êtes-vous sûr de vouloir annuler votre réservation ? Cette action est irréversible"
+            isSubmitting={isSubmitting}
+            cancelReason={cancelReason} // Transmet la raison
+            setCancelReason={setCancelReason} // Permet de mettre à jour la raison
+          />
         </main>
       </div>
     </>
