@@ -21,6 +21,8 @@ import ResaExternesClients from "../pages/ResaExternesClients";
 import PowerUserPage from "../pages/PowerUserPage";
 import PowerUpdateForm from "../Components/PowerUpdateForm";
 import PageStockCompletResa from "../pages/PageStockCompletResa";
+import SyntheseResa from "../pages/SyntheseResa";
+import AccesDeniedClient from "../pages/AccesDeniedClient";
 
 const Routeur = () => {
   const dispatch = useDispatch();
@@ -38,6 +40,10 @@ const Routeur = () => {
   }, [dispatch]);
 
   const user = useSelector((state) => state.user);
+  const role22 = useSelector((state) => state.user?.role);
+
+  console.log(user);
+  console.log("voici role >" + role22);
 
   return (
     <BrowserRouter>
@@ -45,15 +51,24 @@ const Routeur = () => {
         <Route
           path="/admin-stockComplet"
           element={
-            <RoleProtectedRoute
-              element={StockComplet}
-              allowedRoles={["ADMIN"]}
-            />
+            user && role22 === "ADMIN" ? <StockComplet /> : <AccessDeniedPage />
           }
         />
         <Route
           path="/"
           element={user ? <Dashboard /> : <Navigate to="/sign-in" />}
+        />
+        <Route
+          path="/gir-staff/:reservationId"
+          element={user ? <GirStaff /> : <AccessDeniedPage />}
+        />
+        <Route
+          path="/stockResa"
+          element={user ? <PageStockCompletResa /> : <AccessDeniedPage />}
+        />
+        <Route
+          path="/resasynth/:reservationId"
+          element={user ? <SyntheseResa /> : <AccesDeniedClient />}
         />
         <Route
           path="/reservation-page"
@@ -114,10 +129,9 @@ const Routeur = () => {
           path="/gir/:reservationId"
           element={<GestionInteractiveResa />}
         />
-        <Route path="/gir-staff/:reservationId" element={<GirStaff />} />
+
         <Route path="/modif-resa-client" element={<UpdateResaFormClient />} />
         <Route path="/resa-externe" element={<ResaExternesClients />} />
-        <Route path="/stockResa" element={<PageStockCompletResa />} />
       </Routes>
     </BrowserRouter>
   );
