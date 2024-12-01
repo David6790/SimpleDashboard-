@@ -1,5 +1,5 @@
 import { HandThumbUpIcon, ClockIcon } from "@heroicons/react/20/solid";
-import { useGetReservationByIdQuery } from "../services/reservations";
+import { useGetReservationSyntheseQuery } from "../services/reservations";
 import { useParams } from "react-router-dom"; // Importer useNavigate
 import { useEffect, useState } from "react";
 import { useGetHECStatutsByReservationIdQuery } from "../services/hecApi";
@@ -13,8 +13,8 @@ import { useAddHECStatutMutation } from "../services/hecApi";
 import { useGetNotificationToggleQuery } from "../services/toggleApi";
 import CreateNoteInterneModal from "../Components/CreateNoteInterneModal";
 import {
-  useAddNoteInterneMutation,
   useCancelNoShowReservationMutation,
+  useSetHasArrivedMutation,
 } from "../services/reservations";
 import ConfirmationAnnulerModal from "../Components/ConfirmationAnnulerModal";
 
@@ -82,64 +82,18 @@ export default function SyntheseResa() {
       setIsSubmittingAnnuler(false);
     }
   };
+  const [setHasArrived] = useSetHasArrivedMutation();
 
-  const [addNoteInterne] = useAddNoteInterneMutation(); // Hook pour ajouter une note interne
   const { refetch: refetchReservation } =
-    useGetReservationByIdQuery(reservationId); // Rafraîchir la réservation
-
-  const handleTransmitInternally = async (comment) => {
-    if (!comment.message.trim()) return; // Ne rien faire si le commentaire est vide
-
-    try {
-      await addNoteInterne({
-        ResaId: reservationId, // ID de la réservation
-        Note: `Merci de prendre en compte de cette demande du client :\n\n${comment.message}`, // Message formaté avec Markdown
-        CreatedBy: "Admin", // Remplacez par le nom réel de l'utilisateur si nécessaire
-      }).unwrap();
-
-      // Rafraîchir la réservation après succès
-      await refetchReservation();
-    } catch (error) {
-      console.error(
-        "Erreur lors de la transmission en interne :",
-        error.message
-      );
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!commentMessage.trim()) {
-      alert("Veuillez entrer un message.");
-      return;
-    }
-
-    try {
-      setIsConfirming(true);
-      const newComment = {
-        message: commentMessage,
-        auteur: "SYSTEM", // Concaténer nom et prénom
-        reservationId: reservationId,
-      };
-
-      // Appel à l'API pour poster le commentaire
-      await addCommentaire({ newCommentaire: newComment, origin: "SYSTEM" });
-      setIsConfirming(false);
-      // Réinitialiser le champ de commentaire après l'envoi
-      setCommentMessage("");
-      await refetchToggle();
-    } catch (error) {
-      console.error("Erreur lors de l'envoi du commentaire :", error);
-      setIsConfirming(false);
-    }
-  };
+    useGetReservationSyntheseQuery(reservationId); // Rafraîchir la réservation
 
   const {
     data: reservationData,
     error: reservationError,
     isLoading: reservationLoading,
-  } = useGetReservationByIdQuery(reservationId); // Appel à l'API avec l'ID
+  } = useGetReservationSyntheseQuery(reservationId); // Appel à l'API avec l'ID
+
+  console.log(reservationData);
 
   const {
     data: hecData,
@@ -211,11 +165,30 @@ export default function SyntheseResa() {
     }
   };
 
+  function getGommetteStatus(reservationDate, reservationTime) {
+    const now = new Date();
+    const reservationDateTime = new Date(
+      `${reservationDate}T${reservationTime}`
+    );
+
+    const diffInMinutes = (reservationDateTime - now) / (1000 * 60);
+
+    if (now.toDateString() !== reservationDateTime.toDateString()) {
+      return { text: "Mauvais jour", color: "bg-red-500 text-white" };
+    } else if (diffInMinutes > 5) {
+      return { text: "En avance", color: "bg-yellow-500 text-black" };
+    } else if (diffInMinutes < -5) {
+      return { text: "En retard", color: "bg-orange-500 text-black" };
+    } else {
+      return { text: "À l'heure", color: "bg-green-500 text-white" };
+    }
+  }
+
   return (
     <Layout>
       <div className="min-h-full bg-white">
         {/* Header section */}
-        <SectionHeading title={"QuickOnboard"} />
+        <SectionHeading title={"Fast Onboard"} />
         <main className="py-10">
           {/* Page header */}
           <div className="mx-auto max-w-3xl px-4 sm:px-6 md:flex md:items-center md:justify-between md:space-x-5 lg:max-w-7xl lg:px-8">
@@ -232,30 +205,30 @@ export default function SyntheseResa() {
               </div>
             </div>
             <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
-              {reservationData.status !== "A" &&
-              reservationData.status !== "P" &&
-              reservationData.status !== "R" &&
-              reservationData.status !== "M" ? (
+              {reservationData.status === "C" && (
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                  onClick={handleRequestDoubleConfirm} // Appel de la fonction de redirection
+                  className="inline-flex items-center justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-green-700"
+                  onClick={async () => {
+                    try {
+                      await setHasArrived({
+                        id: reservationId,
+                        hasArrived: true,
+                      }).unwrap();
+                      await refetchReservation(); // Rafraîchir les données
+                      alert("Réservation marquée comme arrivée !");
+                    } catch (error) {
+                      console.error(
+                        "Erreur lors de la mise à jour du statut :",
+                        error
+                      );
+                      alert("Une erreur est survenue lors de la mise à jour.");
+                    }
+                  }}
                 >
-                  Demander une double Confirmation
+                  Marquer comme arrivée
                 </button>
-              ) : (
-                ""
               )}
-              {reservationData.status !== "A" &&
-                reservationData.status !== "R" && (
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-red-700"
-                    onClick={() => setIsAnnulerModalOpen(true)}
-                  >
-                    Annuler la réservation
-                  </button>
-                )}
             </div>
           </div>
 
@@ -269,7 +242,7 @@ export default function SyntheseResa() {
                       id="applicant-information-title"
                       className="text-lg font-medium leading-6 text-gray-900"
                     >
-                      Détails de la réservation
+                      Synthèse Technique
                     </h2>
                   </div>
                   <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
@@ -280,16 +253,56 @@ export default function SyntheseResa() {
                         </dt>
                         <dd className="mt-1 text-sm text-gray-900">
                           {formattedDateTime}
+                          {reservationData.status === "R" ||
+                          reservationData.status === "A" ? (
+                            <div className="inline-block px-2 py-1 ml-2 rounded-full text-xs font-medium bg-red-500 text-white">
+                              Réservation annulée
+                            </div>
+                          ) : (
+                            <div
+                              className={`inline-block px-2 py-1 ml-2 rounded-full text-xs font-medium ${
+                                getGommetteStatus(
+                                  reservationData.dateResa,
+                                  reservationData.timeResa
+                                ).color
+                              }`}
+                            >
+                              {
+                                getGommetteStatus(
+                                  reservationData.dateResa,
+                                  reservationData.timeResa
+                                ).text
+                              }
+                            </div>
+                          )}
                         </dd>
                       </div>
+
                       <div className="sm:col-span-1">
                         <dt className="text-sm font-medium text-gray-500">
-                          Adresse Email
+                          Table(s) attribuée(s)
                         </dt>
-                        <dd className="mt-1 text-sm text-gray-900">
-                          {reservationData.client.email}
+                        <dd className="mt-1 text-sm text-gray-900 flex flex-wrap items-center gap-2">
+                          {reservationData.tables &&
+                          reservationData.tables.length > 0 ? (
+                            [...reservationData.tables] // Crée une copie du tableau
+                              .sort((a, b) => a.name.localeCompare(b.name)) // Tri alphabétique
+                              .map((table) => (
+                                <span
+                                  key={table.id}
+                                  className="inline-block px-3 py-2 bg-green-500 text-white text-sm font-semibold rounded shadow"
+                                >
+                                  {table.name}
+                                </span>
+                              ))
+                          ) : (
+                            <span className="text-gray-500 italic">
+                              PAS ENCORE PLACÉ
+                            </span>
+                          )}
                         </dd>
                       </div>
+
                       <div className="sm:col-span-1">
                         <dt className="text-sm font-medium text-gray-500">
                           Nombre de personne
@@ -310,305 +323,143 @@ export default function SyntheseResa() {
                         <dt className="text-sm font-medium text-gray-500">
                           Commentaire
                         </dt>
-                        <dd className="mt-1 text-sm text-gray-900 flex items-center justify-between">
-                          {reservationData.comment ? (
-                            <>
-                              <span className="flex-1">
-                                {reservationData.comment}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleTransmitInternally({
-                                    message: reservationData.comment,
-                                  })
-                                }
-                                className="font-medium text-blue-500 hover:text-blue-700 ml-4"
-                              >
-                                Transmettre en Interne
-                              </button>
-                            </>
-                          ) : (
-                            "Aucun commentaire"
-                          )}
+                        <dd className="mt-1 text-sm text-gray-900">
+                          {reservationData.comment || "Aucun commentaire"}
                         </dd>
                       </div>
 
                       <div className="sm:col-span-2">
                         <dt className="text-sm font-medium text-gray-500">
-                          Info complémentaire
+                          Consigne de libération de table
                         </dt>
-                        <dd className="mt-1 text-sm text-gray-900">
-                          {reservationData.freeTable21 === "O"
-                            ? "Il est convenu avec le restaurant que la table doit être libérée pour 21h."
-                            : "Aucune information complémentaire."}
+                        <dd className="mt-1 text-sm text-gray-900 flex items-center">
+                          {reservationData.freeTable21 === "O" ? (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-500 text-white">
+                              Client a accepté de libérer la table à 21h
+                            </span>
+                          ) : reservationData.freeTable1330 === "O" ? (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-500 text-white">
+                              Client a accepté de libérer la table à 13h30
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-orange-500 text-white">
+                              Pas d'instruction de libération de table
+                            </span>
+                          )}
                         </dd>
                       </div>
-                      {/* Notes internes */}
-                      <div className="mt-8">
-                        <h3 className="text-lg font-medium text-gray-900">
-                          Notes internes
-                        </h3>
-                        {reservationData.notesInternes &&
-                        reservationData.notesInternes.length > 0 ? (
-                          <ul className="mt-4 space-y-4">
-                            {reservationData.notesInternes.map((note) => (
-                              <li
-                                key={note.id}
-                                className="bg-gray-100 px-4 py-3 rounded-lg shadow-sm"
-                              >
-                                <p className="text-sm text-gray-800 whitespace-pre-line">
-                                  {note.note}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-2">
-                                  <strong>Créé par:</strong>{" "}
-                                  {note.createdBy || "Inconnu"} -{" "}
-                                  {new Date(note.createdAt).toLocaleString(
-                                    "fr-FR",
-                                    {
-                                      weekday: "long",
-                                      year: "numeric",
-                                      month: "long",
-                                      day: "numeric",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    }
-                                  )}
-                                </p>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p className="text-sm text-gray-500 mt-4">
-                            Aucune note interne disponible.
-                          </p>
-                        )}
-                      </div>
-
-                      {reservationData.doubleConfirmation === "O" && (
-                        <div className="sm:col-span-2">
-                          <dt className="text-sm font-medium text-gray-500">
-                            Double Confirmation
-                          </dt>
-                          <dd className="mt-1 text-sm font-semibold text-black bg-green-200 inline-block px-2 rounded">
-                            Confirmé OK
-                          </dd>
-                        </div>
-                      )}
                     </dl>
                   </div>
-                  <div className="bg-gray-50 px-4 py-4 sm:rounded-b-lg text-center">
-                    <button
-                      className="text-sm font-medium text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      onClick={() => setIsNotesModalOpen(true)} // Ouvrir le modal
+                </div>
+              </section>
+
+              {/* Notes internes */}
+              <section aria-labelledby="notes-title">
+                <div className="bg-white shadow sm:rounded-lg">
+                  <div className="px-4 py-5 sm:px-6">
+                    <h2
+                      id="notes-title"
+                      className="text-lg font-medium text-gray-900"
                     >
-                      Ajouter une note interne
-                    </button>
+                      Notes internes
+                    </h2>
+                  </div>
+                  <div className="px-4 py-6 sm:px-6">
+                    {reservationData.notesInternes &&
+                    reservationData.notesInternes.length > 0 ? (
+                      <ul className="space-y-4">
+                        {reservationData.notesInternes.map((note) => (
+                          <li
+                            key={note.id}
+                            className="bg-gray-100 px-4 py-3 rounded-lg shadow-sm"
+                          >
+                            <p className="text-sm text-gray-800 whitespace-pre-line">
+                              {note.note}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-2">
+                              <strong>Créé par:</strong>{" "}
+                              {note.createdBy || "Inconnu"} -{" "}
+                              {new Date(note.createdAt).toLocaleString(
+                                "fr-FR",
+                                {
+                                  weekday: "long",
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-500">
+                        Aucune note interne disponible.
+                      </p>
+                    )}
                   </div>
                 </div>
               </section>
 
               {/* Comments */}
-              <section aria-labelledby="notes-title">
-                <div className="bg-white shadow sm:overflow-hidden sm:rounded-lg">
-                  <div className="divide-y divide-gray-200">
-                    <div className="px-4 py-5 sm:px-6">
-                      <h2
-                        id="notes-title"
-                        className="text-lg font-medium text-gray-900"
-                      >
-                        Echange avec le client
-                      </h2>
-                    </div>
-                    <div className="px-4 py-6 sm:px-6">
-                      <ul className="space-y-8">
-                        {commentaireData.map((comment) => (
-                          <li key={comment.id}>
-                            <div className="flex space-x-3">
-                              <div className="flex-shrink-0">
-                                <img
-                                  alt=""
-                                  src={
-                                    comment.auteur === "SYSTEM" ? logoG : heart
-                                  }
-                                  className="h-10 w-10 rounded-full"
-                                />
+              <section aria-labelledby="comments-title">
+                <div className="bg-white shadow sm:rounded-lg">
+                  <div className="px-4 py-5 sm:px-6">
+                    <h2
+                      id="comments-title"
+                      className="text-lg font-medium text-gray-900"
+                    >
+                      Échange avec le client
+                    </h2>
+                  </div>
+                  <div className="px-4 py-6 sm:px-6">
+                    <ul className="space-y-8">
+                      {commentaireData.map((comment) => (
+                        <li key={comment.id}>
+                          <div className="flex space-x-3">
+                            <div className="flex-shrink-0">
+                              <img
+                                alt=""
+                                src={
+                                  comment.auteur === "SYSTEM" ? logoG : heart
+                                }
+                                className="h-10 w-10 rounded-full"
+                              />
+                            </div>
+                            <div>
+                              <div className="text-sm">
+                                <div
+                                  href="#"
+                                  className="font-medium text-gray-900"
+                                >
+                                  {comment.auteur === "SYSTEM"
+                                    ? "Restaurant Il Girasole"
+                                    : comment.auteur}
+                                </div>
                               </div>
-                              <div>
-                                <div className="text-sm">
-                                  <div
-                                    href="#"
-                                    className="font-medium text-gray-900"
-                                  >
-                                    {comment.auteur === "SYSTEM"
-                                      ? "Restaurant Il Girasole"
-                                      : comment.auteur}
-                                  </div>
-                                </div>
-                                <div className="mt-1 text-sm text-gray-700">
-                                  <p style={{ whiteSpace: "pre-line" }}>
-                                    {comment.message}
-                                  </p>
-                                </div>
-                                <div className="mt-2 flex items-center space-x-2 text-sm">
-                                  <span className="font-medium text-gray-500">
-                                    {formatTimeAgo(comment.createdAt)}
-                                  </span>
-                                  {comment.auteur !== "SYSTEM" && (
-                                    <button
-                                      onClick={() =>
-                                        handleTransmitInternally(comment)
-                                      } // Appeler la fonction
-                                      className="font-medium text-blue-500 hover:text-blue-700"
-                                    >
-                                      Transmettre en Interne
-                                    </button>
-                                  )}
-                                </div>
+                              <div className="mt-1 text-sm text-gray-700">
+                                <p style={{ whiteSpace: "pre-line" }}>
+                                  {comment.message}
+                                </p>
+                              </div>
+                              <div className="mt-2 flex items-center space-x-2 text-sm">
+                                <span className="font-medium text-gray-500">
+                                  {formatTimeAgo(comment.createdAt)}
+                                </span>
                               </div>
                             </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 px-4 py-6 sm:px-6">
-                    <div className="flex space-x-3">
-                      <div className="flex-shrink-0">
-                        <img
-                          alt=""
-                          src={logoG}
-                          className="h-10 w-10 rounded-full"
-                        />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <form>
-                          <div>
-                            <label htmlFor="comment" className="sr-only">
-                              Commentaire
-                            </label>
-                            <textarea
-                              id="comment"
-                              name="comment"
-                              rows={3}
-                              placeholder="Ajouter un commentaire"
-                              value={commentMessage}
-                              onChange={(e) =>
-                                setCommentMessage(e.target.value)
-                              }
-                              className="block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
-                            />
                           </div>
-                          <div className="mt-3 flex items-center justify-between">
-                            {isConfirming ? (
-                              <button className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-                                En cours...
-                              </button>
-                            ) : (
-                              <button
-                                type="submit"
-                                onClick={handleSubmit}
-                                className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                              >
-                                Répondre
-                              </button>
-                            )}
-                          </div>
-                        </form>
-                      </div>
-                    </div>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </section>
             </div>
-
-            {/* Timeline */}
-            <section
-              aria-labelledby="timeline-title"
-              className="lg:col-span-1 lg:col-start-3"
-            >
-              <div className="bg-white px-4 py-5 shadow sm:rounded-lg sm:px-6">
-                <h2
-                  id="timeline-title"
-                  className="text-lg font-medium text-gray-900"
-                >
-                  Timeline
-                </h2>
-
-                {/* Activity Feed */}
-                <div className="mt-6 flow-root">
-                  <ul className="-mb-8">
-                    {hecData.map((item, itemIdx) => (
-                      <li key={item.id}>
-                        <div className="relative pb-8">
-                          {itemIdx !== hecData.length - 1 ? (
-                            <span
-                              aria-hidden="true"
-                              className="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
-                            />
-                          ) : null}
-                          <div className="relative flex space-x-3">
-                            <div>
-                              <span
-                                className={classNames(
-                                  item.statut === "Réservation Validée: " ||
-                                    item.statut === "Modification Validée: " ||
-                                    item.statut === "Double confirmation reçue"
-                                    ? "bg-green-500"
-                                    : "bg-gray-400",
-                                  "flex h-8 w-8 items-center justify-center rounded-full ring-8 ring-white"
-                                )}
-                              >
-                                {item.statut === "Réservation Validée: " ||
-                                item.statut === "Modification Validée: " ||
-                                item.statut === "Double confirmation reçue" ? (
-                                  <HandThumbUpIcon
-                                    className="h-5 w-5 text-white"
-                                    aria-hidden="true"
-                                  />
-                                ) : (
-                                  <ClockIcon
-                                    className="h-5 w-5 text-white"
-                                    aria-hidden="true"
-                                  />
-                                )}
-                              </span>
-                            </div>
-                            <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                              <div>
-                                <p className="text-sm ">
-                                  {item.statut}{" "}
-                                  <span
-                                    href="#"
-                                    className="font-medium text-gray-500"
-                                  >
-                                    {item.libelle}
-                                  </span>
-                                </p>
-                              </div>
-                              <div className="whitespace-nowrap text-right text-sm text-gray-500">
-                                <time>
-                                  {formatDateToDayMonth(item.createdAt)}
-                                </time>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="mt-6 flex flex-col justify-stretch">
-                  {/* <button
-                    type="button"
-                    className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                  >
-                    Confirmer
-                  </button> */}
-                </div>
-              </div>
-            </section>
           </div>
+
           {/* Afficher le modal d'ajout de notes internes */}
           {isNotesModalOpen && (
             <CreateNoteInterneModal

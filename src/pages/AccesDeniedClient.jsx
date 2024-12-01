@@ -3,9 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
 
 const AccesDeniedClient = () => {
-  const navigate = useNavigate();
-  const [counter, setCounter] = useState(5);
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="rounded-md bg-yellow-50 p-4">

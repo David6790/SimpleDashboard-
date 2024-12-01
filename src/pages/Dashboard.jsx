@@ -14,6 +14,7 @@ import ModalViewPlanMidi from "./ModalViewPlanMidi";
 import { Switch } from "@headlessui/react";
 import { registerLocale } from "react-datepicker";
 import fr from "date-fns/locale/fr";
+import FastOnboardModal from "../Components/FastOnboardModal";
 
 const Dashboard = () => {
   const location = useLocation();
@@ -22,6 +23,8 @@ const Dashboard = () => {
   const [isModalMidiOpen, setIsModalMidiOpen] = useState(false); // Pour le modal Midi
   const [isModalSoirOpen, setIsModalSoirOpen] = useState(false); // Pour le modal Soir
   const [filter, setFilter] = useState("all");
+  const [isModalOpen, setModalOpen] = useState(false);
+
   const formattedDate = format(selectedDate, "yyyy-MM-dd");
   registerLocale("fr", fr);
 
@@ -87,6 +90,13 @@ const Dashboard = () => {
     <Layout>
       <SectionHeading title={"IL GIRASOLE"} />
       <div className="px-4 sm:px-6 lg:px-8 mt-10">
+        <button
+          type="button"
+          onClick={() => setModalOpen(true)}
+          className="mb-4 block rounded-md bg-yellow-500 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
+        >
+          Fast Onboard
+        </button>
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
             <label className="block text-sm font-medium leading-6 text-gray-900">
@@ -245,6 +255,10 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+      <FastOnboardModal
+        isOpen={isModalOpen}
+        onClose={() => setModalOpen(false)}
+      />
     </Layout>
   );
 };

@@ -227,6 +227,12 @@ export const reservationsApi = createApi({
       }),
       invalidatesTags: ["Reservations", "HECStatuts"],
     }),
+
+    getReservationSynthese: builder.query({
+      query: (id) => `Reservations/${id}/synthese`,
+      keepUnusedDataFor: 1440,
+      providesTags: ["Reservations"],
+    }),
   }),
 });
 
@@ -262,6 +268,7 @@ export const {
   useGetFilteredReservationsQuery,
   useGetLatestReservationsQuery,
   useCancelClientReservationMutation,
+  useGetReservationSyntheseQuery,
 } = reservationsApi;
 
 export default reservationsApi;
