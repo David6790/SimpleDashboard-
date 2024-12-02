@@ -56,6 +56,8 @@ const FastOnboardModal = ({ isOpen, onClose }) => {
                     <div className="mt-2">
                       <input
                         type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         placeholder="Code réservation (chiffres uniquement)"
                         value={reservationCode}
