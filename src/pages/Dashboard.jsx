@@ -148,24 +148,28 @@ const Dashboard = () => {
       />
 
       {/* Toggle Filters */}
-      <div className="mt-4 space-y-2 flex gap-4">
+      <div className="mt-4 space-y-2 flex flex-wrap gap-4">
         <div className="flex items-center">
           <Switch
             checked={filter === "all"}
             onChange={() => handleFilterChange("all")}
             className={`${
               filter === "all" ? "bg-indigo-600" : "bg-gray-200"
-            } group relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2`}
+            } group relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 sm:h-6 sm:w-11`}
           >
             <span className="sr-only">Afficher toutes les réservations</span>
             <span
               aria-hidden="true"
               className={`${
-                filter === "all" ? "translate-x-5" : "translate-x-0"
-              } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                filter === "all"
+                  ? "translate-x-5 sm:translate-x-5"
+                  : "translate-x-0"
+              } pointer-events-none inline-block h-4 w-4 sm:h-5 sm:w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
             />
           </Switch>
-          <span className="ml-3">Toutes les réservations</span>
+          <span className="ml-2 sm:ml-3 text-xs sm:text-sm">
+            Toutes les réservations
+          </span>
         </div>
 
         <div className="flex items-center">
@@ -174,7 +178,7 @@ const Dashboard = () => {
             onChange={() => handleFilterChange("midi")}
             className={`${
               filter === "midi" ? "bg-indigo-600" : "bg-gray-200"
-            } group relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2`}
+            } group relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 sm:h-6 sm:w-11`}
           >
             <span className="sr-only">
               Afficher uniquement les réservations du midi
@@ -182,11 +186,15 @@ const Dashboard = () => {
             <span
               aria-hidden="true"
               className={`${
-                filter === "midi" ? "translate-x-5" : "translate-x-0"
-              } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                filter === "midi"
+                  ? "translate-x-5 sm:translate-x-5"
+                  : "translate-x-0"
+              } pointer-events-none inline-block h-4 w-4 sm:h-5 sm:w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
             />
           </Switch>
-          <span className="ml-3">Réservations du midi</span>
+          <span className="ml-2 sm:ml-3 text-xs sm:text-sm">
+            Réservations du midi
+          </span>
         </div>
 
         <div className="flex items-center">
@@ -195,7 +203,7 @@ const Dashboard = () => {
             onChange={() => handleFilterChange("soir")}
             className={`${
               filter === "soir" ? "bg-indigo-600" : "bg-gray-200"
-            } group relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2`}
+            } group relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 sm:h-6 sm:w-11`}
           >
             <span className="sr-only">
               Afficher uniquement les réservations du soir
@@ -203,11 +211,15 @@ const Dashboard = () => {
             <span
               aria-hidden="true"
               className={`${
-                filter === "soir" ? "translate-x-5" : "translate-x-0"
-              } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                filter === "soir"
+                  ? "translate-x-5 sm:translate-x-5"
+                  : "translate-x-0"
+              } pointer-events-none inline-block h-4 w-4 sm:h-5 sm:w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
             />
           </Switch>
-          <span className="ml-3">Réservations du soir</span>
+          <span className="ml-2 sm:ml-3 text-xs sm:text-sm">
+            Réservations du soir
+          </span>
         </div>
       </div>
 
