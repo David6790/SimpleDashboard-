@@ -124,25 +124,25 @@ export default function PreviewTableDashboard({
                 </th>
                 <th
                   scope="col"
-                  className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                 >
                   Date
                 </th>
                 <th
                   scope="col"
-                  className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                 >
                   Heure
                 </th>
                 <th
                   scope="col"
-                  className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell"
+                  className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 w-12"
                 >
                   Couverts
                 </th>
                 <th
                   scope="col"
-                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                  className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell"
                 >
                   Téléphone
                 </th>
@@ -154,22 +154,25 @@ export default function PreviewTableDashboard({
                 </th>
                 <th
                   scope="col"
-                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                  className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell"
                 >
                   Placée
                 </th>
-                {/* Nouvelle colonne "Note Interne" */}
                 <th
                   scope="col"
-                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                  className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell"
                 >
                   Note Interne
                 </th>
-                <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
+                <th
+                  scope="col"
+                  className="hidden py-3.5 pl-3 pr-4 sm:pr-0 sm:table-cell"
+                >
                   <span className="sr-only">Action</span>
                 </th>
               </tr>
             </thead>
+
             <tbody className="divide-y divide-gray-200 bg-white">
               {currentItems.map((reservation) => (
                 <tr
@@ -177,29 +180,19 @@ export default function PreviewTableDashboard({
                   className="cursor-pointer transition-colors duration-200 hover:bg-gray-100"
                   onClick={() => openSlideOver(reservation)}
                 >
-                  <td className="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-0">
-                    {reservation.client.name + " " + reservation.client.prenom}
-                    <dl className="font-normal lg:hidden">
-                      <dt className="sr-only">Date</dt>
-                      <td className="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                        {new Date(reservation.dateResa).toLocaleDateString(
-                          "fr-FR",
-                          {
-                            weekday: "short",
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          }
-                        )}
-                      </td>
-
-                      <dt className="sr-only">Heure</dt>
-                      <dd className="mt-1 truncate text-gray-500">
-                        {reservation.timeResa.slice(0, -3)}
-                      </dd>
-                    </dl>
+                  {/* Colonne Nom */}
+                  <td className="w-full max-w-0 py-4 pl-4 pr-3 text-xs font-medium text-gray-900 sm:text-sm sm:w-auto sm:max-w-none sm:pl-0">
+                    {/* Afficher le prénom sur mobile, nom complet sur écrans plus grands */}
+                    <span className="sm:hidden">{reservation.client.name}</span>
+                    <span className="hidden sm:inline">
+                      {reservation.client.name +
+                        " " +
+                        reservation.client.prenom}
+                    </span>
                   </td>
-                  <td className="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">
+
+                  {/* Colonne Date */}
+                  <td className="px-3 py-4 text-sm text-gray-500">
                     {new Date(reservation.dateResa).toLocaleDateString(
                       "fr-FR",
                       {
@@ -210,15 +203,23 @@ export default function PreviewTableDashboard({
                       }
                     )}
                   </td>
-                  <td className="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                    {reservation.timeResa}
+
+                  {/* Colonne Heure */}
+                  <td className="px-3 py-4 text-sm text-gray-500">
+                    {reservation.timeResa.slice(0, -3)}
                   </td>
-                  <td className="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">
+
+                  {/* Colonne Couverts */}
+                  <td className="px-3 py-4 text-sm text-gray-500 text-center w-12">
                     {reservation.numberOfGuest}
                   </td>
-                  <td className="px-3 py-4 text-sm text-gray-500">
+
+                  {/* Colonne Téléphone (cachée sur mobile) */}
+                  <td className="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">
                     {reservation.client.telephone}
                   </td>
+
+                  {/* Colonne Status */}
                   <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
                     <button
                       className={`px-2 py-1 rounded ${getStatusStyles(
@@ -228,7 +229,9 @@ export default function PreviewTableDashboard({
                       {getStatusText(reservation.status)}
                     </button>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
+
+                  {/* Colonne Placée (cachée sur mobile) */}
+                  <td className="hidden whitespace-nowrap px-3 py-5 text-sm text-gray-500 sm:table-cell">
                     {reservation.placed === "N" ? (
                       <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
                         NON
@@ -239,8 +242,9 @@ export default function PreviewTableDashboard({
                       </span>
                     ) : null}
                   </td>
-                  {/* Contenu de la colonne "Note Interne" */}
-                  <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
+
+                  {/* Colonne Note Interne (cachée sur mobile) */}
+                  <td className="hidden whitespace-nowrap px-3 py-5 text-sm text-gray-500 sm:table-cell">
                     {reservation.notesInternes?.length > 0 ? (
                       <button
                         className="px-4 py-2 rounded-md text-sm font-medium bg-blue-500 text-white hover:bg-blue-600"
@@ -254,7 +258,9 @@ export default function PreviewTableDashboard({
                       </span>
                     )}
                   </td>
-                  <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+
+                  {/* Colonne Action (cachée sur mobile) */}
+                  <td className="hidden py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0 sm:table-cell">
                     {reservation.status !== "A" &&
                       reservation.status !== "R" &&
                       reservation.status !== "P" &&
@@ -264,7 +270,7 @@ export default function PreviewTableDashboard({
                           <button
                             className="px-4 py-2 bg-red-600 text-white rounded-md"
                             onClick={(e) => handleConfirmRemove(reservation, e)}
-                            disabled={isDeleting} // Disable button while deleting
+                            disabled={isDeleting}
                           >
                             {isDeleting ? "Suppression..." : "Confirmer"}
                           </button>
