@@ -1,6 +1,6 @@
 import { HandThumbUpIcon, ClockIcon } from "@heroicons/react/20/solid";
 import { useGetReservationSyntheseQuery } from "../services/reservations";
-import { useParams } from "react-router-dom"; // Importer useNavigate
+import { useParams, useNavigate } from "react-router-dom"; // Importer useNavigate
 import { useEffect, useState } from "react";
 import { useGetHECStatutsByReservationIdQuery } from "../services/hecApi";
 import { useGetCommentairesByReservationIdQuery } from "../services/commentaireApi";
@@ -53,6 +53,7 @@ function formatTimeAgo(createdAt) {
 
 export default function SyntheseResa() {
   const { reservationId } = useParams(); // Récupérer l'ID depuis l'URL
+  const navigate = useNavigate(); // Utiliser useNavigate pour la redirection
 
   const [addCommentaire] = useAddCommentaireMutation();
   const [addHECStatut] = useAddHECStatutMutation();
@@ -93,8 +94,6 @@ export default function SyntheseResa() {
     isLoading: reservationLoading,
   } = useGetReservationSyntheseQuery(reservationId); // Appel à l'API avec l'ID
 
-  console.log(reservationData);
-
   const {
     data: hecData,
     error: hecError,
@@ -109,11 +108,11 @@ export default function SyntheseResa() {
   } = useGetCommentairesByReservationIdQuery(reservationId);
 
   function formatDateTime(date, time) {
-    // Combine the date and time into a single Date object
+    // Combine la date et l'heure en un seul objet Date
     const dateTimeString = `${date}T${time}`;
     const dateTime = new Date(dateTimeString);
 
-    // Format the date to "vendredi 21 décembre 2024"
+    // Formate la date en "vendredi 21 décembre 2024"
     const formattedDate = new Intl.DateTimeFormat("fr-FR", {
       weekday: "long",
       year: "numeric",
@@ -121,13 +120,13 @@ export default function SyntheseResa() {
       day: "numeric",
     }).format(dateTime);
 
-    // Format the time to "hh:mm"
+    // Formate l'heure en "hh:mm"
     const formattedTime = dateTime.toLocaleTimeString("fr-FR", {
       hour: "2-digit",
       minute: "2-digit",
     });
 
-    // Return the formatted date and time
+    // Retourne la date et l'heure formatées
     return `${formattedDate} à ${formattedTime}`;
   }
 
@@ -147,23 +146,6 @@ export default function SyntheseResa() {
     reservationData.dateResa,
     reservationData.timeResa
   );
-
-  const handleRequestDoubleConfirm = async () => {
-    try {
-      // Préparer le nouveau statut HEC
-      const newHECStatut = {
-        reservationId: reservationData.id, // Utiliser l'ID de la réservation actuelle
-        actions: "DC", // Action pour la double confirmation
-        statut: "Demande de double confirmation", // Statut associé
-        libelle: "En attente de la double confirmation", // Libellé à afficher
-        createdBy: "Client", // Qui a créé la demande, ici le client
-      };
-
-      await addHECStatut(newHECStatut);
-    } catch (error) {
-      console.error("Erreur lors de la demande de double confirmation:", error);
-    }
-  };
 
   function getGommetteStatus(reservationDate, reservationTime) {
     const now = new Date();
@@ -187,10 +169,10 @@ export default function SyntheseResa() {
   return (
     <Layout>
       <div className="min-h-full bg-white">
-        {/* Header section */}
+        {/* Section d'en-tête */}
         <SectionHeading title={"Fast Onboard"} />
         <main className="py-10">
-          {/* Page header */}
+          {/* En-tête de la page */}
           <div className="mx-auto max-w-3xl px-4 sm:px-6 md:flex md:items-center md:justify-between md:space-x-5 lg:max-w-7xl lg:px-8">
             <div className="flex items-center space-x-5">
               <div>
@@ -204,8 +186,9 @@ export default function SyntheseResa() {
                 </p>
               </div>
             </div>
-            <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
-              {reservationData.status === "C" && (
+            {/* Boutons */}
+            <div className="mt-6 flex flex-col space-y-4 sm:flex-row sm:space-x-3">
+              {reservationData.hasArrived === false && (
                 <button
                   type="button"
                   className="inline-flex items-center justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-green-700"
@@ -216,7 +199,6 @@ export default function SyntheseResa() {
                         hasArrived: true,
                       }).unwrap();
                       await refetchReservation(); // Rafraîchir les données
-                      alert("Réservation marquée comme arrivée !");
                     } catch (error) {
                       console.error(
                         "Erreur lors de la mise à jour du statut :",
@@ -229,12 +211,19 @@ export default function SyntheseResa() {
                   Marquer comme arrivée
                 </button>
               )}
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-md bg-gray-500 px-3 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-gray-600"
+                onClick={() => navigate("/")}
+              >
+                Retour vers le dashboard
+              </button>
             </div>
           </div>
 
           <div className="mx-auto mt-8 grid max-w-3xl grid-cols-1 gap-6 sm:px-6 lg:max-w-7xl lg:grid-flow-col-dense lg:grid-cols-3">
             <div className="space-y-6 lg:col-span-2 lg:col-start-1">
-              {/* Reservation Details */}
+              {/* Détails de la réservation */}
               <section aria-labelledby="applicant-information-title">
                 <div className="bg-white shadow sm:rounded-lg">
                   <div className="px-4 py-5 sm:px-6">
@@ -305,7 +294,7 @@ export default function SyntheseResa() {
 
                       <div className="sm:col-span-1">
                         <dt className="text-sm font-medium text-gray-500">
-                          Nombre de personne
+                          Nombre de personnes
                         </dt>
                         <dd className="mt-1 text-sm text-gray-900">
                           {reservationData.numberOfGuest}
@@ -403,7 +392,7 @@ export default function SyntheseResa() {
                 </div>
               </section>
 
-              {/* Comments */}
+              {/* Commentaires */}
               <section aria-labelledby="comments-title">
                 <div className="bg-white shadow sm:rounded-lg">
                   <div className="px-4 py-5 sm:px-6">
@@ -430,10 +419,7 @@ export default function SyntheseResa() {
                             </div>
                             <div>
                               <div className="text-sm">
-                                <div
-                                  href="#"
-                                  className="font-medium text-gray-900"
-                                >
+                                <div className="font-medium text-gray-900">
                                   {comment.auteur === "SYSTEM"
                                     ? "Restaurant Il Girasole"
                                     : comment.auteur}
@@ -460,11 +446,11 @@ export default function SyntheseResa() {
             </div>
           </div>
 
-          {/* Afficher le modal d'ajout de notes internes */}
+          {/* Modal d'ajout de notes internes */}
           {isNotesModalOpen && (
             <CreateNoteInterneModal
-              reservation={reservationData} // Passer les données de réservation
-              onClose={() => setIsNotesModalOpen(false)} // Fermer le modal
+              reservation={reservationData}
+              onClose={() => setIsNotesModalOpen(false)}
             />
           )}
           <ConfirmationAnnulerModal
