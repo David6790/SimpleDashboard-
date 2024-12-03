@@ -15,6 +15,7 @@ import {
   BoltIcon,
   TableCellsIcon,
   ChevronDoubleLeftIcon,
+  CurrencyEuroIcon,
 } from "@heroicons/react/24/outline";
 import { NavLink } from "react-router-dom";
 import { useGetNotificationToggleQuery } from "../services/toggleApi"; // Import du hook API toggle
@@ -55,6 +56,12 @@ const navigation = [
     name: "Power User",
     href: "/power-user",
     icon: BoltIcon,
+    current: false,
+  },
+  {
+    name: "ProCom",
+    href: "/procom-home",
+    icon: CurrencyEuroIcon,
     current: false,
   },
 ];

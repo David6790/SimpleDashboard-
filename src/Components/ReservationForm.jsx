@@ -509,7 +509,10 @@ export default function ReservationForm() {
       <ErrorModal
         isOpen={isErrorModalOpen}
         errorMessage={errorMessage}
-        onClose={() => setIsErrorModalOpen(false)}
+        onClose={() => {
+          setIsErrorModalOpen(false); // Fermer le modal
+          window.location.reload(); // Rafraîchir la page
+        }}
       />
       <ConfirmationModalStaff
         isOpen={isConfirmationModalOpen}

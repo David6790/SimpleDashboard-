@@ -23,6 +23,7 @@ import PowerUpdateForm from "../Components/PowerUpdateForm";
 import PageStockCompletResa from "../pages/PageStockCompletResa";
 import SyntheseResa from "../pages/SyntheseResa";
 import AccesDeniedClient from "../pages/AccesDeniedClient";
+import PROCOM from "../pages/PROCOM";
 
 const Routeur = () => {
   const dispatch = useDispatch();
@@ -52,6 +53,12 @@ const Routeur = () => {
           path="/admin-stockComplet"
           element={
             user && role22 === "ADMIN" ? <StockComplet /> : <AccessDeniedPage />
+          }
+        />
+        <Route
+          path="/procom-home"
+          element={
+            user && role22 === "ADMIN" ? <PROCOM /> : <AccessDeniedPage />
           }
         />
         <Route

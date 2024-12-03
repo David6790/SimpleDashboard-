@@ -7,6 +7,7 @@ import allocationsApi from "./services/allocationsApi";
 import { hecApi } from "./services/hecApi"; // Import hecApi
 import { commentaireApi } from "./services/commentaireApi"; // Import commentaireApi
 import { toggleApi } from "./services/toggleApi"; // Import toggleApi
+import { procomApi } from "./services/procomApi";
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     [commentaireApi.reducerPath]: commentaireApi.reducer, // Ajouter le réducteur commentaireApi
     [toggleApi.reducerPath]: toggleApi.reducer, // Ajouter le réducteur toggleApi
     user: userReducer, // Ajouter le réducteur userSlice
+    [procomApi.reducerPath]: procomApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -27,7 +29,8 @@ export const store = configureStore({
       allocationsApi.middleware,
       hecApi.middleware, // Ajouter le middleware hecApi
       commentaireApi.middleware, // Ajouter le middleware commentaireApi
-      toggleApi.middleware // Ajouter le middleware toggleApi
+      toggleApi.middleware, // Ajouter le middleware toggleApi
+      procomApi.middleware
     ),
 });
 
