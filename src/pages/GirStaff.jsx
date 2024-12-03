@@ -11,6 +11,7 @@ import Layout from "../Layouts/Layout";
 import SectionHeading from "../Components/SectionHeading";
 import { useAddHECStatutMutation } from "../services/hecApi";
 import { useGetNotificationToggleQuery } from "../services/toggleApi";
+import { useGetReservationsWithClientCommentsQuery } from "../services/reservations";
 import CreateNoteInterneModal from "../Components/CreateNoteInterneModal";
 import {
   useAddNoteInterneMutation,
@@ -87,6 +88,11 @@ export default function GirStaff() {
   const { refetch: refetchReservation } =
     useGetReservationByIdQuery(reservationId); // Rafraîchir la réservation
 
+  const {
+    data: reservationsWithComments,
+    refetch: refetchReservationsWithComments, // Refetch pour mettre à jour après modification
+  } = useGetReservationsWithClientCommentsQuery();
+
   const handleTransmitInternally = async (comment) => {
     if (!comment.message.trim()) return; // Ne rien faire si le commentaire est vide
 
@@ -128,7 +134,7 @@ export default function GirStaff() {
       setIsConfirming(false);
       // Réinitialiser le champ de commentaire après l'envoi
       setCommentMessage("");
-      await refetchToggle();
+      refetchReservationsWithComments();
     } catch (error) {
       console.error("Erreur lors de l'envoi du commentaire :", error);
       setIsConfirming(false);

@@ -8,6 +8,7 @@ import { hecApi } from "./services/hecApi"; // Import hecApi
 import { commentaireApi } from "./services/commentaireApi"; // Import commentaireApi
 import { toggleApi } from "./services/toggleApi"; // Import toggleApi
 import { procomApi } from "./services/procomApi";
+import notificationReducer from "./slices/notificationSlice";
 
 export const store = configureStore({
   reducer: {
@@ -19,6 +20,7 @@ export const store = configureStore({
     [commentaireApi.reducerPath]: commentaireApi.reducer, // Ajouter le réducteur commentaireApi
     [toggleApi.reducerPath]: toggleApi.reducer, // Ajouter le réducteur toggleApi
     user: userReducer, // Ajouter le réducteur userSlice
+    notification: notificationReducer,
     [procomApi.reducerPath]: procomApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>

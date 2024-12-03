@@ -2,14 +2,19 @@ import React, { useEffect } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import Cookies from "js-cookie";
+import {
+  useGetUntreatedReservationsQuery,
+  useGetReservationsWithClientCommentsQuery,
+} from "../services/reservations"; // Importez la requête
+import { setHasNotification } from "../slices/notificationSlice"; // Importez l'action pour mettre à jour hasNotification
 import Dashboard from "../pages/Dashboard";
 import ReservationPage from "../pages/ReservationPage";
 import UpdateResaForm from "../Components/UpdateResaForm";
 import SignIn from "../Components/SignIn";
 import AccessDeniedPage from "../pages/AccessDeniedPage";
 import { setUser } from "../slices/userSlice";
-import UserProtectedRoute from "./UserProtectedRoute"; // Assurez-vous d'importer correctement
-import RoleProtectedRoute from "./RoleProtectedRoute"; // Assurez-vous d'importer correctement
+import UserProtectedRoute from "./UserProtectedRoute";
+import RoleProtectedRoute from "./RoleProtectedRoute";
 import OccStatusManagement from "../pages/OccStatusManagement";
 import PlanDeSalle from "../pages/PlanDeSalle";
 import StockComplet from "../pages/StockComplet";
@@ -28,6 +33,7 @@ import PROCOM from "../pages/PROCOM";
 const Routeur = () => {
   const dispatch = useDispatch();
 
+  // Récupérer les informations utilisateur depuis les cookies
   useEffect(() => {
     const token = Cookies.get("token");
     const username = Cookies.get("username");
@@ -39,6 +45,30 @@ const Routeur = () => {
       dispatch(setUser({ username, email, role }));
     }
   }, [dispatch]);
+
+  // Appel API pour récupérer les réservations non traitées
+  const { data: reservations } = useGetUntreatedReservationsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
+
+  const { data: comment } = useGetReservationsWithClientCommentsQuery(
+    undefined,
+    {
+      refetchOnMountOrArgChange: true,
+    }
+  );
+
+  // Mettre à jour le state global `hasNotification` en fonction des réservations
+  useEffect(() => {
+    if (
+      (reservations && reservations.length > 0) ||
+      (comment && comment.length > 0)
+    ) {
+      dispatch(setHasNotification(true));
+    } else {
+      dispatch(setHasNotification(false));
+    }
+  }, [reservations, comment, dispatch]);
 
   const user = useSelector((state) => state.user);
   const role22 = useSelector((state) => state.user?.role);
@@ -94,7 +124,6 @@ const Routeur = () => {
           path="/sign-in"
           element={user ? <Navigate to="/" /> : <SignIn />}
         />
-        {/* Utilisez RoleProtectedRoute pour les routes qui nécessitent des rôles spécifiques */}
         <Route
           path="/manager-dashboard"
           element={
@@ -128,15 +157,12 @@ const Routeur = () => {
             <RoleProtectedRoute element={UserList} allowedRoles={["ADMIN"]} />
           }
         />
-
-        {/* Ajouter la route pour la page Access Denied */}
         <Route path="/access-denied" element={<AccessDeniedPage />} />
         <Route path="/plansalle" element={<PlanDeSalle />} />
         <Route
           path="/gir/:reservationId"
           element={<GestionInteractiveResa />}
         />
-
         <Route path="/modif-resa-client" element={<UpdateResaFormClient />} />
         <Route path="/resa-externe" element={<ResaExternesClients />} />
       </Routes>

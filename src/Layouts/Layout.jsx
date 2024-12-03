@@ -1,7 +1,7 @@
 import { Fragment, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import Cookies from "js-cookie";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { clearUser } from "../slices/userSlice";
 import {
@@ -18,7 +18,6 @@ import {
   CurrencyEuroIcon,
 } from "@heroicons/react/24/outline";
 import { NavLink } from "react-router-dom";
-import { useGetNotificationToggleQuery } from "../services/toggleApi"; // Import du hook API toggle
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: HomeIcon, current: false },
@@ -74,19 +73,12 @@ export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Appel de l'API pour récupérer le nombre de notifications
-  const { data: notificationStatus } = useGetNotificationToggleQuery();
-  const [notificationCount, setNotificationCount] = useState(0);
 
-  console.log("notif >" + notificationCount);
+  const hasNotification = useSelector(
+    (state) => state.notification.hasNotification
+  );
 
-  useEffect(() => {
-    if (notificationStatus && notificationStatus.count !== undefined) {
-      setNotificationCount(notificationStatus.count);
-      // Mettez à jour avec la valeur du nombre de notifications
-    } else {
-      setNotificationCount(0);
-    }
-  }, [notificationStatus]);
+  console.log(hasNotification);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -183,7 +175,7 @@ export default function Layout({ children }) {
                                         : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
                                       // Ajout d'une classe pour clignoter si notificationCount > 0
                                       item.name === "Réservations à traiter" &&
-                                        notificationCount > 0
+                                        hasNotification
                                         ? "animate-pulse bg-yellow-300 text-black"
                                         : ""
                                     )
@@ -251,7 +243,7 @@ export default function Layout({ children }) {
                                 : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
                               // Ajout d'une classe pour clignoter si notificationCount > 0
                               item.name === "Réservations à traiter" &&
-                                notificationCount > 0
+                                hasNotification
                                 ? "animate-pulse bg-yellow-300 text-black"
                                 : ""
                             )
@@ -298,7 +290,7 @@ export default function Layout({ children }) {
             className={classNames(
               "sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:hidden",
               // Clignotement du background en mode responsive si notificationCount > 0
-              notificationCount > 0
+              hasNotification
                 ? "animate-pulse bg-yellow-300 text-black"
                 : "bg-white"
             )}
