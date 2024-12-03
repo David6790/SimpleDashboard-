@@ -9,7 +9,7 @@ import {
   usePowerUserCreateReservationMutation,
 } from "../services/reservations";
 import { validateNumberOfPeople, validateDate } from "./ValidationSaisie";
-import { useGetNotificationToggleQuery } from "../services/toggleApi";
+
 import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ErrorModal from "./ErrorModal";
@@ -47,7 +47,6 @@ export default function PowerUserForm() {
   const [freeTable21, setFreeTable21] = useState("N");
   const [freeTable1330, setFreeTable1330] = useState("N");
 
-  const { refetch: refetchToggle } = useGetNotificationToggleQuery();
   const user = useSelector((state) => state.user);
 
   const handleDateChange = (date) => {
@@ -208,7 +207,6 @@ export default function PowerUserForm() {
       setReservationDetails(reservation);
       setSubmitMessage("Réservation effectuée avec succès !");
       resetForm();
-      await refetchToggle();
     } catch (error) {
       setErrorMessage(
         error?.data?.error ||

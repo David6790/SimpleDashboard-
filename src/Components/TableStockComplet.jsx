@@ -4,7 +4,7 @@ import {
   useValidateReservationMutation,
   useRefuseReservationMutation,
 } from "../services/reservations";
-import { useGetNotificationToggleQuery } from "../services/toggleApi";
+
 import ReservationSlideOver from "./ReservationSlideOver";
 import RequestProcessingModal from "./RequestProcessingModal";
 
@@ -21,8 +21,6 @@ export default function TableReservations({ date }) {
   });
 
   console.log(reservations);
-
-  const { refetch: refetchToggle } = useGetNotificationToggleQuery();
 
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState(null);
@@ -86,7 +84,7 @@ export default function TableReservations({ date }) {
       await validateReservation({ id, isSms }).unwrap();
 
       setShowConfirmationOptions(null);
-      await refetchToggle(); // Rafraîchir l'état du toggle
+
       setIsConfirming(false);
     } catch (error) {
       console.error("Failed to update reservation status:", error);
@@ -102,7 +100,7 @@ export default function TableReservations({ date }) {
       await validateReservation({ id, isSms }).unwrap();
 
       setShowConfirmationOptions(null);
-      await refetchToggle(); // Rafraîchir l'état du toggle
+
       setIsConfirming(false);
     } catch (error) {
       console.error("Failed to update reservation status:", error);
@@ -126,7 +124,6 @@ export default function TableReservations({ date }) {
       setIsConfirmationAnnulationModalOpen(false);
       setShowConfirmationOptions(null);
       refetchReservations(); // Rafraîchir les réservations après le refus
-      await refetchToggle();
     } catch (error) {
       console.error("Failed to refuse reservation:", error);
       setIsConfirming(false);

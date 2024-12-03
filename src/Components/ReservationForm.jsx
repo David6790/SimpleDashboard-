@@ -8,7 +8,7 @@ import OccStatusDisplay from "./OccStatusDisplay";
 import ValidationMessage from "./ValidationMessage";
 import { useCreateReservationMutation } from "../services/reservations";
 import { validateNumberOfPeople, validateDate } from "./ValidationSaisie";
-import { useGetNotificationToggleQuery } from "../services/toggleApi";
+
 import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
@@ -43,8 +43,6 @@ export default function ReservationForm() {
   const [confirmationMessage, setConfirmationMessage] = useState("");
   const [confirmAction, setConfirmAction] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const { refetch: refetchToggle } = useGetNotificationToggleQuery(); // Refetch pour le toggle
 
   const user = useSelector((state) => state.user);
 
@@ -208,7 +206,6 @@ export default function ReservationForm() {
       setReservationDetails(reservation);
       setSubmitMessage("Réservation effectuée avec succès !");
       resetForm();
-      await refetchToggle();
     } catch (error) {
       setErrorMessage(
         error?.data?.error ||

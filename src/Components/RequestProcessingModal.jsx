@@ -5,7 +5,6 @@ import {
   useRefuseModificationMutation,
   useCancelModificationMutation,
 } from "../services/reservations";
-import { useGetNotificationToggleQuery } from "../services/toggleApi";
 
 export default function RequestProcessingModal({
   reservation,
@@ -19,8 +18,6 @@ export default function RequestProcessingModal({
   } = useGetModificationRequestByOriginalReservationIdQuery(
     reservation ? reservation.id : null
   );
-
-  const { refetch: refetchToggle } = useGetNotificationToggleQuery();
 
   const [validateModification] = useValidateModificationMutation();
   const [refuseModification] = useRefuseModificationMutation();
@@ -49,7 +46,6 @@ export default function RequestProcessingModal({
       setIsProcessing(true); // Activer l'état de traitement
       await validateModification(reservation.id).unwrap();
       handleClose();
-      refetchToggle();
     } catch (error) {
       console.error("Erreur lors de la validation de la modification:", error);
     } finally {
@@ -62,7 +58,6 @@ export default function RequestProcessingModal({
       setIsProcessing(true); // Activer l'état de traitement
       await refuseModification(reservation.id).unwrap();
       handleClose();
-      refetchToggle();
     } catch (error) {
       console.error("Erreur lors du refus de la modification:", error);
     } finally {
@@ -75,7 +70,6 @@ export default function RequestProcessingModal({
       setIsProcessing(true); // Activer l'état de traitement
       await cancelModification(reservation.id).unwrap();
       handleClose();
-      refetchToggle();
     } catch (error) {
       console.error("Erreur lors de l'annulation de la réservation:", error);
     } finally {

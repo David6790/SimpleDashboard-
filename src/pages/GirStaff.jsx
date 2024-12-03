@@ -10,7 +10,7 @@ import { useAddCommentaireMutation } from "../services/commentaireApi";
 import Layout from "../Layouts/Layout";
 import SectionHeading from "../Components/SectionHeading";
 import { useAddHECStatutMutation } from "../services/hecApi";
-import { useGetNotificationToggleQuery } from "../services/toggleApi";
+
 import { useGetReservationsWithClientCommentsQuery } from "../services/reservations";
 import CreateNoteInterneModal from "../Components/CreateNoteInterneModal";
 import {
@@ -60,7 +60,7 @@ export default function GirStaff() {
 
   // État pour stocker le message du commentaire
   const [commentMessage, setCommentMessage] = useState("");
-  const { refetch: refetchToggle } = useGetNotificationToggleQuery();
+
   const [isConfirming, setIsConfirming] = useState(false);
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
 

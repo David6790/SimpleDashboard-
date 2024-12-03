@@ -13,7 +13,7 @@ import {
   validateNumberOfPeople,
   validateDate,
 } from "../Components/ValidationSaisie";
-import { useGetNotificationToggleQuery } from "../services/toggleApi";
+
 import { useNavigate } from "react-router-dom";
 
 //import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
@@ -56,8 +56,6 @@ export default function ResaExternesClients() {
   const [confirmAction, setConfirmAction] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-
-  const { refetch: refetchToggle } = useGetNotificationToggleQuery(); // Refetch pour le toggle
 
   // Fonction pour gérer le changement de date
   const handleDateChange = (date) => {
@@ -176,7 +174,7 @@ export default function ResaExternesClients() {
       setReservationDetails(response);
 
       resetForm(); // Réinitialise les champs du formulaire
-      await refetchToggle();
+
       setIsSubmitting(false); // Désactiver l'état de soumission
       setIsSuccessModalOpen(true);
     } catch (error) {
