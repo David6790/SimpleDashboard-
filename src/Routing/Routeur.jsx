@@ -29,6 +29,7 @@ import PageStockCompletResa from "../pages/PageStockCompletResa";
 import SyntheseResa from "../pages/SyntheseResa";
 import AccesDeniedClient from "../pages/AccesDeniedClient";
 import PROCOM from "../pages/PROCOM";
+import ProcomMain from "../pages/ProcomMain";
 
 const Routeur = () => {
   const dispatch = useDispatch();
@@ -165,6 +166,7 @@ const Routeur = () => {
         />
         <Route path="/modif-resa-client" element={<UpdateResaFormClient />} />
         <Route path="/resa-externe" element={<ResaExternesClients />} />
+        <Route path="/procom-main" element={<ProcomMain />} />
       </Routes>
     </BrowserRouter>
   );
