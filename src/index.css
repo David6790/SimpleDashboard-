@@ -116,3 +116,9 @@ body.no-scroll {
 .blink {
   animation: blink 1.5s infinite;
 }
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -371,7 +371,11 @@ const ModalViewPlan = ({ date, period, onClose }) => {
                   }
                 }}
               >
-                {`${reservation.clientPrenom} ${reservation.clientNom} ${reservation.numberOfGuest}p ${reservation.timeResa}`}
+                {`${reservation.clientPrenom} ${
+                  reservation.clientNom.length > 11
+                    ? reservation.clientNom.slice(0, 11) + "..."
+                    : reservation.clientNom
+                } ${reservation.numberOfGuest}p ${reservation.timeResa}`}
               </div>
             );
           })}
