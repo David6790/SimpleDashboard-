@@ -4,6 +4,7 @@ import Layout from "../Layouts/Layout";
 import SectionHeading from "../Components/SectionHeading";
 import { useGetAllProcomsQuery } from "../services/procomApi"; // Import du hook RTK Query
 import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import du hook useNavigate
 
 const getStatusLabelAndStyle = (statusCode) => {
   switch (statusCode) {
@@ -49,6 +50,14 @@ export default function PROCOM() {
   const { data: procoms, isLoading, isError } = useGetAllProcomsQuery(); // Utilisation du hook RTK Query
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const navigate = useNavigate(); // Initialiser useNavigate
+
+  // Fonction pour gérer le clic sur "Voir le dossier"
+  const handleViewProcom = (id) => {
+    navigate(`/procom-main/${id}`);
+  };
+
+  console.log(procoms);
 
   if (isLoading) {
     return (
@@ -164,12 +173,12 @@ export default function PROCOM() {
                 </div>
               </div>
               <div className="flex flex-none items-center gap-x-4">
-                <a
-                  href={`/procoms/${procom.id}`}
+                <button
+                  onClick={() => handleViewProcom(procom.reservationId)}
                   className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none"
                 >
                   Voir le dossier
-                </a>
+                </button>
                 <Menu as="div" className="relative flex-none">
                   <MenuButton className="p-2 text-gray-500 hover:text-gray-900">
                     <EllipsisVerticalIcon

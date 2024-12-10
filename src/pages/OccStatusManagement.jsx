@@ -66,6 +66,7 @@ const occStatusOptions = [
   { value: "Service2Complet", label: "Service2Complet" },
   { value: "Complet", label: "Complet" },
   { value: "RAS", label: "RAS" },
+  { value: "Nouvel-An", label: "Nouvel-An" },
 ];
 
 const occStatusOptionsMidi = [

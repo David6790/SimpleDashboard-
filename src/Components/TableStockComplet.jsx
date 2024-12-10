@@ -3,6 +3,7 @@ import {
   useGetUntreatedReservationsQuery,
   useValidateReservationMutation,
   useRefuseReservationMutation,
+  useAcompteReservationNewYearMutation,
 } from "../services/reservations";
 
 import ReservationSlideOver from "./ReservationSlideOver";
@@ -21,6 +22,7 @@ export default function TableReservations({ date }) {
   } = useGetUntreatedReservationsQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
+  console.log(reservations);
 
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState(null);
@@ -39,6 +41,9 @@ export default function TableReservations({ date }) {
   const [isModalMidiOpen, setIsModalMidiOpen] = useState(false);
   const [isModalSoirOpen, setIsModalSoirOpen] = useState(false);
   const [selectedReservationDate, setSelectedReservationDate] = useState(null); // Nouvel état pour la date
+
+  const [acompteReservationNewYear] = useAcompteReservationNewYearMutation();
+  const [isLoadingDeposit, setIsLoadingDeposit] = useState(false); // État de chargement pour le bouton
 
   // Fonction pour le bouton "Check"
   const onClickCheck = (reservation) => {
@@ -64,6 +69,18 @@ export default function TableReservations({ date }) {
   const handleCloseSoirModal = () => {
     setIsModalSoirOpen(false);
     setSelectedReservationDate(null); // Réinitialiser la date
+  };
+
+  const handleRequestDeposit = async (id) => {
+    try {
+      setIsLoadingDeposit(true); // Activer l'état de chargement
+      await acompteReservationNewYear(id).unwrap(); // Appeler le hook
+      console.log(`Acompte demandé avec succès pour la réservation ${id}`);
+    } catch (error) {
+      console.error("Erreur lors de la demande d'acompte :", error);
+    } finally {
+      setIsLoadingDeposit(false); // Désactiver l'état de chargement
+    }
   };
 
   useEffect(() => {
@@ -297,7 +314,24 @@ export default function TableReservations({ date }) {
                     {reservation.status === "P" ? (
                       showConfirmationOptions === reservation.id ? (
                         <div className="flex flex-col items-center space-y-2 md:space-y-0 md:flex-row md:space-x-1 md:justify-end">
-                          {isConfirming ? (
+                          {reservation.isSpecialEvent ? (
+                            <button
+                              className={`px-2 py-1 rounded-md text-xs md:text-sm font-medium ${
+                                isLoading
+                                  ? "bg-gray-400 cursor-not-allowed"
+                                  : "bg-blue-400 text-white hover:bg-blue-500"
+                              }`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRequestDeposit(reservation.id); // Appel de la fonction
+                              }}
+                              disabled={isLoading} // Désactiver le bouton pendant le chargement
+                            >
+                              {isLoading
+                                ? "En cours..."
+                                : "Accepter & Demander Acompte"}
+                            </button>
+                          ) : isConfirming ? (
                             <button className="px-2 py-1 rounded-md text-xs md:text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100">
                               En cours...
                             </button>
@@ -321,17 +355,17 @@ export default function TableReservations({ date }) {
                               >
                                 Par Email et SMS
                               </button>
-                              <button
-                                className="px-2 py-1 rounded-md text-xs md:text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleBackClick();
-                                }}
-                              >
-                                Retour
-                              </button>
                             </>
                           )}
+                          <button
+                            className="px-2 py-1 rounded-md text-xs md:text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBackClick();
+                            }}
+                          >
+                            Retour
+                          </button>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center space-y-2 md:space-y-0 md:flex-row md:space-x-1 md:justify-end">

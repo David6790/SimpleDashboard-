@@ -233,6 +233,23 @@ export const reservationsApi = createApi({
       keepUnusedDataFor: 1440,
       providesTags: ["Reservations"],
     }),
+
+    createSpecialDateReservation: builder.mutation({
+      query: (newReservation) => ({
+        url: "Reservations/special-date",
+        method: "POST",
+        body: newReservation,
+      }),
+      invalidatesTags: ["Reservations", "HECStatuts"], // Invalide le cache lié aux réservations
+    }),
+
+    acompteReservationNewYear: builder.mutation({
+      query: (id) => ({
+        url: `Reservations/new-year-deposit/${id}`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Reservations"], // Invalide le cache des réservations après modification
+    }),
   }),
 });
 
@@ -269,6 +286,8 @@ export const {
   useGetLatestReservationsQuery,
   useCancelClientReservationMutation,
   useGetReservationSyntheseQuery,
+  useCreateSpecialDateReservationMutation, // Hook pour créer une réservation spéciale
+  useAcompteReservationNewYearMutation, // Hook pour ajouter un acompte pour le Nouvel An
 } = reservationsApi;
 
 export default reservationsApi;

@@ -6,9 +6,9 @@ import { occupationStatusApi } from "./services/occupationStatusApi";
 import allocationsApi from "./services/allocationsApi";
 import { hecApi } from "./services/hecApi"; // Import hecApi
 import { commentaireApi } from "./services/commentaireApi"; // Import commentaireApi
-
 import { procomApi } from "./services/procomApi";
 import notificationReducer from "./slices/notificationSlice";
+import { paymentApi } from "./services/paymentApi"; // Import paymentApi
 
 export const store = configureStore({
   reducer: {
@@ -18,7 +18,7 @@ export const store = configureStore({
     [occupationStatusApi.reducerPath]: occupationStatusApi.reducer, // Ajouter le réducteur occupationStatusApi
     [hecApi.reducerPath]: hecApi.reducer, // Ajouter le réducteur hecApi
     [commentaireApi.reducerPath]: commentaireApi.reducer, // Ajouter le réducteur commentaireApi
-    // Ajouter le réducteur toggleApi
+    [paymentApi.reducerPath]: paymentApi.reducer, // Ajouter le réducteur paymentApi
     user: userReducer, // Ajouter le réducteur userSlice
     notification: notificationReducer,
     [procomApi.reducerPath]: procomApi.reducer,
@@ -31,7 +31,7 @@ export const store = configureStore({
       allocationsApi.middleware,
       hecApi.middleware, // Ajouter le middleware hecApi
       commentaireApi.middleware, // Ajouter le middleware commentaireApi
-
+      paymentApi.middleware, // Ajouter le middleware paymentApi
       procomApi.middleware
     ),
 });

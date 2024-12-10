@@ -12,6 +12,8 @@ export const getStatusText = (status) => {
       return "Modification à valider";
     case "D":
       return "Table libérée";
+    case "X":
+      return "Attente d'Acompte";
     default:
       return "Unknown";
   }

@@ -13,6 +13,7 @@ import {
   useCancelClientReservationMutation,
 } from "../services/reservations";
 import ConfirmationAnnulationClientModal from "../Components/ConfirmationAnnulationClientModal";
+import { useCreatePaymentSessionMutation } from "../services/paymentApi";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -61,6 +62,44 @@ export default function GestionInteractiveResa() {
   const [isSubmitting, setIsSubmitting] = useState(false); // État pour la soumission
   const [annulationClient] = useCancelClientReservationMutation(); // Hook pour l'annulation
   const [cancelReason, setCancelReason] = useState("");
+
+  const [createPaymentSession] = useCreatePaymentSessionMutation();
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleCreatePaymentSession = async (
+    reservationId,
+    numberOfGuests,
+    setLoading,
+    setError
+  ) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const session = await createPaymentSession({
+        reservationId,
+        numberOfGuests,
+      }).unwrap();
+
+      // Redirection vers la session de paiement (par exemple Stripe)
+      if (session.url) {
+        window.location.href = session.url;
+      } else {
+        throw new Error("URL de session de paiement non reçue.");
+      }
+    } catch (error) {
+      console.error(
+        "Erreur lors de la création de la session de paiement:",
+        error
+      );
+      setError(
+        "Une erreur est survenue lors de la création de la session de paiement."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCancelReservation = async () => {
     try {
@@ -230,29 +269,51 @@ export default function GestionInteractiveResa() {
               </div>
             </div>
             <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
-              {reservationData.status !== "A" &&
-              reservationData.status !== "P" &&
-              reservationData.status !== "R" &&
-              reservationData.status !== "M" ? (
+              {reservationData.status === "X" ? (
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                  onClick={handleEditReservation} // Appel de la fonction de redirection
+                  className={`inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-md transition ${
+                    isLoading
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-orange-500 hover:bg-orange-600"
+                  }`}
+                  onClick={() =>
+                    handleCreatePaymentSession(
+                      reservationData.id,
+                      reservationData.numberOfGuest,
+                      setLoading,
+                      setError
+                    )
+                  }
+                  disabled={isLoading}
                 >
-                  Modifier votre réservation
+                  {isLoading ? "En cours..." : "Payer Acompte"}
                 </button>
               ) : (
-                ""
-              )}{" "}
-              {reservationData.status !== "A" &&
-                reservationData.status !== "R" && ( // Condition pour cacher le bouton si le statut est "A" ou "R"
-                  <button
-                    className="inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-red-700"
-                    onClick={() => setIsModalOpen(true)}
-                  >
-                    Annuler ma réservation
-                  </button>
-                )}
+                <>
+                  {reservationData.status !== "A" &&
+                  reservationData.status !== "P" &&
+                  reservationData.status !== "R" &&
+                  reservationData.status !== "M" ? (
+                    <button
+                      type="button"
+                      className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                      onClick={handleEditReservation} // Appel de la fonction de redirection
+                    >
+                      Modifier votre réservation
+                    </button>
+                  ) : null}
+                  {reservationData.status !== "A" &&
+                    reservationData.status !== "R" && ( // Condition pour cacher le bouton si le statut est "A" ou "R"
+                      <button
+                        className="inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-red-700"
+                        onClick={() => setIsModalOpen(true)}
+                      >
+                        Annuler ma réservation
+                      </button>
+                    )}
+                </>
+              )}
             </div>
           </div>
 

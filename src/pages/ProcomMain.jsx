@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom"; // Import du hook useParams
 import { Disclosure } from "@headlessui/react";
 import {
   BellIcon,
@@ -9,17 +10,31 @@ import {
   KeyIcon,
   SquaresPlusIcon,
   UserCircleIcon,
+  BriefcaseIcon,
+  DocumentIcon,
+  ChatBubbleLeftEllipsisIcon,
+  ClipboardDocumentListIcon,
 } from "@heroicons/react/24/outline";
 import Layout from "../Layouts/Layout";
 import ContextDossier from "../Components/ProcomPage/ContextDossier"; // Import du composant ContextDossier
+import { useGetProcomDetailsQuery } from "../services/procomApi"; // Import du hook
+import Proposition from "../Components/ProcomPage/Proposition";
 
 const subNavigation = [
   { name: "Context dossier", key: "context", icon: UserCircleIcon },
-  { name: "Propositions", key: "propositions", icon: CogIcon },
-  { name: "Fichiers", key: "fichiers", icon: KeyIcon },
-  { name: "Echanges clients", key: "echanges", icon: BellIcon },
+  { name: "Editeur de Menu", key: "propositions", icon: BriefcaseIcon },
+  { name: "Fichiers associés", key: "fichiers", icon: DocumentIcon },
+  {
+    name: "Echanges clients",
+    key: "echanges",
+    icon: ChatBubbleLeftEllipsisIcon,
+  },
   { name: "Facturation", key: "facturation", icon: CreditCardIcon },
-  { name: "Integrations", key: "integrations", icon: SquaresPlusIcon },
+  {
+    name: "Notes internes et suivi",
+    key: "internes",
+    icon: ClipboardDocumentListIcon,
+  },
 ];
 
 function classNames(...classes) {
@@ -28,14 +43,33 @@ function classNames(...classes) {
 
 export default function ProcomMain() {
   const [activeSection, setActiveSection] = useState("context");
+  const { reservationId } = useParams(); // Récupération de l'ID de réservation depuis l'URL
+  const {
+    data: procomData,
+    error,
+    isLoading,
+  } = useGetProcomDetailsQuery(reservationId);
+
+  // Logger les données récupérées
+  useEffect(() => {
+    if (procomData) {
+      console.log("Données du PROCOM : ", procomData);
+    }
+    if (error) {
+      console.error("Erreur lors de la récupération du PROCOM : ", error);
+    }
+  }, [procomData, error]);
 
   const renderContent = () => {
     switch (activeSection) {
       case "context":
-        return <ContextDossier />;
-      // Ajoutez d'autres cas pour les autres sections si nécessaire
+        return <ContextDossier procomData={procomData} />; // Passer les données au composant enfant
+      case "propositions":
+        return <Proposition procomData={procomData} />;
       default:
-        return <div className="p-6">Hello World</div>;
+        return (
+          <div className="p-6">Sélectionnez une section pour commencer.</div>
+        );
     }
   };
 
@@ -89,7 +123,17 @@ export default function ProcomMain() {
                 </aside>
 
                 {/* Contenu dynamique */}
-                <section className="lg:col-span-9">{renderContent()}</section>
+                <section className="lg:col-span-9">
+                  {isLoading ? (
+                    <div className="p-6">Chargement...</div>
+                  ) : error ? (
+                    <div className="p-6 text-red-500">
+                      Erreur lors de la récupération des données.
+                    </div>
+                  ) : (
+                    renderContent()
+                  )}
+                </section>
               </div>
             </div>
           </div>

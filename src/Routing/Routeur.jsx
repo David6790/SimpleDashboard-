@@ -166,7 +166,7 @@ const Routeur = () => {
         />
         <Route path="/modif-resa-client" element={<UpdateResaFormClient />} />
         <Route path="/resa-externe" element={<ResaExternesClients />} />
-        <Route path="/procom-main" element={<ProcomMain />} />
+        <Route path="/procom-main/:reservationId" element={<ProcomMain />} />
       </Routes>
     </BrowserRouter>
   );

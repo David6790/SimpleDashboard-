@@ -7,7 +7,10 @@ import { parsePhoneNumberFromString } from "libphonenumber-js"; // Importation d
 import TimeSlotSelector from "../Components/TimeSlotSelector";
 //import ValidationMessage from "./ValidationMessage";
 import ValidationMessage from "../Components/ValidationMessage";
-import { useCreateReservationMutation } from "../services/reservations";
+import {
+  useCreateReservationMutation,
+  useCreateSpecialDateReservationMutation,
+} from "../services/reservations";
 import {
   validateEmail,
   validateNumberOfPeople,
@@ -25,6 +28,7 @@ import { registerLocale } from "react-datepicker";
 import fr from "date-fns/locale/fr";
 
 import SucessConfirmationModalCreation from "../Components/SucessConfirmationModalCreation";
+import NewYearConfModal from "../Components/NewYearConfModal";
 
 export default function ResaExternesClients() {
   const navigate = useNavigate();
@@ -56,7 +60,10 @@ export default function ResaExternesClients() {
   const [confirmAction, setConfirmAction] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isNewYearModalOpen, setIsNewYearModalOpen] = useState(false);
 
+  const [createSpecialDateReservation] =
+    useCreateSpecialDateReservationMutation();
   // Fonction pour gérer le changement de date
   const handleDateChange = (date) => {
     const formattedDate = format(date, "yyyy-MM-dd");
@@ -164,19 +171,31 @@ export default function ResaExternesClients() {
         createdBy: "INTERNET",
       };
 
-      // Appel de l'API et récupération de la réponse
-      const response = await createReservation(reservation).unwrap();
+      // Vérifier si c'est Nouvel An avec une heure supérieure à 19h
+      if (occStatusDinner === "Nouvel-An" && parseInt(selectedTimeSlot) >= 19) {
+        // Appel au hook `createSpecialDateReservation`
+        const specialDateResponse = await createSpecialDateReservation(
+          reservation
+        ).unwrap();
 
-      // Affichage de la réponse dans la console
-      console.log(response);
+        console.log(
+          "Réservation spéciale Nouvel An créée :",
+          specialDateResponse
+        );
 
-      // Mise à jour de l'état avec les détails de la réservation retournés par l'API
-      setReservationDetails(response);
+        setReservationDetails(specialDateResponse); // Mise à jour des détails avec la réponse
+      } else {
+        // Sinon, utiliser le hook existant
+        const response = await createReservation(reservation).unwrap();
+
+        console.log("Réservation normale créée :", response);
+
+        setReservationDetails(response); // Mise à jour des détails avec la réponse
+      }
 
       resetForm(); // Réinitialise les champs du formulaire
-
       setIsSubmitting(false); // Désactiver l'état de soumission
-      setIsSuccessModalOpen(true);
+      setIsSuccessModalOpen(true); // Ouvrir le modal de succès
     } catch (error) {
       setErrorMessage(
         error?.data?.error ||
@@ -256,6 +275,10 @@ export default function ResaExternesClients() {
 
       setConfirmAction(() => submitReservation);
       setIsConfirmationModalOpen(true);
+    } else if (occStatusDinner === "Nouvel-An") {
+      setConfirmAction(() => submitReservation); // Définir l'action à exécuter
+      setIsNewYearModalOpen(true); // Ouvrir le modal de Nouvel An
+      setIsSubmitting(false);
     } else {
       // Si aucune condition de modal n'est remplie, soumettre directement
       await submitReservation();
@@ -579,6 +602,16 @@ export default function ResaExternesClients() {
             } else {
               window.location.href = "https://il-girasole-strasbourg.com/"; // Redirige vers l'URL spécifiée
             }
+          }}
+        />
+        <NewYearConfModal
+          isOpen={isNewYearModalOpen}
+          onClose={() => setIsNewYearModalOpen(false)}
+          onConfirm={async () => {
+            if (confirmAction) {
+              await confirmAction(); // Appel de l'action définie
+            }
+            setIsNewYearModalOpen(false); // Fermer le modal après exécution
           }}
         />
       </div>

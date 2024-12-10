@@ -1,219 +1,225 @@
-"use client";
-
 import { useState } from "react";
-import { Description, Field, Label, Switch } from "@headlessui/react";
+import { PaperClipIcon } from "@heroicons/react/20/solid";
 
-const user = {
-  name: "Debbie Lewis",
-  handle: "deblewis",
-  email: "debbielewis@example.com",
-  imageUrl:
-    "https://images.unsplash.com/photo-1517365830460-955ce3ccd263?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=4&w=320&h=320&q=80",
+// Fonction pour récupérer le libellé de l'énumération
+const getProcomStatusLabel = (status) => {
+  const statusLabels = {
+    1: "En instance",
+    2: "Proposition envoyée",
+    3: "En discussion",
+    4: "Validée",
+    5: "Archivée",
+  };
+  return statusLabels[status] || "Statut inconnu";
 };
 
-export default function ContextDossier() {
-  const [availableToHire, setAvailableToHire] = useState(true);
-  const [privateAccount, setPrivateAccount] = useState(false);
-  const [allowCommenting, setAllowCommenting] = useState(true);
-  const [allowMentions, setAllowMentions] = useState(true);
+// Fonction pour formater la date
+const formatDate = (dateString) => {
+  const options = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+  return new Date(dateString).toLocaleDateString("fr-FR", options);
+};
+
+export default function ContextDossier({ procomData }) {
+  // État pour gérer le mode édition
+  const [isEditing, setIsEditing] = useState(false);
+
+  // État pour stocker les données modifiables
+  const [formData, setFormData] = useState({
+    clientName: procomData?.reservation?.clientName || "",
+    dossierStatus: getProcomStatusLabel(procomData?.status),
+    dueDate: formatDate(procomData?.dateEcheance),
+    assignedTo: procomData?.assignedUserName || "",
+    notes:
+      procomData?.postIts?.map((postIt) => postIt.content).join("\n") ||
+      "Ajoutez vos notes ici.",
+    participants: procomData?.reservation?.numberOfGuest || 0,
+    budget: "Non spécifié",
+    collaborators:
+      procomData?.collabUserName || "Pas de collaborateur sur ce dossier",
+  });
+
+  // Gestion des champs modifiés
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Sauvegarde et bascule en mode vue
+  const handleSave = () => {
+    setIsEditing(false);
+    console.log("Données enregistrées :", formData); // Pour simuler l'enregistrement
+  };
+
+  // Annule les modifications
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
 
   return (
-    <form
-      action="#"
-      method="POST"
-      className="divide-y divide-gray-200 lg:col-span-9"
-    >
-      {/* Profile section */}
-      <div className="px-4 py-6 sm:p-6 lg:pb-8">
-        <div>
-          <h2 className="text-lg font-medium text-gray-900">Profile</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            This information will be displayed publicly so be careful what you
-            share.
-          </p>
-        </div>
-
-        <div className="mt-6 flex flex-col lg:flex-row">
-          <div className="grow space-y-6">
-            {/* Username */}
-            <div>
-              <label
-                htmlFor="username"
-                className="block text-sm font-medium text-gray-900"
-              >
-                Username
-              </label>
-              <div className="mt-2">
-                <div className="flex items-center rounded-md bg-white pl-3 outline outline-1 outline-gray-300 focus-within:outline-2 focus-within:outline-sky-600">
-                  <div className="shrink-0 text-base text-gray-500">
-                    workcation.com/
-                  </div>
-                  <input
-                    defaultValue={user.handle}
-                    id="username"
-                    name="username"
-                    type="text"
-                    placeholder="janesmith"
-                    className="block w-full grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder-gray-400 focus:outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* About */}
-            <div>
-              <label
-                htmlFor="about"
-                className="block text-sm font-medium text-gray-900"
-              >
-                About
-              </label>
-              <div className="mt-2">
-                <textarea
-                  id="about"
-                  name="about"
-                  rows={3}
-                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 outline-gray-300 placeholder-gray-400 focus:outline-2 focus:outline-sky-600"
-                  defaultValue={""}
-                />
-              </div>
-              <p className="mt-3 text-sm text-gray-500">
-                Write a few sentences about yourself.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Additional Fields */}
-        <div className="mt-6 grid grid-cols-12 gap-6">
-          {/* First Name */}
-          <div className="col-span-12 sm:col-span-6">
-            <label
-              htmlFor="first-name"
-              className="block text-sm font-medium text-gray-900"
-            >
-              First name
-            </label>
-            <div className="mt-2">
-              <input
-                id="first-name"
-                name="first-name"
-                type="text"
-                autoComplete="given-name"
-                className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 outline-gray-300 placeholder-gray-400 focus:outline-2 focus:outline-sky-600"
-              />
-            </div>
-          </div>
-
-          {/* Last Name */}
-          <div className="col-span-12 sm:col-span-6">
-            <label
-              htmlFor="last-name"
-              className="block text-sm font-medium text-gray-900"
-            >
-              Last name
-            </label>
-            <div className="mt-2">
-              <input
-                id="last-name"
-                name="last-name"
-                type="text"
-                autoComplete="family-name"
-                className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 outline-gray-300 placeholder-gray-400 focus:outline-2 focus:outline-sky-600"
-              />
-            </div>
-          </div>
-
-          {/* URL */}
-          <div className="col-span-12">
-            <label
-              htmlFor="url"
-              className="block text-sm font-medium text-gray-900"
-            >
-              URL
-            </label>
-            <div className="mt-2">
-              <input
-                id="url"
-                name="url"
-                type="text"
-                className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 outline-gray-300 placeholder-gray-400 focus:outline-2 focus:outline-sky-600"
-              />
-            </div>
-          </div>
-
-          {/* Company */}
-          <div className="col-span-12 sm:col-span-6">
-            <label
-              htmlFor="company"
-              className="block text-sm font-medium text-gray-900"
-            >
-              Company
-            </label>
-            <div className="mt-2">
-              <input
-                id="company"
-                name="company"
-                type="text"
-                autoComplete="organization"
-                className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 outline-gray-300 placeholder-gray-400 focus:outline-2 focus:outline-sky-600"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Privacy section */}
-      <div className="divide-y divide-gray-200 pt-6">
-        <div className="px-4 sm:px-6">
-          <h2 className="text-lg font-medium text-gray-900">Privacy</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Ornare eu a volutpat eget vulputate. Fringilla commodo amet.
-          </p>
-          <ul role="list" className="mt-2 divide-y divide-gray-200">
-            {/* Available to Hire */}
-            <Field as="li" className="flex items-center justify-between py-4">
-              <div className="flex flex-col">
-                <Label as="p" className="text-sm font-medium text-gray-900">
-                  Available to hire
-                </Label>
-                <Description className="text-sm text-gray-500">
-                  Nulla amet tempus sit accumsan. Aliquet turpis sed sit
-                  lacinia.
-                </Description>
-              </div>
-              <Switch
-                checked={availableToHire}
-                onChange={setAvailableToHire}
-                className={`${
-                  availableToHire ? "bg-teal-500" : "bg-gray-200"
-                } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
-              >
-                <span
-                  className={`${
-                    availableToHire ? "translate-x-6" : "translate-x-1"
-                  } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-                />
-              </Switch>
-            </Field>
-            {/* Vous pouvez ajouter les autres champs ici en suivant le même modèle */}
-          </ul>
-        </div>
-        <div className="mt-4 flex justify-end gap-x-3 px-4 py-4 sm:px-6">
+    <div className="overflow-hidden bg-white shadow sm:rounded-lg">
+      <div className="px-4 py-6 sm:px-6">
+        <h3 className="text-base/7 font-semibold text-gray-900">
+          {procomData?.titre || "Détails du dossier PROCOM"}
+        </h3>
+        <p className="mt-1 max-w-2xl text-sm/6 text-gray-500">
+          Informations générales et état actuel du dossier.
+        </p>
+        {!isEditing && (
           <button
-            type="button"
-            className="rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100"
+            onClick={() => setIsEditing(true)}
+            className="mt-4 inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
           >
-            Cancel
+            Modifier
           </button>
-          <button
-            type="submit"
-            className="rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700"
-          >
-            Save
-          </button>
-        </div>
+        )}
       </div>
-    </form>
+      <div className="border-t border-gray-100">
+        <dl className="divide-y divide-gray-100">
+          {/* Champs principaux */}
+          {[
+            {
+              label: "Nom du client",
+              name: "clientName",
+              value: formData.clientName,
+            },
+            {
+              label: "Statut du dossier",
+              name: "dossierStatus",
+              value: formData.dossierStatus,
+            },
+            {
+              label: "Date d'échéance",
+              name: "dueDate",
+              value: formData.dueDate,
+            },
+            {
+              label: "Affecté à",
+              name: "assignedTo",
+              value: formData.assignedTo,
+            },
+            {
+              label: "Notes",
+              name: "notes",
+              value: formData.notes,
+              type: "textarea",
+            },
+            {
+              label: "Nombre de personnes",
+              name: "participants",
+              value: formData.participants,
+              type: "number",
+            },
+            {
+              label: "Budget",
+              name: "budget",
+              value: formData.budget,
+            },
+            {
+              label: "Collaborateurs",
+              name: "collaborators",
+              value: formData.collaborators,
+              type: "textarea",
+            },
+          ].map((field) => (
+            <div
+              key={field.name}
+              className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+            >
+              <dt className="text-sm font-medium text-gray-900">
+                {field.label}
+              </dt>
+              <dd className="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0">
+                {isEditing ? (
+                  field.type === "textarea" ? (
+                    <textarea
+                      name={field.name}
+                      value={field.value}
+                      onChange={handleChange}
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    />
+                  ) : (
+                    <input
+                      type={field.type || "text"}
+                      name={field.name}
+                      value={field.value}
+                      onChange={handleChange}
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    />
+                  )
+                ) : (
+                  field.value
+                )}
+              </dd>
+            </div>
+          ))}
+
+          {/* Pièces jointes */}
+          <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt className="text-sm font-medium text-gray-900">
+              Pièces jointes
+            </dt>
+            <dd className="mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              <ul
+                role="list"
+                className="divide-y divide-gray-100 rounded-md border border-gray-200"
+              >
+                {procomData?.files?.map((file, index) => (
+                  <li
+                    key={index}
+                    className="flex items-center justify-between py-4 pl-4 pr-5 text-sm/6"
+                  >
+                    <div className="flex w-0 flex-1 items-center">
+                      <PaperClipIcon
+                        aria-hidden="true"
+                        className="size-5 shrink-0 text-gray-400"
+                      />
+                      <div className="ml-4 flex min-w-0 flex-1 gap-2">
+                        <span className="truncate font-medium">
+                          {file.fileName}
+                        </span>
+                        <span className="shrink-0 text-gray-400">
+                          {file.fileSize || "Taille inconnue"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="ml-4 shrink-0">
+                      <a
+                        href={file.filePath || "#"}
+                        className="font-medium text-indigo-600 hover:text-indigo-500"
+                      >
+                        Télécharger
+                      </a>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+
+          {/* Boutons d'édition */}
+          {isEditing && (
+            <div className="flex justify-end px-4 py-6 sm:px-6">
+              <button
+                onClick={handleCancel}
+                className="mr-4 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSave}
+                className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+              >
+                Enregistrer
+              </button>
+            </div>
+          )}
+        </dl>
+      </div>
+    </div>
   );
 }
