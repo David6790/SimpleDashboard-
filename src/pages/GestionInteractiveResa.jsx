@@ -294,7 +294,8 @@ export default function GestionInteractiveResa() {
                   {reservationData.status !== "A" &&
                   reservationData.status !== "P" &&
                   reservationData.status !== "R" &&
-                  reservationData.status !== "M" ? (
+                  reservationData.status !== "M" &&
+                  reservationData.isSpecialEvent === false ? (
                     <button
                       type="button"
                       className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
@@ -304,7 +305,8 @@ export default function GestionInteractiveResa() {
                     </button>
                   ) : null}
                   {reservationData.status !== "A" &&
-                    reservationData.status !== "R" && ( // Condition pour cacher le bouton si le statut est "A" ou "R"
+                    reservationData.status !== "R" &&
+                    reservationData.isSpecialEvent === false && ( // Condition pour cacher le bouton si le statut est "A" ou "R"
                       <button
                         className="inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-red-700"
                         onClick={() => setIsModalOpen(true)}

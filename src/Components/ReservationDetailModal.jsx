@@ -164,6 +164,13 @@ const ReservationDetailModal = ({
           <p>
             <strong>Commentaire:</strong> {reservation.comment || "Aucun"}
           </p>
+          {reservation.isSpecialEvent === true ? (
+            <p>
+              <strong>Acompte:</strong> {reservation.deposit + "€"}
+            </p>
+          ) : (
+            ""
+          )}
           {reservation.notesInternes?.length > 0 && (
             <p className=" mt-5 mb-5">
               <strong>Note interne:</strong>{" "}

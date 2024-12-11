@@ -169,6 +169,8 @@ const ModalViewPlan = ({ date, period, onClose }) => {
           reservationId: allocation.reservationId,
           hasArrived: allocation.reservation.hasArrived,
           notesInternes: allocation.reservation.notesInternes || [],
+          deposit: allocation.reservation.deposit,
+          isSpecialEvent: allocation.reservation.isSpecialEvent,
         });
 
         return acc;
