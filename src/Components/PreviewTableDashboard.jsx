@@ -265,6 +265,7 @@ export default function PreviewTableDashboard({
                       reservation.status !== "R" &&
                       reservation.status !== "P" &&
                       reservation.status !== "D" &&
+                      reservation.status !== "X" &&
                       (confirmRemove === reservation.id ? (
                         <div className="flex justify-end space-x-2">
                           <button
