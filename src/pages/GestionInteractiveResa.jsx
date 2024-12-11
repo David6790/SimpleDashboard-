@@ -549,7 +549,9 @@ export default function GestionInteractiveResa() {
                                 className={classNames(
                                   item.statut === "Réservation Validée: " ||
                                     item.statut === "Modification Validée: " ||
-                                    item.statut === "Double confirmation reçue"
+                                    item.statut ===
+                                      "Double confirmation reçue" ||
+                                    item.statut === "Réservation validée"
                                     ? "bg-green-500"
                                     : "bg-gray-400",
                                   "flex h-8 w-8 items-center justify-center rounded-full ring-8 ring-white"
@@ -557,7 +559,8 @@ export default function GestionInteractiveResa() {
                               >
                                 {item.statut === "Réservation Validée: " ||
                                 item.statut === "Modification Validée: " ||
-                                item.statut === "Double confirmation reçue" ? (
+                                item.statut === "Acompte bien reçu! " ||
+                                item.statut === "Réservation validée" ? (
                                   <HandThumbUpIcon
                                     className="h-5 w-5 text-white"
                                     aria-hidden="true"
