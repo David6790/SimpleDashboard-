@@ -11,6 +11,7 @@ import {
   useCreateReservationMutation,
   useCreateSpecialDateReservationMutation,
 } from "../services/reservations";
+import { useCreateExternalReservationMutation } from "../services/services externes/ReservationsExterneApi";
 import {
   validateEmail,
   validateNumberOfPeople,
@@ -32,7 +33,8 @@ import NewYearConfModal from "../Components/NewYearConfModal";
 
 export default function ResaExternesClients() {
   const navigate = useNavigate();
-  const [createReservation] = useCreateReservationMutation();
+  const [createReservation] = useCreateExternalReservationMutation();
+
   registerLocale("fr", fr);
 
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -197,8 +199,9 @@ export default function ResaExternesClients() {
       setIsSubmitting(false); // Désactiver l'état de soumission
       setIsSuccessModalOpen(true); // Ouvrir le modal de succès
     } catch (error) {
+      console.log(error);
       setErrorMessage(
-        error?.data?.error ||
+        error?.data?.message ||
           "Erreur lors de la réservation. Veuillez réessayer."
       );
       setIsErrorModalOpen(true);

@@ -1,10 +1,19 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import Cookies from "js-cookie";
 
 export const reservationsApi = createApi({
   reducerPath: "reservationsApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_API_URL,
+    prepareHeaders: (headers) => {
+      const token = Cookies.get("token"); // Récupère le token dans le cookie
+      if (token) {
+        headers.set("authorization", `Bearer ${token}`);
+      }
+      return headers;
+    },
   }),
+
   tagTypes: ["Reservations", "HECStatuts"],
   endpoints: (builder) => ({
     getReservations: builder.query({
@@ -218,16 +227,6 @@ export const reservationsApi = createApi({
       providesTags: ["Reservations"], // Tag pour invalider les caches si nécessaire
     }),
 
-    cancelClientReservation: builder.mutation({
-      query: ({ id, user, reason }) => ({
-        url: `Reservations/${id}/cancel-client?user=${user}&reason=${encodeURIComponent(
-          reason || ""
-        )}`,
-        method: "PATCH",
-      }),
-      invalidatesTags: ["Reservations", "HECStatuts"],
-    }),
-
     getReservationSynthese: builder.query({
       query: (id) => `Reservations/${id}/synthese`,
       keepUnusedDataFor: 1440,
@@ -284,7 +283,6 @@ export const {
   useDeleteNoteInterneMutation,
   useGetFilteredReservationsQuery,
   useGetLatestReservationsQuery,
-  useCancelClientReservationMutation,
   useGetReservationSyntheseQuery,
   useCreateSpecialDateReservationMutation, // Hook pour créer une réservation spéciale
   useAcompteReservationNewYearMutation, // Hook pour ajouter un acompte pour le Nouvel An

@@ -9,10 +9,12 @@ import { commentaireApi } from "./services/commentaireApi"; // Import commentair
 import { procomApi } from "./services/procomApi";
 import notificationReducer from "./slices/notificationSlice";
 import { paymentApi } from "./services/paymentApi"; // Import paymentApi
+import { reservationsExterneApi } from "./services/services externes/ReservationsExterneApi";
 
 export const store = configureStore({
   reducer: {
     [reservationsApi.reducerPath]: reservationsApi.reducer,
+    [reservationsExterneApi.reducerPath]: reservationsExterneApi.reducer,
     [allocationsApi.reducerPath]: allocationsApi.reducer,
     [authApi.reducerPath]: authApi.reducer, // Ajouter le réducteur authApi
     [occupationStatusApi.reducerPath]: occupationStatusApi.reducer, // Ajouter le réducteur occupationStatusApi
@@ -26,6 +28,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
       reservationsApi.middleware,
+      reservationsExterneApi.middleware,
       authApi.middleware,
       occupationStatusApi.middleware,
       allocationsApi.middleware,

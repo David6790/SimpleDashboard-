@@ -8,12 +8,10 @@ import { useGetCommentairesByReservationIdQuery } from "../services/commentaireA
 import logoG from "../images/logoG.png";
 import heart from "../images/heart.png";
 import { useAddCommentaireMutation } from "../services/commentaireApi";
-import {
-  useValidateDoubleConfirmationMutation,
-  useCancelClientReservationMutation,
-} from "../services/reservations";
+import { useValidateDoubleConfirmationMutation } from "../services/reservations";
 import ConfirmationAnnulationClientModal from "../Components/ConfirmationAnnulationClientModal";
 import { useCreatePaymentSessionMutation } from "../services/paymentApi";
+import { useCancelExternalReservationMutation } from "../services/services externes/ReservationsExterneApi";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -60,7 +58,7 @@ export default function GestionInteractiveResa() {
 
   const [isModalOpen, setIsModalOpen] = useState(false); // État pour gérer l'ouverture du modal
   const [isSubmitting, setIsSubmitting] = useState(false); // État pour la soumission
-  const [annulationClient] = useCancelClientReservationMutation(); // Hook pour l'annulation
+  const [annulationClient] = useCancelExternalReservationMutation(); // Hook pour l'annulation
   const [cancelReason, setCancelReason] = useState("");
 
   const [createPaymentSession] = useCreatePaymentSessionMutation();
