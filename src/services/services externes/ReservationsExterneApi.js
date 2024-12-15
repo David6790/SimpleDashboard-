@@ -24,6 +24,14 @@ export const reservationsExterneApi = createApi({
       }),
       invalidatesTags: ["ReservationsExternes"], // Invalide le cache après annulation
     }),
+    modifyExternalReservation: builder.mutation({
+      query: ({ id, ...updatedReservation }) => ({
+        url: `public/reservations/modify/${id}`, // URL de l'endpoint pour modifier une réservation
+        method: "PUT",
+        body: updatedReservation, // Corps de la requête
+      }),
+      invalidatesTags: ["ReservationsExternes"], // Invalide le cache après modification
+    }),
   }),
 });
 
@@ -31,6 +39,7 @@ export const reservationsExterneApi = createApi({
 export const {
   useCreateExternalReservationMutation,
   useCancelExternalReservationMutation,
+  useModifyExternalReservationMutation, // Nouveau hook pour modifier une réservation
 } = reservationsExterneApi;
 
 export default reservationsExterneApi;

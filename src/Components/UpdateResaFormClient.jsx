@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { parsePhoneNumberFromString } from "libphonenumber-js"; // Importation du parser
 import TimeSlotSelector from "./TimeSlotSelector";
 import ValidationMessage from "./ValidationMessage";
-import { useUpdateReservationMutation } from "../services/reservations";
+
 import { useGetAllocationsQuery } from "../services/allocationsApi";
 import { validateNumberOfPeople, validateDate } from "./ValidationSaisie";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -14,6 +14,7 @@ import ErrorModal from "./ErrorModal"; // Importation du modal d'erreur
 import OccStatusDisplayClient from "./OccStatusDisplayClient";
 import ConfirmationModal from "./ConfirmationModal ";
 import SuccessConfirmationModal from "./SuccessConfirmationModal";
+import { useModifyExternalReservationMutation } from "../services/services externes/ReservationsExterneApi";
 
 export default function UpdateResaFormClient() {
   const navigate = useNavigate();
@@ -22,7 +23,8 @@ export default function UpdateResaFormClient() {
 
   const reservationId = resa.id; // Récupérer l'ID de la réservation
   // eslint-disable-next-line
-  const [updateReservation, { isLoading }] = useUpdateReservationMutation();
+  const [updateReservation, { isLoading }] =
+    useModifyExternalReservationMutation();
 
   const [startDate, setStartDate] = useState(
     format(new Date(resa.dateResa), "yyyy-MM-dd")
